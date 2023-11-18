@@ -1,7 +1,10 @@
 #include "adder/adder.hpp"
+#include "tclap/CmdLine.h"
 #include <iostream>
 
-int main(){
-  int result = adder::add_one(1);
-  std::cout << "1 + 1 = " << result << std::endl;
+int main(int argc, char** argv){
+  if (argc < 2) {
+    std::cerr << "Usage: git [command]\n";
+  }
+  return 0;
 }
