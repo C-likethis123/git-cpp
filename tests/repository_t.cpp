@@ -36,6 +36,4 @@ TEST_CASE("GitRepository Create", "[GitRepository]") {
         // Add cleanup code here, such as removing directories or resetting state
         fs::remove_all(".git");
     }
-
-    // Add more sections for additional scenarios or edge cases
 }

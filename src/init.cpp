@@ -15,7 +15,7 @@ void init(std::vector<std::string> &args) {
     std::string path = pathArg.getValue();
 
     // process args
-    GitRepository repo(path, false);
+    GitRepository repo(path, true);
     std::string worktree = repo.create(false);
     std::cout << "Initialised Git repo at " << worktree << "\n";
 }

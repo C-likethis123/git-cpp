@@ -5,16 +5,21 @@
 namespace fs = boost::filesystem;
 
 GitRepository::GitRepository(std::string path, bool force)
-    : worktree(fs::path(path)), gitdir(fs::path(path) / ".git"), conf(loadConfigFile(fs::path(path) / ".git")) {
+    : worktree(fs::path(path)), gitdir(fs::path(path) / ".git") {
     if (!force && !fs::is_directory(gitdir)) {
         std::cerr << "Not a git repository: " << gitdir << "\n";
         // Handle error condition, throw an exception or set some flag, etc.
     }
 
-    int vers = conf.GetInteger("core", "repositoryformatversion", -1);
-    if (vers != 0) {
-        std::cerr << "Unsupported repositoryformatversion " << vers << "\n";
-        // Handle error condition, throw an exception or set some flag, etc.
+    fs::path configPath = gitdir / "config";
+    
+    if (fs::exists(configPath.string())) {
+        INIReader conf(configPath.string());
+        int vers = conf.GetInteger("core", "repositoryformatversion", -1);
+        if (vers != 0) {
+            std::cerr << "Unsupported repositoryformatversion " << vers << "\n";
+            // Handle error condition, throw an exception or set some flag, etc.
+        }
     }
 }
 
@@ -38,15 +43,4 @@ std::string GitRepository::create(bool mkdir) {
                                      "\tbare = false\n"
     );
     return worktree.string();
-}
-
-// Helper function to load the config file
-INIReader GitRepository::loadConfigFile(fs::path path) {
-    fs::path configPath = path / "config";
-    INIReader config(configPath.string());
-    if (config.ParseError() < 0) {
-        std::cerr << "Cannot load .git/config\n";
-        // Handle error condition, throw an exception or set some flag, etc.
-    }
-    return config;
 }
