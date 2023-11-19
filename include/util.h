@@ -1,0 +1,1 @@
+bool create_file(const std::string& filePath, const std::string& content = "");

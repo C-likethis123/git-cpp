@@ -1,2 +1,4 @@
 #pragma once
-void init(char** argv);
+#include <vector>
+#include <string>
+void init(std::vector<std::string> &args);
