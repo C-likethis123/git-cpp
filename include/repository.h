@@ -18,10 +18,10 @@ class GitRepository {
         std::string create(bool mkdir);
 
     protected:
-        std::string worktree;
-        std::string gitdir;
+        fs::path worktree;
+        fs::path gitdir;
         INIReader conf;  // Note: Directly declare INIReader instead of using a reference
-        INIReader loadConfigFile(std::string path);
+        INIReader loadConfigFile(fs::path path);
 };
 
 #endif //REPOSITORY_H

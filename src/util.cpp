@@ -3,7 +3,7 @@
 
 namespace fs = boost::filesystem;
 
-bool create_file(const std::string& filePath, const std::string& content = "") {
+bool create_file(const fs::path &filePath, const std::string& content = "") {
     try {
         // Create the file
         fs::ofstream fileStream(filePath);
