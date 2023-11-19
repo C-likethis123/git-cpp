@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+app/adder_app
+
+# CMake files
+*.cmake
+**/CMakeFiles/
+**/Makefile
