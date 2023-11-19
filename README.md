@@ -30,11 +30,8 @@ Project structure:
 To compile the project and run the tests:
 
 ```
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-make
-make test
+./build.sh
+./run.sh [-p] (specify to run in release mode)
 ```
 
 ## Documentation
