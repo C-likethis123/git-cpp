@@ -4,12 +4,11 @@
 #include <string>
 #include <iostream>
 #include <boost/filesystem.hpp>
-#include "inih/INIReader.h"
 
 namespace fs = boost::filesystem;
 class GitRepository {
     public:
-        GitRepository(std::string worktree, std::string gitdir, INIReader conf);
+        GitRepository(fs::path worktree, fs::path gitdir);
         GitRepository(std::string path, bool force);
 
         /**
@@ -20,8 +19,6 @@ class GitRepository {
     protected:
         fs::path worktree;
         fs::path gitdir;
-        INIReader conf;  // Note: Directly declare INIReader instead of using a reference
-        INIReader loadConfigFile(fs::path path);
 };
 
 #endif //REPOSITORY_H
