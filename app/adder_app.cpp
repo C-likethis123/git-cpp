@@ -1,4 +1,3 @@
-#include "adder/adder.hpp"
 #include "commands/init.h"
 #include <iostream>
 #include <vector>

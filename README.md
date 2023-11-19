@@ -9,11 +9,8 @@ A Git client written in C++, so that I can:
 Project structure:
 
 - [src](src)
-  - the `adder` library source code
   - this is where the meat of the project is: the implementation
-- [include](include/adder)
-  - adder (to be removed)
-  - tclap (tclap)
+- [include](include)
   - the public interface of the library
 - [app](app)
   - the application which uses the libraries in `include`
