@@ -6,6 +6,9 @@ project(cpp-project-template VERSION 0.0.1 LANGUAGES CXX)
 # this needs to be in the top level CMakeLists.txt to enable tests
 include(CTest)
 
+find_package(Boost REQUIRED COMPONENTS filesystem system)
+include_directories(${Boost_INCLUDE_DIRS})
+
 # compile the library
 add_subdirectory(src)
 
