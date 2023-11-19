@@ -15,9 +15,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 # compile the library
 add_subdirectory(src)
 
-# compile the tests
-add_subdirectory(tests)
-
 # compile the application
 add_subdirectory(app)
 
@@ -30,4 +27,10 @@ if(BUILD_DOCS)
 		${CMAKE_SOURCE_DIR}
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 	)
+endif()
+
+# compile the tests
+option(BUILD_TESTS "Enable building of documentation (requires Doxygen)" OFF)
+if(BUILD_TESTS)
+	add_subdirectory(tests)
 endif()
