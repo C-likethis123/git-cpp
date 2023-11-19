@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.8.2)
 # Set a name and a version number for your project:
 project(cpp-project-template VERSION 0.0.1 LANGUAGES CXX)
 
+# Enable C language
+enable_language(C)
+
 # this needs to be in the top level CMakeLists.txt to enable tests
 include(CTest)
 

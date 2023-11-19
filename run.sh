@@ -19,5 +19,5 @@ cmake . -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 make
 
 # Change to the "app" directory and run the application
-cd app
-./adder_app init
+# cd app
+# ./adder_app init
