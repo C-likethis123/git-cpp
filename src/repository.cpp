@@ -44,3 +44,39 @@ std::string GitRepository::create(bool mkdir) {
     );
     return worktree.string();
 }
+
+/*
+Computes the path under repo's gitdir
+*/
+fs::path GitRepository::repo_path(fs::path path) {
+    return gitdir / path;
+}
+/*
+Creates a directory, or returns None if it is a directory under the git repository given
+*/
+fs::path GitRepository::dir(const fs::path& path, bool mkdir) {
+    fs::path path_in_repo = repo_path(path);
+    if (fs::exists(path_in_repo)) {
+        if (fs::is_directory(path_in_repo)) {
+            return path_in_repo;
+        } else {
+            std::cerr << "Not a directory: " << path << "\n";
+        }
+    }
+
+    if (mkdir) {
+        fs::create_directories(path_in_repo);
+        return path_in_repo;
+    }
+    return fs::path("");
+}
+
+/**
+Returns and optionally creates a path to a file or a directory
+*/
+fs::path GitRepository::file(fs::path& path, bool mkdir) {
+    if (dir(path.branch_path(), mkdir) != fs::path("")) {
+        return repo_path(path);
+    }
+    return fs::path("");
+}

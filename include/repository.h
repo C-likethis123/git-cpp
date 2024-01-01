@@ -15,6 +15,9 @@ class GitRepository {
         Creates all files needed to represent a git directory
         */
         std::string create(bool mkdir);
+        fs::path repo_path(fs::path path);
+        fs::path dir(const fs::path& path, bool mkdir = false);
+        fs::path file(fs::path& gitdir, bool mkdir = false);
 
     protected:
         fs::path worktree;

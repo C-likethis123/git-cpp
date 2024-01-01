@@ -5,7 +5,7 @@
 #include "repository.h"
 
 void init(std::vector<std::string> &args) {
-    TCLAP::CmdLine cmd("init", ' ', "0.9");
+    TCLAP::CmdLine cmd("init", ' ', "0.1");
 
     // defines arguments
     TCLAP::ValueArg<std::string> pathArg("p","path","Path to create the git repo",false,".","string");

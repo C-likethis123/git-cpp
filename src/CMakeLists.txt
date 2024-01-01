@@ -10,6 +10,11 @@ target_link_libraries(repository PRIVATE inih util ${Boost_LIBRARIES})
 target_include_directories(repository PUBLIC ../include)
 target_compile_features(repository PUBLIC cxx_std_11)
 
+add_library(object object.cpp)
+target_link_libraries(object PRIVATE ${Boost_LIBRARIES})
+target_include_directories(object PUBLIC ../include)
+target_compile_features(object PUBLIC cxx_std_11)
+
 add_library(commands init.cpp)
 target_link_libraries(commands PRIVATE repository)
 target_include_directories(commands PUBLIC ../include)
