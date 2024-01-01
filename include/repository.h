@@ -3,13 +3,16 @@
 
 #include <string>
 #include <iostream>
+#include <optional>
 #include <boost/filesystem.hpp>
 
 namespace fs = boost::filesystem;
 class GitRepository {
     public:
         GitRepository(fs::path worktree, fs::path gitdir);
-        GitRepository(std::string path, bool force);
+        GitRepository(std::string path, bool force = false);
+        
+        static std::optional<GitRepository> find(const fs::path& path = fs::path("."), bool required = true);
 
         /**
         Creates all files needed to represent a git directory

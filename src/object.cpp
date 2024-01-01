@@ -1,6 +1,7 @@
 #include <boost/format.hpp>
 
 #include "object.h"
+#include "blob.h"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -14,31 +15,19 @@ GitObject::GitObject() {
     this->init();
 }
 
-GitObject::GitObject(std::string& data) {
-    this->deserialise(data);
-}
-
-void GitObject::deserialise(std::string& data) {
-
-}
-
-void GitObject::serialise(GitRepository& repo) {
-
-}
-
 void GitObject::init() {
 
 }
 
-void GitObject::read(GitRepository& repo, std::string& sha) {
+GitObject* GitObject::read(GitRepository& repo, const std::string& sha) {
     std::string dir = sha.substr(0, 2);
     std::string path = sha.substr(2);
-    std::string file_path = (boost::format("objects/%/%") % dir % path).str();
+    std::string file_path = (boost::format("objects/%1%/%2%") % dir % path).str();
     fs::path file_to_create = fs::path(file_path);
     fs::path paths = repo.file(file_to_create);
 
     if (!fs::is_regular_file(paths)){
-        return;
+        throw std::runtime_error(paths.string() + " is not found");
     }
     std::ifstream input_file(paths.string(), std::ios_base::in | std::ios_base::binary);
     std::vector<char> decompressed_data;
@@ -66,8 +55,13 @@ void GitObject::read(GitRepository& repo, std::string& sha) {
     }
     std::cout << "Object type: " << fmt << std::endl;
     std::cout << "Object size: " << size << std::endl;
+    return new GitBlob(raw.substr(y+1));
 }
 
 std::string write(GitRepository& repo){
     return "";
+}
+
+std::string GitObject::find(GitRepository& repo, std::string& name, std::string& fmt, bool follow) {
+    return name;
 }

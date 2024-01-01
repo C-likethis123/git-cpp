@@ -13,9 +13,12 @@ class GitObject {
         GitObject();
         GitObject(std::string& data);
 
-        void deserialise(std::string& data);
-        void serialise(GitRepository& repo);
-        void read(GitRepository& repo, std::string& sha);
+        virtual void deserialise(std::string& data) = 0;
+        virtual std::string serialise(GitRepository& repo) = 0;
+        
+        static GitObject* read(GitRepository& repo, const std::string& sha);
+        static std::string find(GitRepository& repo, std::string& name, std::string& fmt, bool follow = true);
+        
         std::string write(GitRepository& repo);
         void init();
 
