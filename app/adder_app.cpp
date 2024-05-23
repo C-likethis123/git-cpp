@@ -5,7 +5,8 @@
 
 int main(int argc, char** argv){
   if (argc < 2) {
-    std::cerr << "Usage: git [command]\n";
+    std::cerr << "Usage: " << argv[0] << " [command]\n";
+    return -1;
   }
   std::string command = argv[1];
   std::vector<std::string> args;
