@@ -53,13 +53,16 @@ GitObject* GitObject::read(GitRepository& repo, const std::string& sha) {
     if (size != raw.size() - y - 1) {
         throw std::runtime_error("Malformed object: bad length");
     }
-    std::cout << "Object type: " << fmt << std::endl;
-    std::cout << "Object size: " << size << std::endl;
-    return new GitBlob(raw.substr(y+1));
-}
 
-std::string write(GitRepository& repo){
-    return "";
+    if (fmt == "blob") {
+        std::cout << "Object type: " << fmt << std::endl;
+        std::cout << "Object size: " << size << std::endl;
+        return new GitBlob(raw.substr(y+1));
+    } else {
+        throw std::runtime_error("Unknown type");
+    }
+
+    
 }
 
 std::string GitObject::find(GitRepository& repo, std::string& name, std::string& fmt, bool follow) {

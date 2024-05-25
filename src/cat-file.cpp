@@ -22,10 +22,15 @@ void catfile(std::vector<std::string> &args) {
     std::string& hash = objArg.getValue();
 
     // process args
-    std::optional<GitRepository> repo = GitRepository::find();
-    if (repo){
-        GitObject* obj = GitObject::read(*repo, GitObject::find(*repo, hash, type));
-        std::cout << obj->serialise(*repo) << "\n";
+    try {
+        std::optional<GitRepository> repo = GitRepository::find();
+        if (repo){
+            GitObject* obj = GitObject::read(*repo, GitObject::find(*repo, hash, type));
+            std::cout << obj->serialise(*repo) << "\n";
+        }
+    } catch (std::runtime_error& err) {
+        std::cerr << err.what() << "\n";
     }
+    
     
 }

@@ -2,6 +2,15 @@
 
 Git init creates a repository.
 
+## Command usage
+
+- `./adder_app init` - creates an empty repository
+- `./adder_app init -p [path]` - creates an empty repository on the specified path
+
+## Implementation details
+
+1. Initialise a GitRepository object
+
 ## Git repository
 
 1. work tree - files in version control

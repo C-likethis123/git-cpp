@@ -14,8 +14,8 @@ class GitBlob : public GitObject {
 
         void deserialise(std::string& data) override;
         std::string serialise(GitRepository& repo) override;
-        
-        std::string write(GitRepository& repo);
+        std::string write(GitRepository& repo) override;
+
         void init();
 
     protected:
