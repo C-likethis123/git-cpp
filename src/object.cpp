@@ -4,6 +4,7 @@
 #include "blob.h"
 #include <iostream>
 #include <fstream>
+#include <stdexcept>
 #include <vector>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
@@ -63,6 +64,15 @@ GitObject* GitObject::read(GitRepository& repo, const std::string& sha) {
     }
 
     
+}
+
+std::string GitObject::write(GitRepository &repo, std::string& type, std::string& data, bool write) {
+    if (type == "blob") {
+        auto obj = new GitBlob(data);
+        return obj->write(repo, write);
+    } else {
+        throw std::runtime_error("Unknown type");
+    }
 }
 
 std::string GitObject::find(GitRepository& repo, std::string& name, std::string& fmt, bool follow) {
