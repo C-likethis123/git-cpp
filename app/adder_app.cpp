@@ -1,11 +1,11 @@
-#include "commands/init.h"
 #include "commands/cat-file.h"
 #include "commands/hash-object.h"
+#include "commands/init.h"
 #include <iostream>
-#include <vector>
 #include <string>
+#include <vector>
 
-int main(int argc, char** argv){
+int main(int argc, char **argv) {
   if (argc < 2) {
     std::cerr << "Usage: " << argv[0] << " [command]\n";
     return -1;

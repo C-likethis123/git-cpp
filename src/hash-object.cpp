@@ -25,12 +25,9 @@ void hashobject(std::vector<std::string> &args) {
     std::string& type = typeArg.getValue();
     std::string& path = pathArg.getValue();
 
-    std::cout << "type: " << type << ", path: " << path << ", write: " << write << "\n";
-    // process args
     try {
         std::optional<GitRepository> repo = GitRepository::find();
         if (repo){
-            // read file
             std::string fileContents = read_file(fs::path(path));
             // write to disk optionally, print hash
             std::string hash = GitObject::write(*repo, type, fileContents, write);

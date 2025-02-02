@@ -19,6 +19,11 @@ cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 # Build the project
 make
 
+# symlink - so I can run it like gyt [arguments....]
+sudo rm /usr/local/bin/gyt
+sudo ln -s "$(pwd)/app/adder_app" /usr/local/bin/gyt
+
+
 # Change to the "app" directory and run the application
 # cd app
 # ./adder_app init
