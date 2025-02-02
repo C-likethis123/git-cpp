@@ -15,8 +15,6 @@ class GitObject {
 
         virtual void deserialise(std::string& data) = 0;
         virtual std::string serialise(GitRepository& repo) = 0;
-        // making this virtual because serialise is also virtual
-        virtual std::string write(GitRepository& repo, bool write) = 0;
         
         static std::string write(GitRepository &repo, std::string& type, std::string& data, bool write);
         static GitObject* read(GitRepository& repo, const std::string& sha);
