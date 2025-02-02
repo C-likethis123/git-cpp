@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <fstream>
 #include <sstream>
 #include <boost/filesystem.hpp>
 #include <boost/uuid/detail/sha1.hpp>
@@ -10,7 +11,7 @@ namespace fs = boost::filesystem;
 bool create_file(const fs::path &filePath, const std::string& content = "") {
     try {
         // Create the file
-        fs::ofstream fileStream(filePath);
+        std::ofstream fileStream(filePath.string());
 
         // Check if the file is successfully opened
         if (fileStream.is_open()) {

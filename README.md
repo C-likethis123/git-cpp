@@ -27,7 +27,6 @@ Project structure:
 To compile the project and run the tests:
 
 ```
-./build.sh
 ./run.sh [-p] (specify to run in release mode)
 ```
 

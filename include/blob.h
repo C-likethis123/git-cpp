@@ -2,7 +2,6 @@
 #define BLOB_H
 
 #include <string>
-#include <iostream>
 #include <boost/filesystem.hpp>
 
 #include "object.h"
