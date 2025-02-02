@@ -32,6 +32,7 @@
 *.app
 app/adder_app
 tests/tests
+build/**/*
 
 # CMake files
 *.cmake

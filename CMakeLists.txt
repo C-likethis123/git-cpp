@@ -9,8 +9,17 @@ enable_language(C)
 # this needs to be in the top level CMakeLists.txt to enable tests
 include(CTest)
 
-find_package(Boost REQUIRED COMPONENTS filesystem system iostreams)
-include_directories(${Boost_INCLUDE_DIRS})
+set(BOOST_ENABLE_CMAKE ON)
+set(Boost_CMAKE_CXX_STANDARD 17)
+
+include(FetchContent)
+FetchContent_Declare(
+  Boost
+  GIT_REPOSITORY https://github.com/boostorg/boost.git
+  GIT_TAG boost-1.83.0
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(Boost)
 
 # compile the library
 add_subdirectory(src)
