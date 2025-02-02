@@ -8,6 +8,27 @@
 
 namespace fs = boost::filesystem;
 
+std::string read_file(const fs::path &filePath) {
+    try {
+        // Open the file
+        std::ifstream fileStream(filePath.string());
+
+        // Check if the file is successfully opened
+        if (fileStream.is_open()) {
+            // Read the content of the file
+            std::stringstream buffer;
+            buffer << fileStream.rdbuf();
+            return buffer.str();
+        } else {
+            std::cerr << "Error opening the file for reading: " << filePath << std::endl;
+            return "";
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Exception: " << e.what() << std::endl;
+        return "";
+    }
+}
+
 bool create_file(const fs::path &filePath, const std::string& content = "") {
     try {
         // Create the file
