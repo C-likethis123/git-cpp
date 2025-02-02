@@ -1,5 +1,9 @@
 #include <iostream>
+#include <iomanip>
+#include <string>
+#include <sstream>
 #include <boost/filesystem.hpp>
+#include <boost/uuid/detail/sha1.hpp>
 
 namespace fs = boost::filesystem;
 
@@ -25,4 +29,19 @@ bool create_file(const fs::path &filePath, const std::string& content = "") {
         std::cerr << "Exception: " << e.what() << std::endl;
         return false;
     }
+}
+
+std::string sha1_hexdigest(const std::string& data) {
+    boost::uuids::detail::sha1 sha1;
+    sha1.process_bytes(data.data(), data.size());
+
+    unsigned int digest[5];
+    sha1.get_digest(digest);
+
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0');
+    for (unsigned int i : digest) {
+        ss << std::setw(8) << i;
+    }
+    return ss.str();
 }

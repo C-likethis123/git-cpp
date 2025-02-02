@@ -9,7 +9,7 @@ enable_language(C)
 # this needs to be in the top level CMakeLists.txt to enable tests
 include(CTest)
 
-find_package(Boost REQUIRED COMPONENTS filesystem system)
+find_package(Boost REQUIRED COMPONENTS filesystem system iostreams)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # compile the library
