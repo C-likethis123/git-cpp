@@ -5,8 +5,6 @@
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
-#include <iostream>
-#include <sstream>
 #include <string>
 
 #include "repository.h"
