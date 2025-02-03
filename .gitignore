@@ -40,3 +40,6 @@ build/**/*
 **/Makefile
 CMakeCache.txt
 DartConfiguration.tcl
+
+# Clangd Cache
+.cache/

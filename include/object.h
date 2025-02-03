@@ -2,7 +2,6 @@
 #define OBJECT_H
 
 #include <boost/filesystem.hpp>
-#include <iostream>
 #include <string>
 
 #include "repository.h"

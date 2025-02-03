@@ -8,7 +8,6 @@
 #include <string>
 
 #include "repository.h"
-#include "util.h"
 
 GitBlob::GitBlob(const std::string &blobData)
     : blobData(blobData), GitObject(){};

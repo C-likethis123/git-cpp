@@ -22,6 +22,10 @@ Project structure:
 - [.github/workflows/ci.yml](.github/workflows/ci.yml)
   - the GitHub Actions configuration
 
+## Dev setup
+1. Clone repository
+2. Install the VSCode [clangd](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd) extension
+
 ## Compiling
 
 To compile the project and run the tests:

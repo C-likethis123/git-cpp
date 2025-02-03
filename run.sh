@@ -17,7 +17,7 @@ echo "Selected build type: $BUILD_TYPE"
 echo "Building the project... This will take a while to install dependencies for the first time."
 
 # Run CMake with the selected build type
-cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 
 # Build the project
 make
