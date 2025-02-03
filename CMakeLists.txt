@@ -13,6 +13,8 @@ include(CTest)
 
 set(BOOST_ENABLE_CMAKE ON)
 set(Boost_CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 FetchContent_Declare(

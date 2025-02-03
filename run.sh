@@ -10,14 +10,16 @@ if [ "$1" == "-p" ]; then
 fi
 
 # remove old build if any
-rm app/adder_app
+if [ -f "app/adder_app" ]; then
+    rm -rf app/adder_app
+fi
 
 # Print the selected build type
 echo "Selected build type: $BUILD_TYPE"
 echo "Building the project... This will take a while to install dependencies for the first time."
 
 # Run CMake with the selected build type
-cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 
 # Build the project
 make

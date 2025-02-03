@@ -6,7 +6,6 @@
 
 #include "object.h"
 
-namespace fs = boost::filesystem;
 class GitBlob : public GitObject {
 public:
   GitBlob(const std::string &data = std::string(""));
