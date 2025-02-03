@@ -9,6 +9,9 @@ if [ "$1" == "-p" ]; then
     BUILD_TYPE=Release
 fi
 
+# remove old build if any
+rm app/adder_app
+
 # Print the selected build type
 echo "Selected build type: $BUILD_TYPE"
 echo "Building the project... This will take a while to install dependencies for the first time."
@@ -18,6 +21,11 @@ cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
 # Build the project
 make
+
+# symlink - so I can run it like gyt [arguments....]
+sudo rm /usr/local/bin/gyt
+sudo ln -s "$(pwd)/app/adder_app" /usr/local/bin/gyt
+
 
 # Change to the "app" directory and run the application
 # cd app
