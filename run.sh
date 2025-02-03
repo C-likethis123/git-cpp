@@ -10,7 +10,9 @@ if [ "$1" == "-p" ]; then
 fi
 
 # remove old build if any
-rm app/adder_app
+if [ -f "app/adder_app" ]; then
+    rm -rf app/adder_app
+fi
 
 # Print the selected build type
 echo "Selected build type: $BUILD_TYPE"
