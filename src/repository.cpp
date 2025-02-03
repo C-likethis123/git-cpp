@@ -93,9 +93,9 @@ std::optional<GitRepository> GitRepository::find(const fs::path &path,
     GitRepository repo(path.string());
     return repo;
   }
-  fs::path parent = path.parent_path();
+  fs::path parent = canonicalPath.parent_path();
   if (parent == path) {
-    std::cerr << "No git directory found\n";
+    std::cerr << "No git directory found at " << canonicalPath.string() << "\n";
     return std::nullopt;
   }
   return find(parent, required);
