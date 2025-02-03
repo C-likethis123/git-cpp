@@ -9,6 +9,9 @@ if [ "$1" == "-p" ]; then
     BUILD_TYPE=Release
 fi
 
+# remove old build if any
+rm app/adder_app
+
 # Print the selected build type
 echo "Selected build type: $BUILD_TYPE"
 echo "Building the project... This will take a while to install dependencies for the first time."
