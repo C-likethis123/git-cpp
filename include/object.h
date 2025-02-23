@@ -12,7 +12,7 @@ public:
   GitObject();
   GitObject(const std::string &data);
 
-  virtual void deserialise(std::string &data) = 0;
+  virtual void deserialise(const std::string &data) = 0;
   virtual std::string serialise(GitRepository &repo) = 0;
 
   static std::string write(GitRepository &repo, std::string &type,

@@ -14,4 +14,4 @@ GitBlob::GitBlob(const std::string &blobData)
 
 std::string GitBlob::serialise(GitRepository &repo) { return blobData; }
 
-void GitBlob::deserialise(std::string &data) { this->blobData = data; }
+void GitBlob::deserialise(const std::string &data) { this->blobData = data; }
