@@ -1,5 +1,6 @@
-#include "blob.h"
 #include "object.h"
+#include "blob.h"
+#include "commit.h"
 #include "util.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
@@ -9,8 +10,8 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 
 #include <fstream>
-#include <sstream>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -98,5 +99,14 @@ std::string GitObject::write(GitRepository &repo, std::string &type,
 
 std::string GitObject::find(GitRepository &repo, std::string &name,
                             std::string &fmt, bool follow) {
+  if (name == "HEAD") {
+    // todo resolve HEAD
+    fs::path head = repo.repo_path(".git/HEAD");
+    std::string file_data = read_file(head);
+    std::string ref = file_data.substr(5);
+    std::cout << "HEAD ref is in " << file_data << std::endl;
+    fs::path ref_path = repo.repo_path(".git/" + ref);
+    return read_file(ref_path);
+  }
   return name;
 }

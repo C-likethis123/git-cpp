@@ -20,7 +20,7 @@ target_link_libraries(object PRIVATE repository boost_libraries)
 target_include_directories(object PUBLIC ../include)
 target_compile_features(object PUBLIC cxx_std_17)
 
-add_library(commands init.cpp cat-file.cpp hash-object.cpp)
+add_library(commands init.cpp cat-file.cpp hash-object.cpp log.cpp)
 target_link_libraries(commands PRIVATE repository object boost_libraries)
 target_include_directories(commands PUBLIC ../include)
 target_compile_features(commands PUBLIC cxx_std_17)
