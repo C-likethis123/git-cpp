@@ -58,6 +58,8 @@ GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
     std::cout << "Object type: " << fmt << std::endl;
     std::cout << "Object size: " << size << std::endl;
     return new GitBlob(raw.substr(y + 1));
+  } else if (fmt == "commit") {
+    return new GitCommit(raw.substr(y + 1));
   } else {
     throw std::runtime_error("Unknown type");
   }

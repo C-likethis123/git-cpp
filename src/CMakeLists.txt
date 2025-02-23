@@ -15,7 +15,7 @@ target_link_libraries(repository PRIVATE inih util boost_libraries)
 target_include_directories(repository PUBLIC ../include)
 target_compile_features(repository PUBLIC cxx_std_17)
 
-add_library(object object.cpp blob.cpp)
+add_library(object object.cpp blob.cpp commit.cpp)
 target_link_libraries(object PRIVATE repository boost_libraries)
 target_include_directories(object PUBLIC ../include)
 target_compile_features(object PUBLIC cxx_std_17)
