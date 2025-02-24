@@ -8,7 +8,9 @@ GitCommit::GitCommit(const std::string &data) : GitObject() {
 std::string GitCommit::serialise(GitRepository &repo) {
   std::stringstream ss;
   ss << "tree " << this->keyValuePairs["tree"] << "\n";
-  ss << "parent " << this->keyValuePairs["parent"] << "\n";
+  if (this->has_parent()) {
+    ss << "parent " << this->keyValuePairs["parent"] << "\n";
+  }
   ss << "author " << this->keyValuePairs["author_name"] << " <"
      << this->keyValuePairs["author_email"] << "> "
      << this->keyValuePairs["author_unix_timestamp"] << " "
@@ -43,6 +45,9 @@ void GitCommit::deserialise(const std::string &data) {
       {"timezone", "\n"}};
   for (auto &key : keys) {
     int space = data.find(key + " ", pos);
+    if (space == std::string::npos) {
+      continue;
+    }
     int nl = data.find("\n", space);
     if (key == "author" || key == "committer") {
       pos = space + key.size() + 1;
