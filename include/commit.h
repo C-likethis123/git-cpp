@@ -16,6 +16,8 @@ public:
   serialise(GitRepository &repo) override; // convert this to a string format
   std::string print_commit(GitRepository &repo);
   void init();
+  bool has_parent();
+  std::string get_parent();
 
 protected:
   std::unordered_map<std::string, std::string> keyValuePairs;

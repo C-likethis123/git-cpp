@@ -66,3 +66,9 @@ void GitCommit::deserialise(const std::string &data) {
   int nl = data.find("\n", pos + 1);
   this->keyValuePairs["message"] = data.substr(pos, nl - pos);
 }
+
+bool GitCommit::has_parent() {
+  return this->keyValuePairs.find("parent") != this->keyValuePairs.end();
+}
+
+std::string GitCommit::get_parent() { return this->keyValuePairs["parent"]; }
