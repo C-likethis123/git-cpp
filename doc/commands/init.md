@@ -1,6 +1,6 @@
 # init
 
-Git init creates a repository.
+`git init` creates a repository.
 
 ## Command usage
 
@@ -9,7 +9,8 @@ Git init creates a repository.
 
 ## Implementation details
 
-1. Initialise a GitRepository object
+1. App representation: Initialise a `GitRepository` object, which is an in-memory representation of an actual git repository
+2. This object will create actual files that represent a git repository
 
 ## Git repository
 

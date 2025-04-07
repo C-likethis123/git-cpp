@@ -4,7 +4,6 @@ From: https://wyag.thb.lt/#objects
 
 ## Commands
 
-`git hash-object` - converts an existing file into a git object
 `git cat-file` - prints an existing git object to standard output.
 
 ## Git Objects
