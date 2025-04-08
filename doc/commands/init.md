@@ -4,8 +4,8 @@
 
 ## Command usage
 
-- `./adder_app init` - creates an empty repository
-- `./adder_app init -p [path]` - creates an empty repository on the specified path
+- `gyt init` - creates an empty repository
+- `gyt init -p [path]` - creates an empty repository on the specified path
 
 ## Implementation details
 

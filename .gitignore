@@ -30,7 +30,7 @@
 *.exe
 *.out
 *.app
-app/adder_app
+app/gyt
 tests/tests
 build/**/*
 
