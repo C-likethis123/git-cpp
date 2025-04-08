@@ -1,6 +1,7 @@
 #include "commands/cat-file.h"
 #include "commands/hash-object.h"
 #include "commands/init.h"
+#include "commands/log.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -21,6 +22,8 @@ int main(int argc, char **argv) {
     catfile(args);
   } else if (command == "hash-object") {
     hashobject(args);
+  } else if (command == "log") {
+    log(args);
   } else {
     std::cerr << "Unknown command: " << command << "\n";
     return -1;
