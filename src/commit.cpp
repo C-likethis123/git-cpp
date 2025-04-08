@@ -1,7 +1,8 @@
 #include "commit.h"
 #include "repository.h"
 #include <sstream>
-GitCommit::GitCommit(const std::string &data) : GitObject() {
+GitCommit::GitCommit(const std::string &data, const std::string &sha)
+    : GitObject() {
   this->deserialise(data);
   this->sha = sha;
 };
@@ -25,7 +26,7 @@ std::string GitCommit::serialise(GitRepository &repo) {
   return ss.str();
 }
 
-std::string GitCommit::print_commit(GitRepository &repo) {
+std::string GitCommit::print_commit() {
   std::stringstream ss;
   ss << "commit " << sha << "\n";
   ss << "Author: " << this->keyValuePairs["author_name"] << " <"
