@@ -21,19 +21,16 @@ void log(std::vector<std::string> &args) {
     std::optional<GitRepository> repo = GitRepository::find();
     if (repo) {
       std::string commit = commitArg.getValue();
-      // from the argument, find the object.
-      GitObject *obj = GitObject::read(*repo, commit);
-      GitCommit *commitObj = dynamic_cast<GitCommit *>(obj);
-      std::cout << commitObj->print_commit(*repo);
-      // if the commit has parents, print out the parents.
-      // TODO: another thing I can try is to use operator overloading instead of
-      // print_commit
-      while (commitObj->has_parent()) {
-        std::string parent = commitObj->get_parent();
-        GitObject *parentObj = GitObject::read(*repo, parent);
-        commitObj = dynamic_cast<GitCommit *>(parentObj);
-        std::cout << commitObj->print_commit(*repo);
-      }
+      GitCommit *commitObj;
+
+      do {
+        GitObject *obj = GitObject::read(*repo, commit);
+        commitObj = dynamic_cast<GitCommit *>(obj);
+        if (commitObj) {
+          std::cout << commitObj->print_commit() << "\n";
+          commit = commitObj->get_parent();
+        }
+      } while (commitObj && commitObj->has_parent());
     }
   } catch (std::runtime_error &err) {
     std::cerr << err.what() << "\n";
