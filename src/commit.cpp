@@ -1,9 +1,9 @@
 #include "commit.h"
 #include "repository.h"
-#include "util.h"
 #include <sstream>
 GitCommit::GitCommit(const std::string &data) : GitObject() {
   this->deserialise(data);
+  this->sha = sha;
 };
 
 std::string GitCommit::serialise(GitRepository &repo) {
@@ -26,11 +26,13 @@ std::string GitCommit::serialise(GitRepository &repo) {
 
 std::string GitCommit::print_commit(GitRepository &repo) {
   std::stringstream ss;
-  // TODO: generate the commit hash from the commit object. I tried to serialise
-  // the hash contents but apparently it doesn't work...
-  ss << "commit " << sha1_hexdigest(this->serialise(repo)) << "\n";
-  ss << "Author: " << this->keyValuePairs["author"] << "\n";
-  ss << "Date: " << this->keyValuePairs["date"] << "\n";
+  ss << "commit " << sha << "\n";
+  ss << "Author: " << this->keyValuePairs["author_name"] << " <"
+     << this->keyValuePairs["author_email"] << "> "
+     << this->keyValuePairs["author_unix_timestamp"] << " "
+     << this->keyValuePairs["author_timezone"] << "\n";
+  ss << "Date: " << this->keyValuePairs["author_unix_timestamp"] << " "
+     << this->keyValuePairs["author_timezone"] << "\n";
   ss << this->keyValuePairs["message"] << "\n";
   return ss.str();
 }
