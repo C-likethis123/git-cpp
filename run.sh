@@ -10,8 +10,8 @@ if [ "$1" == "-p" ]; then
 fi
 
 # remove old build if any
-if [ -f "app/adder_app" ]; then
-    rm -rf app/adder_app
+if [ -f "app/gyt" ]; then
+    rm -rf app/gyt
 fi
 
 # Print the selected build type
@@ -26,4 +26,4 @@ make
 
 # symlink - so I can run it like gyt [arguments....]
 sudo rm /usr/local/bin/gyt
-sudo ln -s "$(pwd)/app/adder_app" /usr/local/bin/gyt
+sudo ln -s "$(pwd)/app/gyt" /usr/local/bin/gyt

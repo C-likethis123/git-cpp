@@ -1,2 +1,2 @@
-add_executable(adder_app adder_app.cpp)
-target_link_libraries(adder_app PRIVATE commands)
+add_executable(gyt gyt.cpp)
+target_link_libraries(gyt PRIVATE commands)
