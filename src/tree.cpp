@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-GitTree::GitTree(const std::string &data) : GitObject() {
+GitTree::GitTree(const std::string &data) : GitObject("tree") {
   this->deserialise(data);
 };
 

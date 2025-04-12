@@ -10,7 +10,7 @@ namespace fs = boost::filesystem;
 class GitObject {
 public:
   GitObject();
-  GitObject(const std::string &data);
+  GitObject(const std::string &format);
 
   virtual void deserialise(const std::string &data) = 0;
   virtual std::string serialise(GitRepository &repo) = 0;
@@ -22,6 +22,7 @@ public:
                           const std::string &fmt, bool follow = true);
 
   void init();
+  std::string get_type() const;
 
 protected:
   fs::path worktree;

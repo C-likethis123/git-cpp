@@ -2,7 +2,7 @@
 #include "repository.h"
 #include <sstream>
 GitCommit::GitCommit(const std::string &data, const std::string &sha)
-    : GitObject() {
+    : GitObject("commit") {
   this->deserialise(data);
   this->sha = sha;
 };

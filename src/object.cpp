@@ -17,6 +17,7 @@
 #include <vector>
 
 GitObject::GitObject() { this->init(); }
+GitObject::GitObject(const std::string &format) { this->format = format; }
 
 void GitObject::init() {}
 
@@ -57,8 +58,6 @@ GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
   }
 
   if (fmt == "blob") {
-    std::cout << "Object type: " << fmt << std::endl;
-    std::cout << "Object size: " << size << std::endl;
     return new GitBlob(raw.substr(y + 1));
   } else if (fmt == "commit") {
     return new GitCommit(raw.substr(y + 1), sha);
@@ -114,3 +113,5 @@ std::string GitObject::find(GitRepository &repo, const std::string &name,
   }
   return name;
 }
+
+std::string GitObject::get_type() const { return this->format; }
