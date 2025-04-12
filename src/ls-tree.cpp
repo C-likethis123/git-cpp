@@ -29,7 +29,7 @@ void lstree(std::vector<std::string> &args) {
       GitObject *obj = GitObject::read(*repo, treeHash);
       GitTree *tree = dynamic_cast<GitTree *>(obj);
       if (obj) {
-        std::cout << tree->print_matching_files(filePathPattern) << "\n";
+        std::cout << tree->print_matching_files(*repo, filePathPattern);
       }
     }
   } catch (std::runtime_error &err) {
