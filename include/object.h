@@ -18,8 +18,8 @@ public:
   static std::string write(GitRepository &repo, std::string &type,
                            std::string &data, bool write);
   static GitObject *read(GitRepository &repo, const std::string &sha);
-  static std::string find(GitRepository &repo, std::string &name,
-                          std::string &fmt, bool follow = true);
+  static std::string find(GitRepository &repo, const std::string &name,
+                          const std::string &fmt, bool follow = true);
 
   void init();
 
