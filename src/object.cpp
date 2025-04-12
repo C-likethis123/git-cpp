@@ -1,6 +1,7 @@
 #include "object.h"
 #include "blob.h"
 #include "commit.h"
+#include "tree.h"
 #include "util.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
@@ -16,6 +17,7 @@
 #include <vector>
 
 GitObject::GitObject() { this->init(); }
+GitObject::GitObject(const std::string &format) { this->format = format; }
 
 void GitObject::init() {}
 
@@ -56,11 +58,11 @@ GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
   }
 
   if (fmt == "blob") {
-    std::cout << "Object type: " << fmt << std::endl;
-    std::cout << "Object size: " << size << std::endl;
     return new GitBlob(raw.substr(y + 1));
   } else if (fmt == "commit") {
     return new GitCommit(raw.substr(y + 1), sha);
+  } else if (fmt == "tree") {
+    return new GitTree(raw.substr(y + 1));
   } else {
     throw std::runtime_error("Unknown type");
   }
@@ -97,8 +99,9 @@ std::string GitObject::write(GitRepository &repo, std::string &type,
   }
 }
 
-std::string GitObject::find(GitRepository &repo, std::string &name,
-                            std::string &fmt, bool follow) {
+// TODO implement GitObject::find properly
+std::string GitObject::find(GitRepository &repo, const std::string &name,
+                            const std::string &fmt, bool follow) {
   if (name == "HEAD") {
     // todo resolve HEAD
     fs::path head = repo.repo_path(".git/HEAD");
@@ -110,3 +113,5 @@ std::string GitObject::find(GitRepository &repo, std::string &name,
   }
   return name;
 }
+
+std::string GitObject::get_type() const { return this->format; }

@@ -1,10 +1,11 @@
 #include "tree.h"
 #include "repository.h"
 #include "util.h"
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 
-GitTree::GitTree(const std::string &data) : GitObject() {
+GitTree::GitTree(const std::string &data) : GitObject("tree") {
   this->deserialise(data);
 };
 
@@ -36,13 +37,17 @@ void GitTree::deserialise(const std::string &data) {
   std::sort(pathNames.begin(), pathNames.end());
 }
 
-std::string GitTree::print_matching_files(const std::string &filePath) {
+std::string GitTree::print_matching_files(GitRepository &repo,
+                                          const std::string &filePath) {
   std::stringstream ss;
   for (const auto &path : this->pathNames) {
     // TODO: implement better file path matching
     if (filePath.empty() || path == filePath) {
       auto &[mode, sha] = this->fileEntries[path];
-      ss << mode << " " << sha << " " << path << "\n";
+      GitObject *obj = GitObject::read(repo, sha);
+      std::string type = obj->get_type();
+      ss << std::setfill('0') << std::setw(6) << mode << " " << type << " "
+         << sha << '\t' << path << "\n";
     }
   }
   return ss.str();

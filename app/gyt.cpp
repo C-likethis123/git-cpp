@@ -2,6 +2,7 @@
 #include "commands/hash-object.h"
 #include "commands/init.h"
 #include "commands/log.h"
+#include "commands/ls-tree.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -24,6 +25,8 @@ int main(int argc, char **argv) {
     hashobject(args);
   } else if (command == "log") {
     log(args);
+  } else if (command == "ls-tree") {
+    lstree(args);
   } else {
     std::cerr << "Unknown command: " << command << "\n";
     return -1;

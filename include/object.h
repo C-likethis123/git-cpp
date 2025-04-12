@@ -10,7 +10,7 @@ namespace fs = boost::filesystem;
 class GitObject {
 public:
   GitObject();
-  GitObject(const std::string &data);
+  GitObject(const std::string &format);
 
   virtual void deserialise(const std::string &data) = 0;
   virtual std::string serialise(GitRepository &repo) = 0;
@@ -18,10 +18,11 @@ public:
   static std::string write(GitRepository &repo, std::string &type,
                            std::string &data, bool write);
   static GitObject *read(GitRepository &repo, const std::string &sha);
-  static std::string find(GitRepository &repo, std::string &name,
-                          std::string &fmt, bool follow = true);
+  static std::string find(GitRepository &repo, const std::string &name,
+                          const std::string &fmt, bool follow = true);
 
   void init();
+  std::string get_type() const;
 
 protected:
   fs::path worktree;

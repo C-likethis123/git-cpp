@@ -10,7 +10,7 @@
 #include "repository.h"
 
 GitBlob::GitBlob(const std::string &blobData)
-    : blobData(blobData), GitObject(){};
+    : blobData(blobData), GitObject("blob"){};
 
 std::string GitBlob::serialise(GitRepository &repo) { return blobData; }
 
