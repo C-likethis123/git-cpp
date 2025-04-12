@@ -27,7 +27,7 @@ void catfile(std::vector<std::string> &args) {
     if (repo) {
       GitObject *obj =
           GitObject::read(*repo, GitObject::find(*repo, hash, type));
-      std::cout << obj->serialise(*repo) << "\n";
+      std::cout << obj->serialise(*repo);
     }
   } catch (std::runtime_error &err) {
     std::cerr << err.what() << "\n";
