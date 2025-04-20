@@ -6,6 +6,7 @@
 #include "tclap/CmdLine.h"
 #include "tree.h"
 
+namespace commands {
 void lstree(std::vector<std::string> &args) {
   TCLAP::CmdLine cmd("ls-tree", ' ', "0.1");
 
@@ -36,3 +37,4 @@ void lstree(std::vector<std::string> &args) {
     std::cerr << err.what() << "\n";
   }
 }
+} // namespace commands

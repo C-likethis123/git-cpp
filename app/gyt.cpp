@@ -1,4 +1,5 @@
 #include "commands/cat-file.h"
+#include "commands/checkout.h"
 #include "commands/hash-object.h"
 #include "commands/init.h"
 #include "commands/log.h"
@@ -18,15 +19,17 @@ int main(int argc, char **argv) {
     args.push_back(argv[i]);
   }
   if (command == "init") {
-    init(args);
+    commands::init(args);
   } else if (command == "cat-file") {
-    catfile(args);
+    commands::catfile(args);
   } else if (command == "hash-object") {
-    hashobject(args);
+    commands::hashobject(args);
   } else if (command == "log") {
-    log(args);
+    commands::log(args);
   } else if (command == "ls-tree") {
-    lstree(args);
+    commands::lstree(args);
+  } else if (command == "checkout") {
+    commands::checkout(args);
   } else {
     std::cerr << "Unknown command: " << command << "\n";
     return -1;

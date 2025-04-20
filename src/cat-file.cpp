@@ -5,6 +5,7 @@
 #include "repository.h"
 #include "tclap/CmdLine.h"
 
+namespace commands {
 void catfile(std::vector<std::string> &args) {
   TCLAP::CmdLine cmd("cat-file", ' ', "0.1");
 
@@ -25,11 +26,12 @@ void catfile(std::vector<std::string> &args) {
   try {
     std::optional<GitRepository> repo = GitRepository::find();
     if (repo) {
-      GitObject *obj =
-          GitObject::read(*repo, GitObject::find(*repo, hash, type));
+      // TODO use GitObject::find once it's fixed
+      GitObject *obj = GitObject::read(*repo, hash);
       std::cout << obj->serialise(*repo);
     }
   } catch (std::runtime_error &err) {
     std::cerr << err.what() << "\n";
   }
 }
+} // namespace commands

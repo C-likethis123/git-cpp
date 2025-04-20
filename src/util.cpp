@@ -8,7 +8,7 @@
 
 namespace fs = boost::filesystem;
 
-std::string read_file(const fs::path &filePath) {
+std::string read_file(const fs::path &filePath, bool remove_newline = false) {
   try {
     // Open the file
     std::ifstream fileStream(filePath.string());
@@ -18,7 +18,12 @@ std::string read_file(const fs::path &filePath) {
       // Read the content of the file
       std::stringstream buffer;
       buffer << fileStream.rdbuf();
-      return buffer.str();
+      std::string contents = buffer.str();
+      if (remove_newline) {
+        // TODO: replace with trim_left in boost, see if times improve
+        contents = contents.substr(0, contents.find_last_not_of("\n") + 1);
+      }
+      return contents;
     } else {
       std::cerr << "Error opening the file for reading: " << filePath
                 << std::endl;
@@ -90,4 +95,43 @@ std::string hexToBinary(const std::string &hexString) {
     binaryData.push_back(byte);
   }
   return binaryData;
+}
+
+// available values: git blob, or git tree
+// reference:
+// https://unix.stackexchange.com/questions/450480/file-permission-with-six-octal-digits-in-git-what-does-it-mean
+std::string get_file_type(int mode) {
+  int file_type = ((mode & 0xF000) >> 12);
+  return file_type == 0x4 ? "tree" : "blob";
+}
+
+fs::perms get_unix_permissions(int mode) {
+  mode = mode & 0x1FF;
+  boost::filesystem::perms permissions = fs::perms::no_perms;
+
+  // Owner permissions
+  if (mode & 0400)
+    permissions |= boost::filesystem::perms::owner_read;
+  if (mode & 0200)
+    permissions |= boost::filesystem::perms::owner_write;
+  if (mode & 0100)
+    permissions |= boost::filesystem::perms::owner_exe;
+
+  // Group permissions
+  if (mode & 0040)
+    permissions |= boost::filesystem::perms::group_read;
+  if (mode & 0020)
+    permissions |= boost::filesystem::perms::group_write;
+  if (mode & 0010)
+    permissions |= boost::filesystem::perms::group_exe;
+
+  // Others permissions
+  if (mode & 0004)
+    permissions |= boost::filesystem::perms::others_read;
+  if (mode & 0002)
+    permissions |= boost::filesystem::perms::others_write;
+  if (mode & 0001)
+    permissions |= boost::filesystem::perms::others_exe;
+
+  return permissions;
 }

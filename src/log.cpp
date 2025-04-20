@@ -6,6 +6,7 @@
 #include "repository.h"
 #include "tclap/CmdLine.h"
 
+namespace commands {
 void log(std::vector<std::string> &args) {
   TCLAP::CmdLine cmd("log", ' ', "0.1");
 
@@ -36,3 +37,4 @@ void log(std::vector<std::string> &args) {
     std::cerr << err.what() << "\n";
   }
 }
+} // namespace commands

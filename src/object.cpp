@@ -99,19 +99,18 @@ std::string GitObject::write(GitRepository &repo, std::string &type,
   }
 }
 
-// TODO implement GitObject::find properly
+// TODO support hashes here
 std::string GitObject::find(GitRepository &repo, const std::string &name,
-                            const std::string &fmt, bool follow) {
+                            bool follow) {
+  fs::path ref_path;
   if (name == "HEAD") {
-    // todo resolve HEAD
-    fs::path head = repo.repo_path(".git/HEAD");
-    std::string file_data = read_file(head);
-    std::string ref = file_data.substr(5);
-    std::cout << "HEAD ref is in " << file_data << std::endl;
-    fs::path ref_path = repo.repo_path(".git/" + ref);
-    return read_file(ref_path);
+    ref_path = repo.repo_path("HEAD");
+  } else {
+    ref_path = repo.repo_path("refs/heads/" + name);
   }
-  return name;
+  std::string file_data = read_file(ref_path, true);
+  std::string commit_hash = file_data.substr(5);
+  return read_file(repo.repo_path(commit_hash), true);
 }
 
 std::string GitObject::get_type() const { return this->format; }

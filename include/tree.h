@@ -1,11 +1,12 @@
 #ifndef TREE_H
 #define TREE_H
 
+#include "object.h"
+#include <boost/filesystem.hpp>
 #include <string>
 #include <unordered_map>
 
-#include "object.h"
-
+namespace fs = boost::filesystem;
 class GitTree : public GitObject {
 public:
   GitTree(const std::string &data = std::string(""));
@@ -18,6 +19,10 @@ public:
       GitRepository &repo,
       const std::string &filePathPattern); // print tree entries that
                                            // match the given file path
+  static void instantiate_tree(
+      GitTree *treeToInstantiate, GitTree *curr_tree,
+      const fs::path
+          &path); // instantiate a tree object in the working directory
   void init();
 
 protected:
