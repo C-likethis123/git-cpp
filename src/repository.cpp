@@ -40,7 +40,7 @@ std::string GitRepository::create(bool mkdir) {
   create_file(gitdir / "description",
               "Unnamed repository; edit this file 'description' to name the "
               "repository.\n");
-  create_file(gitdir / "HEAD", "ref: refs/heads/master\n");
+  create_file(gitdir / "HEAD", "ref: refs/heads/main\n");
   create_file(gitdir / "config", "[core]\n"
                                  "\trepositoryformatversion = 0\n"
                                  "\tfilemode = false\n"
