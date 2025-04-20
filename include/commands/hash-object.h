@@ -3,6 +3,8 @@
 
 #include <string>
 #include <vector>
+namespace commands {
 void hashobject(std::vector<std::string> &args);
+} // namespace commands
 
 #endif // HASHOBJECT_H

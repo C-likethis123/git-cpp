@@ -23,6 +23,7 @@ public:
   void init();
   bool has_parent();
   std::string get_parent();
+  std::string get_tree();
 
 protected:
   std::unordered_map<std::string, std::string> keyValuePairs;

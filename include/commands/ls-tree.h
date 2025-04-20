@@ -3,6 +3,9 @@
 
 #include <string>
 #include <vector>
+
+namespace commands {
 void lstree(std::vector<std::string> &args);
+} // namespace commands
 
 #endif // LSTREE_H

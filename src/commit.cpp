@@ -84,3 +84,5 @@ bool GitCommit::has_parent() {
 }
 
 std::string GitCommit::get_parent() { return this->keyValuePairs["parent"]; }
+
+std::string GitCommit::get_tree() { return this->keyValuePairs["tree"]; }

@@ -1,4 +1,5 @@
 #include "repository.h"
+#include "boost/filesystem/path.hpp"
 #include "inih/INIReader.h"
 #include "util.h"
 #include <iostream>
@@ -48,9 +49,15 @@ std::string GitRepository::create(bool mkdir) {
 }
 
 /*
-Computes the path under repo's gitdir
+Computes the path under repo's gitdir - used for files that store the
+repository's metadata
 */
 fs::path GitRepository::repo_path(fs::path path) { return gitdir / path; }
+/*
+Computes a path under the worktree - used for files that are tracked in the
+repository
+*/
+fs::path GitRepository::worktree_path(fs::path path) { return worktree / path; }
 /*
 Creates a directory, or returns None if it is a directory under the git
 repository given
@@ -90,7 +97,7 @@ std::optional<GitRepository> GitRepository::find(const fs::path &path,
   fs::path canonicalPath = fs::canonical(path);
   fs::path gitDir = canonicalPath / ".git";
   if (fs::is_directory(gitDir)) {
-    GitRepository repo(path.string());
+    GitRepository repo(canonicalPath.string());
     return repo;
   }
   fs::path parent = canonicalPath.parent_path();
@@ -99,4 +106,9 @@ std::optional<GitRepository> GitRepository::find(const fs::path &path,
     return std::nullopt;
   }
   return find(parent, required);
+}
+
+// TODO: update this to support refs
+void GitRepository::update_head(const std::string &new_head) {
+  create_file(gitdir / "HEAD", new_head + "\n");
 }
