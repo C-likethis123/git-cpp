@@ -50,7 +50,11 @@ bool create_file(const fs::path &filePath, const std::string &content = "") {
       std::cout << "File created successfully: " << filePath << std::endl;
       return true;
     } else {
-      std::cerr << "Error opening the file for writing: " << filePath
+      std::cerr << "Error opening the file for writing: " << filePath << "\n"
+                << "Parent path exists: " << fs::exists(filePath.parent_path())
+                << "\n"
+                << "Permissions: "
+                << fs::status(filePath.parent_path()).permissions()
                 << std::endl;
       return false;
     }
@@ -106,6 +110,17 @@ std::string get_file_type(int mode) {
 }
 
 fs::perms get_unix_permissions(int mode) {
+  std::string file_type = get_file_type(mode);
+  // set default permission for directories
+  if (file_type == "tree") {
+    return boost::filesystem::perms::owner_read |
+           boost::filesystem::perms::owner_write |
+           boost::filesystem::perms::owner_exe |
+           boost::filesystem::perms::group_read |
+           boost::filesystem::perms::group_exe |
+           boost::filesystem::perms::others_read |
+           boost::filesystem::perms::others_exe;
+  }
   mode = mode & 0x1FF;
   boost::filesystem::perms permissions = fs::perms::no_perms;
 

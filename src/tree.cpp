@@ -101,8 +101,8 @@ void GitTree::instantiate_tree(GitTree *treeToInstantiate, GitTree *curr_tree,
       }
       // assumption here: the file is created, so change the file mode
       if (mode != curr_mode) {
-        fs::perms permissions = get_unix_permissions(mode);
-        boost::filesystem::permissions(new_file_path, permissions);
+        boost::filesystem::permissions(new_file_path,
+                                       get_unix_permissions(mode));
       }
     } else {
       // not found in the current tree, create it
@@ -113,11 +113,10 @@ void GitTree::instantiate_tree(GitTree *treeToInstantiate, GitTree *curr_tree,
         fs::create_directories(new_file_path);
         GitTree *subTreeToInstantiate =
             dynamic_cast<GitTree *>(GitObject::read(*repo, sha));
-        instantiate_tree(subTreeToInstantiate, nullptr, new_file_path);
+        instantiate_tree(subTreeToInstantiate, new_file_path);
       }
       // assumption here: the file is created, so change the file mode
-      fs::perms permissions = get_unix_permissions(mode);
-      boost::filesystem::permissions(new_file_path, permissions);
+      boost::filesystem::permissions(new_file_path, get_unix_permissions(mode));
     }
   }
   // remove items that are not in the tree that I am instantiating
@@ -133,5 +132,29 @@ void GitTree::instantiate_tree(GitTree *treeToInstantiate, GitTree *curr_tree,
         fs::remove_all(curr_file_path);
       }
     }
+  }
+}
+
+/**
+Instantiates a tree that is not instantiated in the current working directory
+*/
+void GitTree::instantiate_tree(GitTree *treeToInstantiate,
+                               const fs::path &path) {
+  std::optional<GitRepository> repo = GitRepository::find();
+  for (const auto &filePath : treeToInstantiate->pathNames) {
+    auto &[mode, sha] = treeToInstantiate->fileEntries[filePath];
+    const auto new_file_type = get_file_type(mode);
+    const auto new_file_path = path / filePath;
+    if (new_file_type == "blob") {
+      GitObject *obj = GitObject::read(*repo, sha);
+      create_file(new_file_path, obj->serialise(*repo));
+    } else {
+      fs::create_directories(new_file_path);
+      GitTree *subTreeToInstantiate =
+          dynamic_cast<GitTree *>(GitObject::read(*repo, sha));
+      instantiate_tree(subTreeToInstantiate, new_file_path);
+    }
+
+    boost::filesystem::permissions(new_file_path, get_unix_permissions(mode));
   }
 }

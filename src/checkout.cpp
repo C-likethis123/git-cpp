@@ -7,7 +7,6 @@
 #include "tclap/CmdLine.h"
 #include "tree.h"
 
-// todo FIX ERROR OPENING THE FILE FOR READING... bug
 namespace commands {
 void checkout(std::vector<std::string> &args) {
   TCLAP::CmdLine cmd("checkout", ' ', "0.1");
@@ -40,9 +39,6 @@ void checkout(std::vector<std::string> &args) {
           dynamic_cast<GitCommit *>(GitObject::read(*repo, orig_head));
       GitTree *treeObj =
           dynamic_cast<GitTree *>(GitObject::read(*repo, head->get_tree()));
-      // TODO: do an entry by entry comparison of both trees, then dump the
-      // files out to the working directory
-
       GitTree::instantiate_tree(tree, treeObj, repo->worktree_path(""));
       // TODO: fix bug in this one
       repo->update_head(hash);

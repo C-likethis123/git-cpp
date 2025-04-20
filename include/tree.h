@@ -23,6 +23,10 @@ public:
       GitTree *treeToInstantiate, GitTree *curr_tree,
       const fs::path
           &path); // instantiate a tree object in the working directory
+  static void instantiate_tree(
+      GitTree *treeToInstantiate,
+      const fs::path
+          &path); // instantiate a tree object in the working directory
   void init();
 
 protected:
