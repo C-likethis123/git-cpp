@@ -14,6 +14,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <vector>
 
 GitObject::GitObject() { this->init(); }
 GitObject::GitObject(const std::string &format) { this->format = format; }
