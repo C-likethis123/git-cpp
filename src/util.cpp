@@ -1,3 +1,4 @@
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/uuid/detail/sha1.hpp>
 #include <fstream>
@@ -20,8 +21,7 @@ std::string read_file(const fs::path &filePath, bool remove_newline = false) {
       buffer << fileStream.rdbuf();
       std::string contents = buffer.str();
       if (remove_newline) {
-        // TODO: replace with trim_left in boost, see if times improve
-        contents = contents.substr(0, contents.find_last_not_of("\n") + 1);
+        boost::trim_right(contents);
       }
       return contents;
     } else {

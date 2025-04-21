@@ -33,18 +33,18 @@ GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
   }
   std::ifstream input_file(paths.string(),
                            std::ios_base::in | std::ios_base::binary);
-  std::vector<char> decompressed_data;
+  std::stringstream decompressed_data;
 
   boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
   in.push(boost::iostreams::zlib_decompressor());
   in.push(input_file);
   try {
-    boost::iostreams::copy(in, std::back_inserter(decompressed_data));
+    boost::iostreams::copy(in, decompressed_data);
   } catch (const boost::iostreams::zlib_error &e) {
     std::cerr << "Zlib decompression error: " << e.what() << std::endl;
   }
 
-  std::string raw(decompressed_data.begin(), decompressed_data.end());
+  std::string raw = decompressed_data.str();
   // Read object type
   auto x = raw.find(' ');
   std::string fmt = raw.substr(0, x);
