@@ -19,10 +19,10 @@ echo "Selected build type: $BUILD_TYPE"
 echo "Building the project... This will take a while to install dependencies for the first time."
 
 # Run CMake with the selected build type
-cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -G Ninja
 
 # Build the project
-make
+ninja
 
 # symlink - so I can run it like gyt [arguments....]
 sudo rm /usr/local/bin/gyt
