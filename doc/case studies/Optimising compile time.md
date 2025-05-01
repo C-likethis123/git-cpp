@@ -115,3 +115,9 @@ exception	75000000	0.37
 Now - only the stuff I need is there
 
 total time spent: 38750000000 (cut out 90% of time)
+
+## What happens when I remove the header guards?
+
+Removed header guards for util.h.
+Now everything runs at double the time.
+But util.o wasn't compiled multiple times

@@ -1,0 +1,41 @@
+# Problem
+
+`du -sh app/gyt`: 1.8MB
+`du -sh git`: 12KB
+
+What explains the difference in binary size?
+
+## Debug mode vs release mode
+`app/gyt` was compiled in debug mode for development.
+By compiling it in release mode:
+
+`du -sh app/gyt`: 560K
+
+## Tried to remove the boost files
+
+Boost files takes up most compilation time according to [Optimising compile time](./Optimising%20compile%20time.md).
+Could this take up majority of the binary as well? Looks like most of the symbols are in binary.
+
+` nm -S app/gyt | sort -nr | head -n 20  `
+```
+0000000100094198 0000000000000000 b __ZGVZN5boost10filesystem6detail12_GLOBAL__N_18path_maxEvE3max
+0000000100094190 0000000000000000 b __ZZN5boost10filesystem6detail12_GLOBAL__N_18path_maxEvE3max
+0000000100094188 0000000000000000 b __ZN5boost10filesystem6detail12_GLOBAL__N_112readdir_initE
+0000000100094180 0000000000000000 b __ZGVZN5boost10filesystem6detail12initial_pathEPNS_6system10error_codeEE9init_path
+0000000100094168 0000000000000000 b __ZZN5boost10filesystem6detail12initial_pathEPNS_6system10error_codeEE9init_path
+0000000100094160 0000000000000000 b __ZGVZN5boost10filesystem16filesystem_error14get_empty_pathEvE10empty_path
+0000000100094148 0000000000000000 b __ZZN5boost10filesystem16filesystem_error14get_empty_pathEvE10empty_path
+0000000100094143 0000000000000000 b __ZN5boost11optional_nsL16in_place_init_ifE
+0000000100094142 0000000000000000 b __ZN5boost11optional_nsL13in_place_initE
+0000000100094141 0000000000000000 b __ZN5boost11optional_nsL16in_place_init_ifE
+0000000100094140 0000000000000000 b __ZN5boost11optional_nsL13in_place_initE
+0000000100094138 0000000000000000 D __ZGVZNK5boost6system14error_category11init_stdcatEvE3mx_
+0000000100094078 0000000000000000 D __ZN5boost6system6detail17system_cat_holderIvE8instanceE
+0000000100094040 0000000000000000 D __ZN5boost6system6detail18interop_cat_holderIvE8instanceE
+0000000100094038 0000000000000000 D __ZZNK5boost17integral_constantIbLb1EEcvRKN4mpl_5bool_ILb1EEEEvE5pdata
+0000000100094030 0000000000000000 D __ZZN5TCLAP24OptionalUnlabeledTracker18alreadyOptionalRefEvE2ct
+0000000100094028 0000000000000000 D __ZZN5TCLAP3Arg13ignoreRestRefEvE3ign
+0000000100094020 0000000000000000 D __ZGVZNK5TCLAP12ArgException4whatEvE2ex
+0000000100094008 0000000000000000 D __ZZNK5TCLAP12ArgException4whatEvE2ex
+0000000100094000 0000000000000000 D __ZZN5TCLAP3Arg12delimiterRefEvE5delim
+```
