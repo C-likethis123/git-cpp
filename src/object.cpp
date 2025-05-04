@@ -3,7 +3,6 @@
 #include "commit.h"
 #include "tree.h"
 #include "util.h"
-#include <boost/algorithm/string.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/detail/optional.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
