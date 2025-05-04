@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include "repository.h"
 #include <filesystem>
 #include <string>
 namespace fs = std::filesystem;
@@ -12,4 +13,7 @@ std::string binaryToHex(const std::string &binary);
 std::string hexToBinary(const std::string &hexString);
 std::string get_file_type(int mode);
 fs::perms get_unix_permissions(int mode);
+std::string remove_file_prefix(const fs::path &path,
+                               const fs::path &repo_prefix);
+std::string resolve_ref(const fs::path &ref_path, GitRepository &repo);
 #endif // UTIL_H

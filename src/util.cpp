@@ -1,3 +1,4 @@
+#include "repository.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/uuid/detail/sha1.hpp>
 #include <filesystem>
@@ -64,41 +65,15 @@ bool create_file(const fs::path &filePath, const std::string &content = "") {
   }
 }
 
-std::string sha1_hexdigest(const std::string &data) {
-  boost::uuids::detail::sha1 sha1;
-  sha1.process_bytes(data.data(), data.size());
-
-  unsigned int digest[5];
-  sha1.get_digest(digest);
-
-  std::stringstream ss;
-  ss << std::hex << std::setfill('0');
-  for (unsigned int i : digest) {
-    ss << std::setw(8) << i;
+std::string remove_file_prefix(const fs::path &path,
+                               const fs::path &repo_prefix) {
+  std::string path_str = path.string();
+  std::string repo_prefix_str = repo_prefix.string();
+  int idx = path_str.find(repo_prefix_str);
+  if (idx != std::string::npos) {
+    path_str.erase(0, repo_prefix_str.length());
   }
-  return ss.str();
-}
-
-std::string binaryToHex(const std::string &binaryData) {
-  std::ostringstream hexStream;
-  for (unsigned char byte : binaryData) {
-    hexStream << std::setw(2) << std::setfill('0') << std::hex
-              << static_cast<int>(byte);
-  }
-  return hexStream.str();
-}
-
-std::string hexToBinary(const std::string &hexString) {
-  std::string binaryData;
-  for (size_t i = 0; i < hexString.size(); i += 2) {
-    // Take two hex characters at a time
-    std::string byteStr = hexString.substr(i, 2);
-
-    // Convert hex pair to a single byte (char)
-    char byte = static_cast<char>(std::stoi(byteStr, nullptr, 16));
-    binaryData.push_back(byte);
-  }
-  return binaryData;
+  return path_str;
 }
 
 // available values: git blob, or git tree
@@ -146,4 +121,51 @@ fs::perms get_unix_permissions(int mode) {
     permissions |= fs::perms::others_exec;
 
   return permissions;
+}
+
+std::string sha1_hexdigest(const std::string &data) {
+  boost::uuids::detail::sha1 sha1;
+  sha1.process_bytes(data.data(), data.size());
+
+  unsigned int digest[5];
+  sha1.get_digest(digest);
+
+  std::stringstream ss;
+  ss << std::hex << std::setfill('0');
+  for (unsigned int i : digest) {
+    ss << std::setw(8) << i;
+  }
+  return ss.str();
+}
+
+std::string binaryToHex(const std::string &binaryData) {
+  std::ostringstream hexStream;
+  for (unsigned char byte : binaryData) {
+    hexStream << std::setw(2) << std::setfill('0') << std::hex
+              << static_cast<int>(byte);
+  }
+  return hexStream.str();
+}
+
+std::string hexToBinary(const std::string &hexString) {
+  std::string binaryData;
+  for (size_t i = 0; i < hexString.size(); i += 2) {
+    // Take two hex characters at a time
+    std::string byteStr = hexString.substr(i, 2);
+
+    // Convert hex pair to a single byte (char)
+    char byte = static_cast<char>(std::stoi(byteStr, nullptr, 16));
+    binaryData.push_back(byte);
+  }
+  return binaryData;
+}
+
+// Recursively resolves ref
+std::string resolve_ref(const fs::path &ref_path, GitRepository &repo) {
+  std::string ref = read_file(ref_path, true);
+  if (ref.substr(0, 4) == "ref:") {
+    fs::path new_ref_path = repo.repo_path(ref.substr(5));
+    return resolve_ref(new_ref_path, repo);
+  }
+  return ref;
 }
