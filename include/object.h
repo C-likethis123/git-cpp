@@ -1,12 +1,12 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <string>
 
 #include "repository.h"
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 class GitObject {
 public:
   GitObject();

@@ -2,8 +2,7 @@
 add_library(boost_libraries INTERFACE)
 target_link_libraries(
   boost_libraries
-  INTERFACE Boost::filesystem
-            Boost::system
+  INTERFACE Boost::system
             Boost::iostreams
             Boost::uuid
             Boost::format

@@ -2,11 +2,11 @@
 #define TREE_H
 
 #include "object.h"
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <string>
 #include <unordered_map>
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 class GitTree : public GitObject {
 public:
   GitTree(const std::string &data = std::string(""));

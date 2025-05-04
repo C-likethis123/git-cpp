@@ -1,9 +1,9 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <string>
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 std::string read_file(const fs::path &filePath, bool remove_newline = false);
 bool create_file(const fs::path &filePath, const std::string &content = "");

@@ -1,11 +1,11 @@
 #ifndef REPOSITORY_H
 #define REPOSITORY_H
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <optional>
 #include <string>
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 class GitRepository {
 public:
   GitRepository(fs::path worktree, fs::path gitdir);
