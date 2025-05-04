@@ -3,10 +3,7 @@
 #include "commit.h"
 #include "tree.h"
 #include "util.h"
-#include <boost/algorithm/string.hpp>
-#include <boost/format.hpp>
 #include <boost/iostreams/copy.hpp>
-#include <boost/iostreams/detail/optional.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 
@@ -14,7 +11,6 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#include <vector>
 
 GitObject::GitObject() { this->init(); }
 GitObject::GitObject(const std::string &format) { this->format = format; }
@@ -24,9 +20,8 @@ void GitObject::init() {}
 GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
   std::string dir = sha.substr(0, 2);
   std::string path = sha.substr(2);
-  std::string file_path = (boost::format("objects/%1%/%2%") % dir % path).str();
-  fs::path file_to_create = fs::path(file_path);
-  fs::path paths = repo.file(file_to_create);
+  fs::path file_path = fs::path("objects") / dir / path;
+  fs::path paths = repo.file(file_path);
 
   if (!fs::is_regular_file(paths)) {
     throw std::runtime_error(paths.string() + " is not found");
@@ -77,11 +72,9 @@ std::string GitObject::write(GitRepository &repo, std::string &type,
     std::string sha = sha1_hexdigest(result);
 
     if (write) {
-      std::string file_path =
-          (boost::format("objects/%1%/%2%") % sha.substr(0, 2) % sha.substr(2))
-              .str();
-      fs::path file_to_create = fs::path(file_path);
-      fs::path paths = repo.file(file_to_create);
+      fs::path file_path =
+          fs::path("objects") / sha.substr(0, 2) / sha.substr(2);
+      fs::path paths = repo.file(file_path);
 
       // compress files
       std::stringstream compressed;

@@ -1,7 +1,6 @@
 #ifndef BLOB_H
 #define BLOB_H
 
-#include <boost/filesystem.hpp>
 #include <string>
 
 #include "object.h"

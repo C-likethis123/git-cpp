@@ -1,13 +1,13 @@
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/uuid/detail/sha1.hpp>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 std::string read_file(const fs::path &filePath, bool remove_newline = false) {
   try {
@@ -52,10 +52,10 @@ bool create_file(const fs::path &filePath, const std::string &content = "") {
     } else {
       std::cerr << "Error opening the file for writing: " << filePath << "\n"
                 << "Parent path exists: " << fs::exists(filePath.parent_path())
-                << "\n"
-                << "Permissions: "
-                << fs::status(filePath.parent_path()).permissions()
-                << std::endl;
+                << "\n";
+      // << "Permissions: "
+      // << fs::status(filePath.parent_path()).permissions()
+      // << std::endl;
       return false;
     }
   } catch (const std::exception &e) {
@@ -113,40 +113,37 @@ fs::perms get_unix_permissions(int mode) {
   std::string file_type = get_file_type(mode);
   // set default permission for directories
   if (file_type == "tree") {
-    return boost::filesystem::perms::owner_read |
-           boost::filesystem::perms::owner_write |
-           boost::filesystem::perms::owner_exe |
-           boost::filesystem::perms::group_read |
-           boost::filesystem::perms::group_exe |
-           boost::filesystem::perms::others_read |
-           boost::filesystem::perms::others_exe;
+    return fs::perms::owner_read | fs::perms::owner_write |
+           fs::perms::owner_exec | fs::perms::group_read |
+           fs::perms::group_exec | fs::perms::others_read |
+           fs::perms::others_exec;
   }
   mode = mode & 0x1FF;
-  boost::filesystem::perms permissions = fs::perms::no_perms;
+  fs::perms permissions = fs::perms::none;
 
   // Owner permissions
   if (mode & 0400)
-    permissions |= boost::filesystem::perms::owner_read;
+    permissions |= fs::perms::owner_read;
   if (mode & 0200)
-    permissions |= boost::filesystem::perms::owner_write;
+    permissions |= fs::perms::owner_write;
   if (mode & 0100)
-    permissions |= boost::filesystem::perms::owner_exe;
+    permissions |= fs::perms::owner_exec;
 
   // Group permissions
   if (mode & 0040)
-    permissions |= boost::filesystem::perms::group_read;
+    permissions |= fs::perms::group_read;
   if (mode & 0020)
-    permissions |= boost::filesystem::perms::group_write;
+    permissions |= fs::perms::group_write;
   if (mode & 0010)
-    permissions |= boost::filesystem::perms::group_exe;
+    permissions |= fs::perms::group_exec;
 
   // Others permissions
   if (mode & 0004)
-    permissions |= boost::filesystem::perms::others_read;
+    permissions |= fs::perms::others_read;
   if (mode & 0002)
-    permissions |= boost::filesystem::perms::others_write;
+    permissions |= fs::perms::others_write;
   if (mode & 0001)
-    permissions |= boost::filesystem::perms::others_exe;
+    permissions |= fs::perms::others_exec;
 
   return permissions;
 }

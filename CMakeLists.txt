@@ -19,7 +19,7 @@ set(Boost_CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(BOOST_INCLUDE_LIBRARIES filesystem system iostreams uuid format algorithm)
+set(BOOST_INCLUDE_LIBRARIES iostreams uuid algorithm)
 
 include(FetchContent)
 FetchContent_Declare(

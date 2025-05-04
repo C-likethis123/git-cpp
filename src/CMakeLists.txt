@@ -2,11 +2,8 @@
 add_library(boost_libraries INTERFACE)
 target_link_libraries(
   boost_libraries
-  INTERFACE Boost::filesystem
-            Boost::system
-            Boost::iostreams
+  INTERFACE Boost::iostreams
             Boost::uuid
-            Boost::format
             Boost::algorithm)
 
 add_library(util util.cpp)

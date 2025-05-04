@@ -43,3 +43,7 @@ DartConfiguration.tcl
 
 # Clangd Cache
 .cache/
+
+# Ninja logs
+trace*.json
+ninja_log

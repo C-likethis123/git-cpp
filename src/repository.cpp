@@ -1,10 +1,10 @@
 #include "repository.h"
-#include "boost/filesystem/path.hpp"
 #include "inih/INIReader.h"
 #include "util.h"
+#include <filesystem>
 #include <iostream>
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 GitRepository::GitRepository(std::string path, bool force)
     : worktree(fs::path(path)), gitdir(fs::path(path) / ".git") {
@@ -83,7 +83,7 @@ fs::path GitRepository::dir(const fs::path &path, bool mkdir) {
 Returns and optionally creates a path to a file or a directory
 */
 fs::path GitRepository::file(fs::path &path, bool mkdir) {
-  if (dir(path.branch_path(), mkdir) != fs::path("")) {
+  if (dir(path.parent_path(), mkdir) != fs::path("")) {
     return repo_path(path);
   }
   return fs::path("");

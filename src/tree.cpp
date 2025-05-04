@@ -3,7 +3,6 @@
 #include "object.h"
 #include "repository.h"
 #include "util.h"
-#include <boost/filesystem.hpp>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -99,8 +98,7 @@ void GitTree::instantiate_tree(GitTree *treeToInstantiate, GitTree *curr_tree,
       }
       // assumption here: the file is created, so change the file mode
       if (mode != curr_mode) {
-        boost::filesystem::permissions(new_file_path,
-                                       get_unix_permissions(mode));
+        fs::permissions(new_file_path, get_unix_permissions(mode));
       }
     } else {
       // not found in the current tree, create it
@@ -113,7 +111,7 @@ void GitTree::instantiate_tree(GitTree *treeToInstantiate, GitTree *curr_tree,
         instantiate_tree(subTreeToInstantiate, new_file_path);
       }
       // assumption here: the file is created, so change the file mode
-      boost::filesystem::permissions(new_file_path, get_unix_permissions(mode));
+      fs::permissions(new_file_path, get_unix_permissions(mode));
     }
   }
   // remove items that are not in the tree that I am instantiating
@@ -151,6 +149,6 @@ void GitTree::instantiate_tree(GitTree *treeToInstantiate,
       instantiate_tree(subTreeToInstantiate, new_file_path);
     }
 
-    boost::filesystem::permissions(new_file_path, get_unix_permissions(mode));
+    fs::permissions(new_file_path, get_unix_permissions(mode));
   }
 }
