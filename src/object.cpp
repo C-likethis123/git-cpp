@@ -4,7 +4,6 @@
 #include "tree.h"
 #include "util.h"
 #include <boost/iostreams/copy.hpp>
-#include <boost/iostreams/detail/optional.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 
