@@ -4,6 +4,7 @@
 #include "commands/init.h"
 #include "commands/log.h"
 #include "commands/ls-tree.h"
+#include "commands/show-ref.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -30,6 +31,8 @@ int main(int argc, char **argv) {
     commands::lstree(args);
   } else if (command == "checkout") {
     commands::checkout(args);
+  } else if (command == "show-ref") {
+    commands::showref(args);
   } else {
     std::cerr << "Unknown command: " << command << "\n";
     return -1;
