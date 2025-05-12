@@ -9,35 +9,27 @@ namespace commands {
 void showref(std::vector<std::string> &args) {
   TCLAP::CmdLine cmd("show-ref", ' ', "0.1");
 
-  // defines arguments
-  TCLAP::UnlabeledValueArg<std::string> patternArg(
-      "pattern", "pattern to match", false, "", "pattern to match");
-
-  cmd.add(patternArg);
+  // TODO defines arguments
   cmd.parse(args);
 
   // process args
   try {
     std::optional<GitRepository> repo = GitRepository::find();
     if (repo) {
-      if (patternArg.isSet()) {
-        std::string pattern = patternArg.getValue();
+      // TODO filter refs by pattern
 
-        std::cout << "Pattern: " << pattern << "\n";
-      } else {
-        // recursively traverse these directories: refs/heads, refs/remotes,
-        // stash, tags. basically everything in .git/refs
-        // don't care about filtering first?
+      // recursively traverse these directories: refs/heads, refs/remotes,
+      // stash, tags. basically everything in .git/refs
+      // don't care about filtering first?
 
-        // if it's a file, print the ref
-        fs::path refs_path = repo->repo_path("refs");
-        fs::path gitdir = repo->repo_path("");
-        for (const auto &entry : fs::recursive_directory_iterator(refs_path)) {
-          fs::path path = entry.path();
-          if (fs::is_regular_file(path)) {
-            std::string sha = resolve_ref(path, *repo);
-            std::cout << sha << " " << remove_file_prefix(path, gitdir) << "\n";
-          }
+      // if it's a file, print the ref
+      fs::path refs_path = repo->repo_path("refs");
+      fs::path gitdir = repo->repo_path("");
+      for (const auto &entry : fs::recursive_directory_iterator(refs_path)) {
+        fs::path path = entry.path();
+        if (fs::is_regular_file(path)) {
+          std::string sha = resolve_ref(path, *repo);
+          std::cout << sha << " " << remove_file_prefix(path, gitdir) << "\n";
         }
       }
     }
