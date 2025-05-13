@@ -5,6 +5,7 @@
 #include "commands/log.h"
 #include "commands/ls-tree.h"
 #include "commands/show-ref.h"
+#include "commands/tag.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -33,6 +34,8 @@ int main(int argc, char **argv) {
     commands::checkout(args);
   } else if (command == "show-ref") {
     commands::showref(args);
+  } else if (command == "tag") {
+    commands::tag(args);
   } else {
     std::cerr << "Unknown command: " << command << "\n";
     return -1;
