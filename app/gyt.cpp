@@ -35,6 +35,9 @@ int main(int argc, char **argv) {
   } else if (command == "show-ref") {
     commands::showref(args);
   } else if (command == "tag") {
+
+    std::vector<std::string> test({"tag", "v1.0"});
+    commands::tag(test);
     commands::tag(args);
   } else {
     std::cerr << "Unknown command: " << command << "\n";

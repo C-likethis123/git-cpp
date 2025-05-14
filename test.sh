@@ -27,7 +27,7 @@ cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -G Nin
 ninja
 
 # test
-ctest
+ctest --output-on-failure
 
 #symlink - so I can run it like gyt[arguments....]
 sudo rm /usr/local/bin/gyt 
