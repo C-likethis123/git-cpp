@@ -9,7 +9,7 @@ namespace fs = std::filesystem;
 class GitRepository {
 public:
   GitRepository(fs::path worktree, fs::path gitdir);
-  GitRepository(std::string path, bool force = false);
+  GitRepository(const std::string &path, bool force = false);
 
   static std::optional<GitRepository> find(const fs::path &path = fs::path("."),
                                            bool required = true);
