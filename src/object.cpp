@@ -18,9 +18,7 @@ GitObject::GitObject(const std::string &format) { this->format = format; }
 void GitObject::init() {}
 
 GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
-  std::string dir = sha.substr(0, 2);
-  std::string path = sha.substr(2);
-  fs::path file_path = fs::path("objects") / dir / path;
+  fs::path file_path = get_commit_path(sha);
   fs::path paths = repo.file(file_path);
 
   if (!fs::is_regular_file(paths)) {

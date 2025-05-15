@@ -6,7 +6,7 @@
 
 namespace fs = std::filesystem;
 
-GitRepository::GitRepository(std::string path, bool force)
+GitRepository::GitRepository(const std::string &path, bool force)
     : worktree(fs::path(path)), gitdir(fs::path(path) / ".git") {
   if (!force && !fs::is_directory(gitdir)) {
     std::cerr << "Not a git repository: " << gitdir << "\n";

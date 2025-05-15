@@ -169,3 +169,9 @@ std::string resolve_ref(const fs::path &ref_path, GitRepository &repo) {
   }
   return ref;
 }
+
+fs::path get_commit_path(const std::string &sha) {
+  std::string dir = sha.substr(0, 2);
+  std::string path = sha.substr(2);
+  return fs::path("objects") / dir / path;
+}
