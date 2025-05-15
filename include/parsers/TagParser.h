@@ -14,7 +14,14 @@ public:
   std::string getCommit();
 
 private:
+  // hides constructors to avoid accidental instantiation
   TagParser();
+  TagParser(const TagParser &) = delete;
+  TagParser &operator=(const TagParser &) = delete;
+  TagParser(TagParser &&) = delete;
+  TagParser &operator=(TagParser &&) = delete;
+  ~TagParser() = default;
+  // data members
   TCLAP::CmdLine cmd;
   TCLAP::UnlabeledValueArg<std::string> tagArg;
   TCLAP::UnlabeledValueArg<std::string> commitArg;

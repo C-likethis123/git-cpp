@@ -3,7 +3,6 @@
 #include "parsers/TagParser.h"
 #include "repository.h"
 #include "util.h"
-#include <iostream>
 #include <optional>
 
 namespace commands {
@@ -15,13 +14,12 @@ void tag(std::vector<std::string> &args) {
   if (!repo) {
     throw std::runtime_error("Not a git repository");
   }
-  // resolve ref, basically find the commit object
-
+  // resolve ref to find the commit hash
   std::string commit = parser.isCommitSet() ? parser.getCommit()
                                             : GitObject::find(*repo, "HEAD");
   std::string tag = parser.getTag();
   // ERROR: if the commit doesn't exist.
-  if (fs::is_regular_file(get_commit_path(commit))) {
+  if (!fs::exists(repo->repo_path(get_commit_path(commit)))) {
     std::string error_message = commit + ": not a valid commit";
     throw std::runtime_error(error_message);
   }
