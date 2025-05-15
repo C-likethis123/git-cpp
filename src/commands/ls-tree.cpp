@@ -1,5 +1,6 @@
 #include "commands/ls-tree.h"
 #include <iostream>
+#include <string>
 
 #include "object.h"
 #include "repository.h"

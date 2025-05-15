@@ -24,8 +24,8 @@ void checkout(std::vector<std::string> &args) {
   try {
     std::optional<GitRepository> repo = GitRepository::find();
     if (repo) {
-      GitCommit *commit =
-          dynamic_cast<GitCommit *>(GitObject::read(*repo, hash));
+      GitCommit *commit = dynamic_cast<GitCommit *>(
+          GitObject::read(*repo, GitObject::find(*repo, hash)));
       if (!commit) {
         throw std::runtime_error("Invalid commit object: " + hash);
       }
