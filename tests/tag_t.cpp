@@ -22,6 +22,7 @@ std::string file_contents(const fs::path &path) {
 }
 const std::string FIRST_COMMIT = "1723ac93b92db1fc2c28de8e5da814136937f8c6";
 const std::string SECOND_COMMIT = "6c2c22e7b5b7b1682e3c14668499e84141aca0d4";
+const std::string THIRD_COMMIT = "ba570884af934a79081499203ba81750a945e3c5";
 const fs::path VALID_GIT_PATH = fs::temp_directory_path() / "gitrepo";
 const fs::path OLD_CWD = fs::current_path();
 const fs::path TEST_FILE_PATH = OLD_CWD / "gitrepo";

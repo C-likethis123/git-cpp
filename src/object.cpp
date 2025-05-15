@@ -1,5 +1,6 @@
 #include "object.h"
 #include "blob.h"
+#include "boost/algorithm/string/case_conv.hpp"
 #include "commit.h"
 #include "tree.h"
 #include "util.h"
@@ -90,18 +91,26 @@ std::string GitObject::write(GitRepository &repo, std::string &type,
   }
 }
 
-// TODO support hashes here
+// XXX: food for thought: how does git handle the situation where
+// the branch name is the same as a tag?
 std::string GitObject::find(GitRepository &repo, const std::string &name,
                             bool follow) {
   fs::path ref_path;
-  if (name == "HEAD") {
+  std::string ref_name = boost::algorithm::to_lower_copy(name);
+  if (name == "head") {
     ref_path = repo.repo_path("HEAD");
+  } else if (fs::exists(repo.repo_path("refs/heads/" + ref_name))) {
+    ref_path = repo.repo_path("refs/heads/" + ref_name);
+  } else if (fs::exists(repo.repo_path("refs/tags/" + ref_name))) {
+    ref_path = repo.repo_path("refs/tags/" + ref_name);
+  } else if (fs::exists(repo.repo_path("refs/remotes/" + ref_name))) {
+    ref_path = repo.repo_path("refs/remotes/" + ref_name);
+  } else if (fs::exists(repo.repo_path(get_commit_path(ref_name)))) {
+    ref_path = repo.repo_path(get_commit_path(ref_name));
   } else {
-    ref_path = repo.repo_path("refs/heads/" + name);
+    throw std::runtime_error(name + ": not a valid reference");
   }
-  std::string file_data = read_file(ref_path, true);
-  std::string commit_hash = file_data.substr(5);
-  return read_file(repo.repo_path(commit_hash), true);
+  return resolve_ref(ref_path, repo);
 }
 
 std::string GitObject::get_type() const { return this->format; }

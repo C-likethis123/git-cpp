@@ -1,2 +1,5 @@
 0000000000000000000000000000000000000000 1723ac93b92db1fc2c28de8e5da814136937f8c6 Chow Jia Ying <chowjiaying211@gmail.com> 1747142021 +0800	commit (initial): Test file
 1723ac93b92db1fc2c28de8e5da814136937f8c6 6c2c22e7b5b7b1682e3c14668499e84141aca0d4 Chow Jia Ying <chowjiaying211@gmail.com> 1747142657 +0800	commit: Test file2
+6c2c22e7b5b7b1682e3c14668499e84141aca0d4 6c2c22e7b5b7b1682e3c14668499e84141aca0d4 Chow Jia Ying <chowjiaying211@gmail.com> 1747316504 +0800	checkout: moving from main to test_branch
+6c2c22e7b5b7b1682e3c14668499e84141aca0d4 ba570884af934a79081499203ba81750a945e3c5 Chow Jia Ying <chowjiaying211@gmail.com> 1747316530 +0800	commit: first commit in test_branch
+ba570884af934a79081499203ba81750a945e3c5 6c2c22e7b5b7b1682e3c14668499e84141aca0d4 Chow Jia Ying <chowjiaying211@gmail.com> 1747316534 +0800	checkout: moving from test_branch to main
