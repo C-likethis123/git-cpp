@@ -97,7 +97,7 @@ std::string GitObject::find(GitRepository &repo, const std::string &name,
                             bool follow) {
   fs::path ref_path;
   std::string ref_name = boost::algorithm::to_lower_copy(name);
-  if (name == "head") {
+  if (ref_name == "head") {
     ref_path = repo.repo_path("HEAD");
   } else if (fs::exists(repo.repo_path("refs/heads/" + ref_name))) {
     ref_path = repo.repo_path("refs/heads/" + ref_name);
@@ -106,7 +106,7 @@ std::string GitObject::find(GitRepository &repo, const std::string &name,
   } else if (fs::exists(repo.repo_path("refs/remotes/" + ref_name))) {
     ref_path = repo.repo_path("refs/remotes/" + ref_name);
   } else if (fs::exists(repo.repo_path(get_commit_path(ref_name)))) {
-    ref_path = repo.repo_path(get_commit_path(ref_name));
+    return ref_name;
   } else {
     throw std::runtime_error(name + ": not a valid reference");
   }
