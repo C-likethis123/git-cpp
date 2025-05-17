@@ -26,8 +26,7 @@ void catfile(std::vector<std::string> &args) {
   try {
     std::optional<GitRepository> repo = GitRepository::find();
     if (repo) {
-      // TODO use GitObject::find once it's fixed
-      GitObject *obj = GitObject::read(*repo, hash);
+      GitObject *obj = GitObject::read(*repo, GitObject::find(*repo, hash));
       std::cout << obj->serialise(*repo);
     }
   } catch (std::runtime_error &err) {

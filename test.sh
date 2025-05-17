@@ -20,18 +20,17 @@ fi
 echo "Selected build type: $BUILD_TYPE" 
 echo "Building the project... This will take a while to install dependencies for the first time."
 
-mv ../tests/gitrepo/.notgit ../tests/gitrepo/.git
+rm -rf ../tests/gitrepo/.git
+cp -R ../tests/gitrepo/.notgit ../tests/gitrepo/.git
 
 #Run CMake with the selected build type
-cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -G Ninja
+cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DBUILD_TESTS=ON -G Ninja
 
 #Build the project
 ninja
 
 # test
 ctest --output-on-failure
-
-mv ../tests/gitrepo/.git ../tests/gitrepo/.notgit
 
 #symlink - so I can run it like gyt[arguments....]
 sudo rm /usr/local/bin/gyt 

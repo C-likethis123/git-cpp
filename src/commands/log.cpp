@@ -21,7 +21,7 @@ void log(std::vector<std::string> &args) {
   try {
     std::optional<GitRepository> repo = GitRepository::find();
     if (repo) {
-      std::string commit = commitArg.getValue();
+      std::string commit = GitObject::find(*repo, commitArg.getValue());
       GitCommit *commitObj;
 
       do {

@@ -31,8 +31,15 @@
 *.out
 *.app
 app/gyt
-tests/tests
 build/**/*
+
+# Tests
+tests/tests
+tests/_deps
+tests/.ninja*
+tests/app/gyt
+tests/Testing
+tests/build.ninja
 
 # CMake files
 *.cmake
