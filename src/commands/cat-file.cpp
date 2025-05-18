@@ -1,36 +1,24 @@
 #include "commands/cat-file.h"
 #include <iostream>
+#include <stdexcept>
 
 #include "object.h"
+#include "parsers/CatfileParser.h"
 #include "repository.h"
-#include "tclap/CmdLine.h"
 
 namespace commands {
 void catfile(std::vector<std::string> &args) {
-  TCLAP::CmdLine cmd("cat-file", ' ', "0.1");
+  CatfileParser &parser = CatfileParser::get();
+  parser.parse(args);
+  std::string type = parser.getType();
+  std::string hash = parser.getHash();
 
-  // defines arguments
-  TCLAP::UnlabeledValueArg<std::string> typeArg("type", "type of object", true,
-                                                "blob", "blob");
-  TCLAP::UnlabeledValueArg<std::string> objArg(
-      "object", "object hash", true, "e6c0a6d3b2ca0dbb3313843238d7e27f63259d3a",
-      "string");
+  std::optional<GitRepository> repo = GitRepository::find();
 
-  cmd.add(typeArg);
-  cmd.add(objArg);
-  cmd.parse(args);
-  std::string &type = typeArg.getValue();
-  std::string &hash = objArg.getValue();
-
-  // process args
-  try {
-    std::optional<GitRepository> repo = GitRepository::find();
-    if (repo) {
-      GitObject *obj = GitObject::read(*repo, GitObject::find(*repo, hash));
-      std::cout << obj->serialise(*repo);
-    }
-  } catch (std::runtime_error &err) {
-    std::cerr << err.what() << "\n";
+  if (!repo) {
+    throw std::runtime_error("No git repository found");
   }
+  GitObject *obj = GitObject::read(*repo, GitObject::find(*repo, hash));
+  std::cout << obj->serialise(*repo);
 }
 } // namespace commands

@@ -1,0 +1,20 @@
+{
+  "languages": {
+    "C++": {
+      "format_on_save": "on"
+    }
+  },
+  "lsp": {
+    "clangd": {
+      "binary": {
+        "path": "/usr/bin/clangd",
+        "arguments": [
+          "-log=verbose",
+          "-pretty",
+          "--background-index",
+          "--enable-config"
+        ]
+      }
+    }
+  }
+}

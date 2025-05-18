@@ -21,11 +21,14 @@ std::string GitCommit::serialise(GitRepository &repo) {
      << this->keyValuePairs["author_email"] << "> "
      << this->keyValuePairs["author_unix_timestamp"] << " "
      << this->keyValuePairs["author_timezone"] << "\n";
-  ss << "committer " << this->keyValuePairs["committer_name"] << " "
+  ss << "committer " << this->keyValuePairs["committer_name"] << " <"
      << this->keyValuePairs["committer_email"] << "> "
      << this->keyValuePairs["committer_unix_timestamp"] << " "
      << this->keyValuePairs["committer_timezone"] << "\n";
-  ss << "gpgsig " << this->keyValuePairs["gpgsig"] << "\n\n";
+  if (this->keyValuePairs.find("gpgsig") != this->keyValuePairs.end()) {
+    ss << "gpgsig " << this->keyValuePairs["gpgsig"];
+  }
+  ss << "\n\n";
   ss << this->keyValuePairs["message"];
   return ss.str();
 }
