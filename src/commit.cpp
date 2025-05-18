@@ -1,6 +1,10 @@
 #include "commit.h"
 #include "repository.h"
+#include <array>
 #include <sstream>
+#include <string>
+#include <vector>
+
 GitCommit::GitCommit(const std::string &data, const std::string &sha)
     : GitObject("commit") {
   this->deserialise(data);

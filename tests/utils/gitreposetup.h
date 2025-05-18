@@ -21,6 +21,8 @@ public:
 
   void setup();
   void teardown();
+
+  static std::string get_file_contents(const fs::path &path);
 };
 
 #endif // GITREPOSETUP_H
