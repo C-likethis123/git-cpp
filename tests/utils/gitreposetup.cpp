@@ -1,5 +1,7 @@
 #include "gitreposetup.h"
+#include "boost/algorithm/string/trim.hpp"
 #include <filesystem>
+#include <fstream>
 /**
 Uses RAII to manage the setup and teardown of a sample Git repo
 */
@@ -25,4 +27,17 @@ void GitRepoSetup::setup() {
 void GitRepoSetup::teardown() {
   fs::remove_all(VALID_GIT_PATH);
   fs::current_path(OLD_CWD);
+}
+
+std::string GitRepoSetup::get_file_contents(const fs::path &path) {
+  std::ifstream file(path);
+  if (file.is_open()) {
+    std::string contents((std::istreambuf_iterator<char>(file)),
+                         std::istreambuf_iterator<char>());
+    boost::trim_right(contents);
+    file.close();
+    return contents;
+  } else {
+    throw std::runtime_error("Could not open file: " + path.string());
+  }
 }
