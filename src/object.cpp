@@ -62,8 +62,8 @@ GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
   }
 }
 
-std::string GitObject::write(GitRepository &repo, std::string &type,
-                             std::string &data, bool write) {
+std::string GitObject::write(GitRepository &repo, const std::string &type,
+                             const std::string &data, bool write) {
   if (type == "blob") {
     std::ostringstream oss;
     oss << "blob " << data.size() << '\0' << data;

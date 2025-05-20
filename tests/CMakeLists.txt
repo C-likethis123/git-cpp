@@ -1,4 +1,4 @@
-add_executable(tests tests.cpp repository_t.cpp tag_t.cpp object_t.cpp checkout_t.cpp cat-file.cpp utils/gitreposetup.cpp)
+add_executable(tests tests.cpp repository_t.cpp tag_t.cpp object_t.cpp checkout_t.cpp cat-file_t.cpp hash-object_t.cpp utils/gitreposetup.cpp)
 target_include_directories(tests PUBLIC ../ext)
 
 target_link_libraries(tests PUBLIC boost_libraries repository commands)
