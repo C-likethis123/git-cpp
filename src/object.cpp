@@ -19,7 +19,7 @@ GitObject::GitObject(const std::string &format) { this->format = format; }
 void GitObject::init() {}
 
 GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
-  fs::path file_path = get_commit_path(sha);
+  fs::path file_path = repo.object_path(sha);
   fs::path paths = repo.file(file_path);
 
   if (!fs::is_regular_file(paths)) {
@@ -62,8 +62,8 @@ GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
   }
 }
 
-std::string GitObject::write(GitRepository &repo, std::string &type,
-                             std::string &data, bool write) {
+std::string GitObject::write(GitRepository &repo, const std::string &type,
+                             const std::string &data, bool write) {
   if (type == "blob") {
     std::ostringstream oss;
     oss << "blob " << data.size() << '\0' << data;
@@ -71,9 +71,8 @@ std::string GitObject::write(GitRepository &repo, std::string &type,
     std::string sha = sha1_hexdigest(result);
 
     if (write) {
-      fs::path file_path =
-          fs::path("objects") / sha.substr(0, 2) / sha.substr(2);
-      fs::path paths = repo.file(file_path);
+      fs::path file_path = repo.object_path(sha);
+      fs::path paths = repo.file(file_path, write);
 
       // compress files
       std::stringstream compressed;
@@ -99,13 +98,13 @@ std::string GitObject::find(GitRepository &repo, const std::string &name,
   std::string ref_name = boost::algorithm::to_lower_copy(name);
   if (ref_name == "head") {
     ref_path = repo.repo_path("HEAD");
-  } else if (fs::exists(repo.repo_path("refs/heads/" + ref_name))) {
-    ref_path = repo.repo_path("refs/heads/" + ref_name);
+  } else if (repo.has_branch(ref_name)) {
+    ref_path = repo.branch_path(ref_name);
   } else if (fs::exists(repo.repo_path("refs/tags/" + ref_name))) {
     ref_path = repo.repo_path("refs/tags/" + ref_name);
   } else if (fs::exists(repo.repo_path("refs/remotes/" + ref_name))) {
     ref_path = repo.repo_path("refs/remotes/" + ref_name);
-  } else if (fs::exists(repo.repo_path(get_commit_path(ref_name)))) {
+  } else if (repo.has_object(ref_name)) {
     return ref_name;
   } else {
     throw std::runtime_error(name + ": not a valid reference");

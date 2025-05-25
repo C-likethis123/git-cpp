@@ -15,8 +15,8 @@ public:
   virtual void deserialise(const std::string &data) = 0;
   virtual std::string serialise(GitRepository &repo) = 0;
 
-  static std::string write(GitRepository &repo, std::string &type,
-                           std::string &data, bool write);
+  static std::string write(GitRepository &repo, const std::string &type,
+                           const std::string &data, bool write);
   static GitObject *read(GitRepository &repo, const std::string &sha);
   static std::string find(GitRepository &repo, const std::string &name,
                           bool follow = true);

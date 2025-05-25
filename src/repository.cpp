@@ -113,11 +113,18 @@ void GitRepository::update_head(const std::string &new_head) {
   create_file(gitdir / "HEAD", new_head + "\n");
 }
 
-bool GitRepository::has_branch(const std::string &branch) {
-  fs::path branchPath = gitdir / "refs/heads" / branch;
-  return fs::exists(branchPath);
-}
-
 fs::path GitRepository::branch_path(const std::string &branch) {
   return gitdir / "refs/heads" / branch;
+}
+bool GitRepository::has_branch(const std::string &branch) {
+  return fs::exists(branch_path(branch));
+}
+fs::path GitRepository::object_path(const std::string &sha) {
+  std::string dir = sha.substr(0, 2);
+  std::string path = sha.substr(2);
+  return gitdir / "objects" / dir / path;
+}
+
+bool GitRepository::has_object(const std::string &sha) {
+  return fs::exists(object_path(sha));
 }

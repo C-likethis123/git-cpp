@@ -29,6 +29,7 @@ void lstree(std::vector<std::string> &args) {
     std::optional<GitRepository> repo = GitRepository::find();
     if (repo) {
       GitObject *obj = GitObject::read(*repo, treeHash);
+      // TODO: why did I use dynamic cast instead of static_cast here?
       GitTree *tree = dynamic_cast<GitTree *>(obj);
       if (obj) {
         std::cout << tree->print_matching_files(*repo, filePathPattern);
