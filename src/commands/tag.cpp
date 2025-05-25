@@ -19,7 +19,7 @@ void tag(std::vector<std::string> &args) {
                                             : GitObject::find(*repo, "HEAD");
   std::string tag = parser.getTag();
   // ERROR: if the commit doesn't exist.
-  if (!fs::exists(repo->repo_path(get_commit_path(commit)))) {
+  if (!repo->has_object(commit)) {
     std::string error_message = commit + ": not a valid commit";
     throw std::runtime_error(error_message);
   }

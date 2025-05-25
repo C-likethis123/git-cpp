@@ -25,9 +25,11 @@ public:
   fs::path file(fs::path &gitdir, bool mkdir = false);
 
   fs::path branch_path(const std::string &branch);
+  fs::path object_path(const std::string &sha);
 
   /* Checks if refs exists */
   bool has_branch(const std::string &branch);
+  bool has_object(const std::string &sha);
 
 protected:
   fs::path worktree;

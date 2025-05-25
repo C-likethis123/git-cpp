@@ -48,7 +48,7 @@ bool create_file(const fs::path &filePath, const std::string &content = "") {
         fileStream << content;
       }
 
-      std::cout << "File created successfully: " << filePath << std::endl;
+      // std::cout << "File created successfully: " << filePath << std::endl;
       return true;
     } else {
       std::cerr << "Error opening the file for writing: " << filePath << "\n"
@@ -168,10 +168,4 @@ std::string resolve_ref(const fs::path &ref_path, GitRepository &repo) {
     return resolve_ref(new_ref_path, repo);
   }
   return ref;
-}
-
-fs::path get_commit_path(const std::string &sha) {
-  std::string dir = sha.substr(0, 2);
-  std::string path = sha.substr(2);
-  return fs::path("objects") / dir / path;
 }

@@ -52,7 +52,7 @@ void checkout(std::vector<std::string> &args) {
         dynamic_cast<GitTree *>(GitObject::read(*repo, head->get_tree()));
     GitTree::instantiate_tree(tree, treeObj, repo->worktree_path(""));
     // TODO: fix bug in this one
-    if (fs::exists(repo->repo_path(get_commit_path(hash)))) {
+    if (repo->has_object(hash)) {
       repo->update_head(hash);
     } else if (fs::exists(repo->repo_path("refs/tags/" + hash))) {
       repo->update_head("ref: refs/tags/" + hash);

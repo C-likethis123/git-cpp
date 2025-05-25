@@ -23,7 +23,7 @@ HashObjectParser &HashObjectParser::get() {
 HashObjectParser::HashObjectParser()
     : cmd("hash-object", ' ', "0.1"),
       writeArg("w", "write", "whether to write object to disk", false),
-      typeArg("t", "type", "type of git object", true, "blob",
+      typeArg("t", "type", "type of git object", false, "blob",
               "type of git object"),
       pathArg("path", "file path to create an object from", true, "",
               "string") {
