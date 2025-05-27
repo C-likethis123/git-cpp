@@ -108,7 +108,6 @@ std::optional<GitRepository> GitRepository::find(const fs::path &path,
   return find(parent, required);
 }
 
-// TODO: update this to support refs
 void GitRepository::update_head(const std::string &new_head) {
   create_file(gitdir / "HEAD", new_head + "\n");
 }
