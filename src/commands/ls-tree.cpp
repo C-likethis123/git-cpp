@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 
+#include "commit.h"
 #include "object.h"
 #include "repository.h"
 #include "tclap/CmdLine.h"
@@ -31,8 +32,15 @@ void lstree(std::vector<std::string> &args) {
       GitObject *obj = GitObject::read(*repo, treeHash);
       // TODO: why did I use dynamic cast instead of static_cast here?
       GitTree *tree = dynamic_cast<GitTree *>(obj);
-      if (obj) {
+      if (tree) {
         std::cout << tree->print_matching_files(*repo, filePathPattern);
+      }
+      GitCommit *commit = dynamic_cast<GitCommit *>(obj);
+      if (commit) {
+        GitTree *tree_of_commit =
+            dynamic_cast<GitTree *>(GitObject::read(*repo, commit->get_tree()));
+        std::cout << tree_of_commit->print_matching_files(*repo,
+                                                          filePathPattern);
       }
     }
   } catch (std::runtime_error &err) {
