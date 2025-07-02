@@ -2,7 +2,6 @@
 #define REPOSITORY_H
 
 #include <filesystem>
-#include <optional>
 #include <string>
 
 namespace fs = std::filesystem;
@@ -11,8 +10,8 @@ public:
   GitRepository(fs::path worktree, fs::path gitdir);
   GitRepository(const std::string &path, bool force = false);
 
-  static std::optional<GitRepository> find(const fs::path &path = fs::path("."),
-                                           bool required = true);
+  static GitRepository find(const fs::path &path = fs::path("."),
+                            bool required = true);
   void update_head(const std::string &new_head);
 
   /**

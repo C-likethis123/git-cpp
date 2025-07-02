@@ -25,18 +25,12 @@ void lstree(std::vector<std::string> &args) {
   std::string &filePathPattern = filePathPatternArg.getValue();
 
   // process args
-  try {
-    std::optional<GitRepository> repo = GitRepository::find();
-    if (repo) {
-      GitObject *obj = GitObject::read(*repo, treeHash);
-      // TODO: why did I use dynamic cast instead of static_cast here?
-      GitTree *tree = dynamic_cast<GitTree *>(obj);
-      if (obj) {
-        std::cout << tree->print_matching_files(*repo, filePathPattern);
-      }
-    }
-  } catch (std::runtime_error &err) {
-    std::cerr << err.what() << "\n";
+  GitRepository repo = GitRepository::find();
+  GitObject *obj = GitObject::read(repo, treeHash);
+  // TODO: why did I use dynamic cast instead of static_cast here?
+  GitTree *tree = dynamic_cast<GitTree *>(obj);
+  if (obj) {
+    std::cout << tree->print_matching_files(repo, filePathPattern);
   }
 }
 } // namespace commands
