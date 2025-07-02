@@ -70,7 +70,7 @@ function)
 */
 void GitTree::instantiate_tree(GitTree *treeToInstantiate, GitTree *curr_tree,
                                const fs::path &path) {
-  std::optional<GitRepository> repo = GitRepository::find();
+  GitRepository repo = GitRepository::find();
   for (const auto &filePath : treeToInstantiate->pathNames) {
     auto &[mode, sha] = treeToInstantiate->fileEntries[filePath];
     const auto new_file_type = get_file_type(mode);
@@ -81,18 +81,18 @@ void GitTree::instantiate_tree(GitTree *treeToInstantiate, GitTree *curr_tree,
       auto &[curr_mode, curr_sha] = it->second;
       if (curr_sha != sha) {
         const auto tree_file_type = get_file_type(curr_mode);
-        GitObject *obj = GitObject::read(*repo, sha);
+        GitObject *obj = GitObject::read(repo, sha);
         if (tree_file_type == "blob") {
           // assume that the directory contents match the tree contents here
           fs::remove(new_file_path);
-          create_file(new_file_path, obj->serialise(*repo));
+          create_file(new_file_path, obj->serialise(repo));
         } else if (tree_file_type == "tree" && new_file_type == "blob") {
           fs::remove_all(new_file_path);
-          create_file(new_file_path, obj->serialise(*repo));
+          create_file(new_file_path, obj->serialise(repo));
         } else {
           GitTree *subTreeToInstantiate = dynamic_cast<GitTree *>(obj);
           GitTree *curr_subTree =
-              dynamic_cast<GitTree *>(GitObject::read(*repo, curr_sha));
+              dynamic_cast<GitTree *>(GitObject::read(repo, curr_sha));
           instantiate_tree(subTreeToInstantiate, curr_subTree, new_file_path);
         }
       }
@@ -102,9 +102,9 @@ void GitTree::instantiate_tree(GitTree *treeToInstantiate, GitTree *curr_tree,
       }
     } else {
       // not found in the current tree, create it
-      GitObject *obj = GitObject::read(*repo, sha);
+      GitObject *obj = GitObject::read(repo, sha);
       if (new_file_type == "blob") {
-        create_file(new_file_path, obj->serialise(*repo));
+        create_file(new_file_path, obj->serialise(repo));
       } else {
         fs::create_directories(new_file_path);
         GitTree *subTreeToInstantiate = dynamic_cast<GitTree *>(obj);
@@ -135,14 +135,14 @@ Instantiates a tree that is not instantiated in the current working directory
 */
 void GitTree::instantiate_tree(GitTree *treeToInstantiate,
                                const fs::path &path) {
-  std::optional<GitRepository> repo = GitRepository::find();
+  GitRepository repo = GitRepository::find();
   for (const auto &filePath : treeToInstantiate->pathNames) {
     auto &[mode, sha] = treeToInstantiate->fileEntries[filePath];
     const auto new_file_type = get_file_type(mode);
     const auto new_file_path = path / filePath;
-    GitObject *obj = GitObject::read(*repo, sha);
+    GitObject *obj = GitObject::read(repo, sha);
     if (new_file_type == "blob") {
-      create_file(new_file_path, obj->serialise(*repo));
+      create_file(new_file_path, obj->serialise(repo));
     } else {
       fs::create_directories(new_file_path);
       GitTree *subTreeToInstantiate = dynamic_cast<GitTree *>(obj);

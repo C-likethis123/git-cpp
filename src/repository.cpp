@@ -3,6 +3,7 @@
 #include "util.h"
 #include <filesystem>
 #include <iostream>
+#include <stdexcept>
 
 namespace fs = std::filesystem;
 
@@ -92,8 +93,7 @@ fs::path GitRepository::file(fs::path &path, bool mkdir) {
 /**
 Finds root of the current directory
 */
-std::optional<GitRepository> GitRepository::find(const fs::path &path,
-                                                 bool required) {
+GitRepository GitRepository::find(const fs::path &path, bool required) {
   fs::path canonicalPath = fs::canonical(path);
   fs::path gitDir = canonicalPath / ".git";
   if (fs::is_directory(gitDir)) {
@@ -102,8 +102,7 @@ std::optional<GitRepository> GitRepository::find(const fs::path &path,
   }
   fs::path parent = canonicalPath.parent_path();
   if (parent == path) {
-    std::cerr << "No git directory found at " << canonicalPath.string() << "\n";
-    return std::nullopt;
+    throw std::runtime_error("No git repository found");
   }
   return find(parent, required);
 }

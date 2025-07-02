@@ -3,28 +3,24 @@
 #include "parsers/TagParser.h"
 #include "repository.h"
 #include "util.h"
-#include <optional>
 
 namespace commands {
 void tag(std::vector<std::string> &args) {
   TagParser &parser = TagParser::get();
   parser.parse(args);
   // process args
-  std::optional<GitRepository> repo = GitRepository::find();
-  if (!repo) {
-    throw std::runtime_error("Not a git repository");
-  }
+  GitRepository repo = GitRepository::find();
   // resolve ref to find the commit hash
-  std::string commit = parser.isCommitSet() ? parser.getCommit()
-                                            : GitObject::find(*repo, "HEAD");
+  std::string commit =
+      parser.isCommitSet() ? parser.getCommit() : GitObject::find(repo, "HEAD");
   std::string tag = parser.getTag();
   // ERROR: if the commit doesn't exist.
-  if (!repo->has_object(commit)) {
+  if (!repo.has_object(commit)) {
     std::string error_message = commit + ": not a valid commit";
     throw std::runtime_error(error_message);
   }
   // ERROR: if the tag already exists
-  fs::path tag_path = repo->repo_path("refs/tags/" + tag);
+  fs::path tag_path = repo.repo_path("refs/tags/" + tag);
   if (fs::is_regular_file(tag_path)) {
     std::string error_message = "tag '" + tag + "' already exists";
     throw std::runtime_error(error_message);
