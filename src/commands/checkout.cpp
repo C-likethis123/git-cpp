@@ -32,21 +32,10 @@ void checkout(std::vector<std::string> &args) {
     repo.update_head("ref: refs/heads/" + branchName);
   } else {
     std::string hash = parser.getCommit();
-    GitCommit *commit = dynamic_cast<GitCommit *>(
-        GitObject::read(repo, GitObject::find(repo, hash)));
-    if (!commit) {
-      throw std::runtime_error("Invalid commit object: " + hash);
-    }
-    GitTree *tree =
-        dynamic_cast<GitTree *>(GitObject::read(repo, commit->get_tree()));
-    if (!tree) {
-      throw std::runtime_error("Invalid tree object: " + commit->get_tree());
-    }
-    std::string orig_head = GitObject::find(repo, "HEAD");
-    GitCommit *head =
-        dynamic_cast<GitCommit *>(GitObject::read(repo, orig_head));
-    GitTree *treeObj =
-        dynamic_cast<GitTree *>(GitObject::read(repo, head->get_tree()));
+    GitCommit commit = GitCommit::read(repo, hash);
+    GitTree tree = GitTree::read(repo, commit.get_tree());
+    GitCommit head = GitCommit::read(repo, "HEAD");
+    GitTree treeObj = GitTree::read(repo, head.get_tree());
     GitTree::instantiate_tree(tree, treeObj, repo.worktree_path(""));
     if (repo.has_object(hash)) {
       repo.update_head(hash);

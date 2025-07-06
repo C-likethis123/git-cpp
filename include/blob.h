@@ -9,6 +9,7 @@ class GitBlob : public GitObject {
 public:
   GitBlob(const std::string &data = std::string(""));
 
+  static GitBlob read(GitRepository &repo, const std::string &hash);
   void deserialise(const std::string &data) override;
   std::string serialise(GitRepository &repo) override;
 
