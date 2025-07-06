@@ -4,6 +4,8 @@
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/uuid/detail/sha1.hpp>
+#include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -13,6 +15,14 @@
 #include <string>
 
 namespace fs = std::filesystem;
+
+uint32_t read_uint32_from_bytes(const std::string &s, size_t offset) {
+  if (offset + 4 > s.size())
+    throw std::runtime_error("out of range");
+  uint32_t value;
+  std::memcpy(&value, s.data() + offset, sizeof(value));
+  return ntohl(value); // if data is big-endian (common in file formats)
+}
 
 std::string read_file(const fs::path &filePath, bool remove_newline = false) {
   try {

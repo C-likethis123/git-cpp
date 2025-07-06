@@ -3,6 +3,7 @@
 #include "commands/hash-object.h"
 #include "commands/init.h"
 #include "commands/log.h"
+#include "commands/ls-files.h"
 #include "commands/ls-tree.h"
 #include "commands/show-ref.h"
 #include "commands/tag.h"
@@ -30,6 +31,8 @@ int main(int argc, char **argv) {
     commands::log(args);
   } else if (command == "ls-tree") {
     commands::lstree(args);
+  } else if (command == "ls-files") {
+    commands::lsfiles(args);
   } else if (command == "checkout") {
     commands::checkout(args);
   } else if (command == "show-ref") {

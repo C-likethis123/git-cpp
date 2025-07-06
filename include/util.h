@@ -18,4 +18,5 @@ std::string remove_file_prefix(const fs::path &path,
 std::string resolve_ref(const fs::path &ref_path, GitRepository &repo);
 std::pair<std::string, std::string>
 read_git_object_data(GitRepository &repo, const std::string &sha);
+uint32_t read_uint32_from_bytes(const std::string &s, size_t offset);
 #endif // UTIL_H
