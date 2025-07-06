@@ -42,7 +42,6 @@ void checkout(std::vector<std::string> &args) {
     GitCommit commit = GitCommit::read(repo, hash);
     GitTree tree = GitTree::read(repo, commit.get_tree());
     GitCommit head = GitCommit::read(repo, "HEAD");
-    GitTree treeObj = GitTree::read(repo, head.get_tree());
     GitTree::instantiate_tree(tree, treeObj, repo.worktree_path(""));
     if (repo.has_object(hash)) {
       repo.update_head(hash);
