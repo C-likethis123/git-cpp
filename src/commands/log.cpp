@@ -20,15 +20,15 @@ void log(std::vector<std::string> &args) {
   // process args
   GitRepository repo = GitRepository::find();
   std::string commit = GitObject::find(repo, commitArg.getValue());
-  GitCommit *commitObj;
-
-  do {
-    GitObject *obj = GitObject::read(repo, commit);
-    commitObj = dynamic_cast<GitCommit *>(obj);
-    if (commitObj) {
-      std::cout << commitObj->print_commit() << "\n";
-      commit = commitObj->get_parent();
+  GitCommit commitObj = GitCommit::read(repo, commit);
+  bool hasCommit = true;
+  while (hasCommit) {
+    std::cout << commitObj.print_commit() << "\n";
+    if (commitObj.has_parent()) {
+      commitObj = GitCommit::read(repo, commitObj.get_parent());
+    } else {
+      hasCommit = false;
     }
-  } while (commitObj && commitObj->has_parent());
+  }
 }
 } // namespace commands

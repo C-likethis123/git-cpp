@@ -1,5 +1,6 @@
 #include "commit.h"
 #include "repository.h"
+#include "util.h"
 #include <array>
 #include <sstream>
 #include <string>
@@ -88,6 +89,15 @@ void GitCommit::deserialise(const std::string &data) {
 
 bool GitCommit::has_parent() {
   return this->keyValuePairs.find("parent") != this->keyValuePairs.end();
+}
+
+GitCommit GitCommit::read(GitRepository &repo, const std::string &hash) {
+  const std::string &sha = GitObject::find(repo, hash);
+  auto [fmt, payload] = read_git_object_data(repo, sha);
+  if (fmt != "commit") {
+    throw std::runtime_error("Invalid commit object: " + hash);
+  }
+  return GitCommit(payload, sha);
 }
 
 std::string GitCommit::get_parent() { return this->keyValuePairs["parent"]; }

@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "object.h"
+#include "repository.h"
 
 class GitCommit : public GitObject {
 public:
@@ -14,6 +15,7 @@ public:
   */
   GitCommit(const std::string &data = std::string(""),
             const std::string &sha = std::string(""));
+  static GitCommit read(GitRepository &repo, const std::string &hash);
 
   void deserialise(
       const std::string &data) override; // convert string format to data object

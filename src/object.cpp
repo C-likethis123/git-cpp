@@ -8,7 +8,6 @@
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 
-#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -19,46 +18,14 @@ GitObject::GitObject(const std::string &format) { this->format = format; }
 void GitObject::init() {}
 
 GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
-  fs::path file_path = repo.object_path(sha);
-  fs::path paths = repo.file(file_path);
-
-  if (!fs::is_regular_file(paths)) {
-    throw std::runtime_error(paths.string() + " is not found");
-  }
-  std::ifstream input_file(paths.string(),
-                           std::ios_base::in | std::ios_base::binary);
-  std::stringstream decompressed_data;
-
-  boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
-  in.push(boost::iostreams::zlib_decompressor());
-  in.push(input_file);
-  try {
-    boost::iostreams::copy(in, decompressed_data);
-  } catch (const boost::iostreams::zlib_error &e) {
-    std::cerr << "Zlib decompression error: " << e.what() << std::endl;
-  }
-
-  std::string raw = decompressed_data.str();
-  // Read object type
-  auto x = raw.find(' ');
-  std::string fmt = raw.substr(0, x);
-
-  // Read and validate object size
-  auto y = raw.find('\0', x);
-  std::string size_str = raw.substr(x, y - x);
-  int size = std::stoi(size_str);
-  if (size != raw.size() - y - 1) {
-    throw std::runtime_error("Malformed object: bad length");
-  }
+  auto [fmt, payload] = read_git_object_data(repo, sha);
 
   if (fmt == "blob") {
-    return new GitBlob(raw.substr(y + 1));
+    return new GitBlob(payload);
   } else if (fmt == "commit") {
-    return new GitCommit(raw.substr(y + 1), sha);
-  } else if (fmt == "tree") {
-    return new GitTree(raw.substr(y + 1));
+    return new GitCommit(payload, sha);
   } else {
-    throw std::runtime_error("Unknown type");
+    return new GitTree(payload);
   }
 }
 

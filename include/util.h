@@ -16,4 +16,6 @@ fs::perms get_unix_permissions(int mode);
 std::string remove_file_prefix(const fs::path &path,
                                const fs::path &repo_prefix);
 std::string resolve_ref(const fs::path &ref_path, GitRepository &repo);
+std::pair<std::string, std::string>
+read_git_object_data(GitRepository &repo, const std::string &sha);
 #endif // UTIL_H
