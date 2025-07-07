@@ -20,6 +20,7 @@ public:
   std::string create(bool mkdir);
   fs::path repo_path(fs::path path);
   fs::path worktree_path(fs::path path);
+  std::string get_status();
   fs::path dir(const fs::path &path, bool mkdir = false);
   fs::path file(fs::path &gitdir, bool mkdir = false);
 

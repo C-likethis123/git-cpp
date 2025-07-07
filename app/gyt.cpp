@@ -6,6 +6,7 @@
 #include "commands/ls-files.h"
 #include "commands/ls-tree.h"
 #include "commands/show-ref.h"
+#include "commands/status.h"
 #include "commands/tag.h"
 #include <iostream>
 #include <string>
@@ -39,6 +40,8 @@ int main(int argc, char **argv) {
     commands::showref(args);
   } else if (command == "tag") {
     commands::tag(args);
+  } else if (command == "status") {
+    commands::status(args);
   } else {
     std::cerr << "Unknown command: " << command << "\n";
     return -1;

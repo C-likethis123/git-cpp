@@ -126,3 +126,16 @@ fs::path GitRepository::object_path(const std::string &sha) {
 bool GitRepository::has_object(const std::string &sha) {
   return fs::exists(object_path(sha));
 }
+
+std::string GitRepository::get_status() {
+  const std::string head_contents = read_file(this->repo_path("HEAD"), true);
+  if (head_contents.rfind("ref: ", 0) == 0) {
+    std::string ref_contents = head_contents.substr(5);
+    if (ref_contents.rfind("refs/heads/", 0) == 0) {
+      return ref_contents.substr(11);
+    } else if (ref_contents.rfind("refs/tags/", 0) == 0)
+      return ref_contents.substr(10);
+  } else {
+    return head_contents;
+  }
+}
