@@ -1,6 +1,8 @@
 #include "index.h"
+#include "commit.h"
 #include "index_entry.h"
 #include "repository.h"
+#include "tree.h"
 #include "util.h"
 #include <cmath>
 #include <filesystem>
@@ -69,6 +71,27 @@ void GitIndex::print_matching_patterns(GitRepository &repo,
     if (file_name.rfind(path, 0) == 0) {
       std::cout << fs::relative(path_in_repo, prefix_to_remove).string()
                 << std::endl;
+    }
+  }
+}
+
+void GitIndex::scan_status(GitRepository &repo) {
+  // 1. find changes staged for commit
+  //
+  // compare head tree with index
+  // index is modified after head
+  // todo: check modified
+  // todo: check add
+  // todo: check deleted
+  GitCommit headCommit = GitCommit::find(repo, "HEAD");
+  GitTree tree = GitTree::find(repo, headCommit.get_tree());
+  for (auto &entry : entries_) {
+    std::string file_name = entry.file_name();
+    auto it = tree.find_file(file_name);
+    if (it == tree.end()) {
+      std::cout << "new file: " << file_name << std::endl;
+    } else {
+      std::cout << "modified: " << file_name << std::endl;
     }
   }
 }
