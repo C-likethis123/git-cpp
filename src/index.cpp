@@ -7,6 +7,8 @@
 #include <cmath>
 #include <filesystem>
 #include <iostream>
+#include <string>
+#include <vector>
 namespace fs = std::filesystem;
 
 GitIndex::GitIndex(uint32_t fileVersion, std::vector<GitIndexEntry> entries)
@@ -75,23 +77,24 @@ void GitIndex::print_matching_patterns(GitRepository &repo,
   }
 }
 
+
 void GitIndex::scan_status(GitRepository &repo) {
-  // 1. find changes staged for commit
-  //
-  // compare head tree with index
-  // index is modified after head
-  // todo: check modified
-  // todo: check add
-  // todo: check deleted
-  GitCommit headCommit = GitCommit::find(repo, "HEAD");
-  GitTree tree = GitTree::find(repo, headCommit.get_tree());
-  for (auto &entry : entries_) {
-    std::string file_name = entry.file_name();
-    auto it = tree.find_file(file_name);
-    if (it == tree.end()) {
-      std::cout << "new file: " << file_name << std::endl;
-    } else {
-      std::cout << "modified: " << file_name << std::endl;
-    }
-  }
+  /* 1. 
+  gather head state - maps the commit's files (why do this when we can use the index?)
+  any deviation from the index means it's modified and unstaged
+
+  gather index state
+
+  gather worktree state
+
+  status categories:
+  - staged changes (index vs HEAD)
+    - new
+    - deleted
+    - modified
+  - unstaged (worktree vs index)
+    - odified
+    - deleted
+    - optional
+*/
 }
