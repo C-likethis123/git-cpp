@@ -1,3 +1,4 @@
+#include "config.h"
 #include "repository.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/iostreams/copy.hpp>
@@ -9,6 +10,13 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#if defined(HAVE_WINSOCK2_H)
+    #include <winsock2.h>
+#elif defined(HAVE_ARPA_INET_H)
+    #include <arpa/inet.h>
+#else
+    #error "No suitable networking headers found!"
+#endif
 #include <iostream>
 #include <sstream>
 #include <stdexcept>

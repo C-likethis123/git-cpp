@@ -11,6 +11,35 @@ set(CMAKE_AR /usr/bin/ar)
 # Enable C language
 enable_language(C)
 
+# sets OS version
+set(OS_VERSION "" CACHE STRING "Version of the build")
+
+message(STATUS "Building on: ${OS_VERSION}")
+
+# Set flags based on OS_VERSION
+if(OS_VERSION STREQUAL "1")
+    set(HAVE_ARPA_INET_H 1)
+    set(LIBS_TO_LINK lib_mac)
+elseif(OS_VERSION STREQUAL "2")
+    set(HAVE_WINSOCK2_H 1)
+    set(LIBS_TO_LINK lib_win)
+elseif(OS_VERSION STREQUAL "3")
+    set(HAVE_ARPA_INET_H 1)
+    set(LIBS_TO_LINK lib_linux)
+else()
+    message(FATAL_ERROR "Unknown OS_VERSION: ${OS_VERSION}. Must be 1,2 or 3.")
+endif()
+
+# Generate config.h
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/config.h
+)
+
+# Make the generated config.h available globally
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+
 # this needs to be in the top level CMakeLists.txt to enable tests
 include(CTest)
 
@@ -45,7 +74,7 @@ if(BUILD_DOCS)
 endif()
 
 # compile the tests
-option(BUILD_TESTS "Enable building of documentation (requires Doxygen)" OFF)
+option(BUILD_TESTS "Enable tests" OFF)
 if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()

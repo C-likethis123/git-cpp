@@ -4,6 +4,7 @@
 #include "object.h"
 #include "repository.h"
 #include "util.h"
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
