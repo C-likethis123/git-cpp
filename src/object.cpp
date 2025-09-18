@@ -2,6 +2,7 @@
 #include "blob.h"
 #include "boost/algorithm/string/case_conv.hpp"
 #include "commit.h"
+#include "repo_util.h"
 #include "tree.h"
 #include "util.h"
 #include <boost/iostreams/copy.hpp>

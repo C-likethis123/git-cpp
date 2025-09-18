@@ -1,7 +1,11 @@
 #include "repository.h"
 #include "inih/INIReader.h"
 #include "util.h"
+#include "wildmatch/wildmatch.h"
+#include "wildmatch/wildmatch.hpp"
+#include <boost/algorithm/string.hpp>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <stdexcept>
 
@@ -22,6 +26,38 @@ GitRepository::GitRepository(const std::string &path, bool force)
     if (vers != 0) {
       std::cerr << "Unsupported repositoryformatversion " << vers << "\n";
       // Handle error condition, throw an exception or set some flag, etc.
+    }
+  }
+
+  // TODO: read .gitignore files in nested directories.
+  // read gitignore here
+  fs::path gitignorePath = worktree / ".gitignore";
+  if (fs::exists(gitignorePath)) {
+    try {
+      std::ifstream file(gitignorePath.string());
+
+      if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+          boost::trim(line);
+          if (!line.empty() && line[0] != '#') {
+            ignore_patterns.insert(line);
+            
+            // For directory patterns ending with '/', also add the pattern with '**' appended
+            // This ensures that .cache/ matches any file or directory under .cache/
+            if (line.back() == '/') {
+              std::string expanded_pattern = line + "**";
+              ignore_patterns.insert(expanded_pattern);
+            }
+          }
+        }
+        file.close();
+      } else {
+        std::cerr << "Unable to open .gitignore file: " << gitignorePath
+                  << std::endl;
+      }
+    } catch (const std::exception &e) {
+      std::cerr << "Exception reading .gitignore: " << e.what() << std::endl;
     }
   }
 }
@@ -127,14 +163,60 @@ bool GitRepository::has_object(const std::string &sha) {
   return fs::exists(object_path(sha));
 }
 
+/**
+Checks if the file is ignored
+Each pattern is a glob file pattern, should parse and match it
+according to glob file rules
+*/
+bool GitRepository::is_ignored(const fs::path &path) {
+  fs::path relative_path = fs::relative(path, worktree);
+  std::string relative_path_str = relative_path.generic_string();
+  
+  // Use different flags for different pattern types
+  constexpr int pathname_flags = wild::PATHNAME | wild::PERIOD | wild::CASEFOLD | wild::LEADING_DIR | wild::WILDSTAR;
+  constexpr int no_pathname_flags = wild::PERIOD | wild::CASEFOLD | wild::LEADING_DIR;
+  
+  for (const auto &pattern : ignore_patterns) {
+    // For patterns that contain path separators or end with '/', use PATHNAME flags
+    // For simple patterns like *.a, use no PATHNAME flags to match anywhere
+    bool use_pathname = (pattern.find('/') != std::string::npos) || pattern.back() == '/';
+    int flags = use_pathname ? pathname_flags : no_pathname_flags;
+    
+    // Special handling for directory patterns ending with '/'
+    // In Git, .cache/ should match .cache/ directories anywhere in the repository
+    if (pattern.back() == '/' && !pattern.empty()) {
+      // Try matching the pattern as-is first
+      if (wild::match(pattern, relative_path_str, flags)) {
+        return true;
+      }
+      // Also try matching with **/ prefix and ** suffix to match anywhere in the repository
+      std::string anywhere_pattern = "**/" + pattern + "**";
+      if (wild::match(anywhere_pattern, relative_path_str, flags)) {
+        return true;
+      }
+    } else {
+      // Normal pattern matching
+      if (wild::match(pattern, relative_path_str, flags)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+int GitRepository::num_ignored_patterns() { return ignore_patterns.size(); }
+
 std::string GitRepository::get_status() {
   const std::string head_contents = read_file(this->repo_path("HEAD"), true);
   if (head_contents.rfind("ref: ", 0) == 0) {
     std::string ref_contents = head_contents.substr(5);
     if (ref_contents.rfind("refs/heads/", 0) == 0) {
       return ref_contents.substr(11);
-    } else if (ref_contents.rfind("refs/tags/", 0) == 0)
+    } else if (ref_contents.rfind("refs/tags/", 0) == 0) {
       return ref_contents.substr(10);
+    } else {
+      return head_contents;
+    }
   } else {
     return head_contents;
   }

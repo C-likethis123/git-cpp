@@ -1,5 +1,6 @@
 #include "commands/status.h"
 
+#include "index.h"
 #include "repository.h"
 #include "tclap/CmdLine.h"
 #include <string>
@@ -17,6 +18,9 @@ void status(std::vector<std::string> &args) {
   GitRepository repo = GitRepository::find();
   const std::string status = repo.get_status();
   std::cout << "On: " << status << std::endl;
+
+  GitIndex index = GitIndex::read(repo);
+  index.scan_status(repo);
 
   // show whether it's up to date with remote branch - if it's there
   // changes to be committed

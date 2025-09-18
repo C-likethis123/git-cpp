@@ -1,7 +1,9 @@
 #include "catch2/catch.hpp"
 #include "repository.h"
+#include "utils/gitreposetup.h"
 
 TEST_CASE("GitRepository Construction", "[GitRepository]") {
+  GitRepoSetup gitRepoSetup;
   SECTION("Valid Git Repository") {
     // Provide a path to a valid git repository
     std::string validGitPath = "test_dir";
@@ -10,6 +12,7 @@ TEST_CASE("GitRepository Construction", "[GitRepository]") {
 }
 
 TEST_CASE("GitRepository Create", "[GitRepository]") {
+  GitRepoSetup gitRepoSetup;
   SECTION("Create Git Repository in default path") {
     std::string createGitPath = ".";
     GitRepository repo(createGitPath, true);
@@ -31,10 +34,19 @@ TEST_CASE("GitRepository Create", "[GitRepository]") {
     // REQUIRE(util::readFile(createGitPath + "description") == "Expected
     // contents");
   }
+}
 
-  // Teardown section runs after the test case
-  SECTION("Cleanup after Create Git Repository") {
-    // Add cleanup code here, such as removing directories or resetting state
-    fs::remove_all(".git");
+TEST_CASE("GitRepository Ignore", "[GitRepository]") {
+  GitRepoSetup gitRepoSetup;
+  SECTION("Ignore files in Git Repository") {
+    std::string createGitPath = ".";
+    GitRepository repo(createGitPath, true);
+
+    REQUIRE_NOTHROW(repo.create(true));
+
+    // Assert that gitignore is respected
+    REQUIRE(repo.is_ignored(".git") == true);
+    REQUIRE(repo.is_ignored("test2") == false);
+    REQUIRE(repo.is_ignored("test3") == true);
   }
 }

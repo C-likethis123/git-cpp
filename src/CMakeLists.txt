@@ -14,13 +14,22 @@ target_compile_features(util PUBLIC cxx_std_17)
 add_library(inih inih.c inih.cpp)
 target_include_directories(inih PUBLIC ../include)
 
+file(GLOB WILDMATCH_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/wildmatch/wildmatch.cpp")
+add_library(wildmatch ${WILDMATCH_SOURCES})
+target_include_directories(wildmatch PUBLIC ../include)
+
 add_library(repository repository.cpp)
-target_link_libraries(repository PRIVATE inih util boost_libraries)
+target_link_libraries(repository PRIVATE inih util boost_libraries wildmatch)
 target_include_directories(repository PUBLIC ../include)
 target_compile_features(repository PUBLIC cxx_std_17)
 
+add_library(repo_util repo_util.cpp)
+target_link_libraries(repo_util PRIVATE boost_libraries util repository)
+target_include_directories(repo_util PUBLIC ../include)
+target_compile_features(repo_util PUBLIC cxx_std_17)
+
 add_library(object object.cpp blob.cpp commit.cpp tree.cpp index.cpp index_entry.cpp)
-target_link_libraries(object PRIVATE repository boost_libraries)
+target_link_libraries(object PRIVATE util repo_util repository boost_libraries)
 target_include_directories(object PUBLIC ../include)
 target_compile_features(object PUBLIC cxx_std_17)
 
@@ -32,6 +41,6 @@ target_compile_features(parsers PUBLIC cxx_std_17)
 
 file(GLOB COMMANDS_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/commands/*.cpp")
 add_library(commands ${COMMANDS_SOURCES})
-target_link_libraries(commands PRIVATE parsers repository object boost_libraries)
+target_link_libraries(commands PUBLIC parsers util repo_util repository object boost_libraries)
 target_include_directories(commands PUBLIC ../include)
 target_compile_features(commands PUBLIC cxx_std_17)

@@ -31,10 +31,11 @@
 *.out
 *.app
 app/gyt
-build/**/*
+build/**
 
 # Tests
 tests/tests
+tests/.cache
 tests/_deps
 tests/.ninja*
 tests/app/gyt

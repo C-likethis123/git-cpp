@@ -1,7 +1,7 @@
 #include "blob.h"
 
+#include "repo_util.h"
 #include "repository.h"
-#include "util.h"
 #include <string>
 
 GitBlob::GitBlob(const std::string &blobData)

@@ -14,6 +14,7 @@ public:
                 bool flag_extended, uint8_t flag_stage,
                 uint32_t file_name_length, std::string file_name);
   std::string file_name() const;
+  std::string sha1() const;
 
 private:
   uint32_t ctime_sec_;

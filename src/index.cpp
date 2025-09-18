@@ -1,12 +1,14 @@
 #include "index.h"
-#include "commit.h"
+
 #include "index_entry.h"
+#include "object.h"
 #include "repository.h"
-#include "tree.h"
 #include "util.h"
 #include <cmath>
 #include <filesystem>
 #include <iostream>
+#include <string>
+#include <vector>
 namespace fs = std::filesystem;
 
 GitIndex::GitIndex(uint32_t fileVersion, std::vector<GitIndexEntry> entries)
@@ -76,22 +78,80 @@ void GitIndex::print_matching_patterns(GitRepository &repo,
 }
 
 void GitIndex::scan_status(GitRepository &repo) {
-  // 1. find changes staged for commit
-  //
-  // compare head tree with index
-  // index is modified after head
-  // todo: check modified
-  // todo: check add
-  // todo: check deleted
-  GitCommit headCommit = GitCommit::find(repo, "HEAD");
-  GitTree tree = GitTree::find(repo, headCommit.get_tree());
-  for (auto &entry : entries_) {
-    std::string file_name = entry.file_name();
-    auto it = tree.find_file(file_name);
-    if (it == tree.end()) {
-      std::cout << "new file: " << file_name << std::endl;
-    } else {
-      std::cout << "modified: " << file_name << std::endl;
+  /**
+
+  current working directory.
+  make sure to respect gitignore.
+
+  index to CWD - staged changes
+    - modified in CWD (unstaged) - done
+    - added (untracked) - done
+    - deleted in CWD (deleted, unstaged)
+*/
+
+  std::vector<std::string> modified;
+  std::vector<std::string> untracked;
+  std::vector<std::string> deleted;
+
+  for (auto it = fs::recursive_directory_iterator(repo.worktree_path("."));
+       it != fs::recursive_directory_iterator(); ++it) {
+    const auto &entry = *it;
+    if (repo.is_ignored(entry.path())) {
+      if (entry.is_directory()) {
+        it.disable_recursion_pending();
+      }
+      continue;
+    }
+    if (entry.is_directory()) {
+      continue;
+    }
+    // find the relative path, eg "src/index.cpp"
+    fs::path relative_path =
+        fs::relative(entry.path(), repo.worktree_path("."));
+    std::string relative_path_str = relative_path.string();
+    bool found_in_index = false;
+    for (const auto &index_entry : entries_) {
+      if (index_entry.file_name() == relative_path_str) {
+        found_in_index = true;
+        // check if modified
+        // TODO: if an entire folder is modified or has changes, ignore the
+        // rest.
+        std::string file_sha1 =
+            GitObject::write(repo, "blob", read_file(entry.path()), false);
+        if (file_sha1 != index_entry.sha1()) {
+          modified.emplace_back(relative_path_str);
+        }
+        break;
+      }
+    }
+    if (!found_in_index) {
+      untracked.emplace_back(relative_path_str);
     }
   }
+
+  // find deleted items
+  for (const auto &index_entry : entries_) {
+    fs::path file_path = repo.worktree_path(index_entry.file_name());
+    if (!fs::exists(file_path)) {
+      deleted.emplace_back(index_entry.file_name());
+    }
+  }
+
+  for (const auto &file : modified) {
+    std::cout << "modified: " << file << std::endl;
+  }
+  for (const auto &file : untracked) {
+    std::cout << "untracked: " << file << std::endl;
+  }
+  for (const auto &file : deleted) {
+    std::cout << "deleted: " << file << std::endl;
+  }
+
+  /*
+  index to HEAD - changes to be committed
+    - modified
+    - added
+    - deleted
+
+  */
 }

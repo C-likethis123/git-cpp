@@ -11,9 +11,9 @@ then
 fi
 
 #remove old build if any
-if [ -f "app/gyt" ];
+if [ -f "build/bin/gyt" ];
 then 
-    rm -rf app/gyt 
+    rm -rf build/bin/gyt 
 fi
 
 #Print the selected build type
@@ -28,4 +28,4 @@ ninja
 
 #symlink - so I can run it like gyt[arguments....]
 sudo rm /usr/local/bin/gyt 
-sudo ln -s "$(pwd)/app/gyt" /usr/local/bin/gyt
+sudo ln -s "$(pwd)/build/bin/gyt" /usr/local/bin/gyt
