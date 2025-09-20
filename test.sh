@@ -24,7 +24,7 @@ rm -rf ../tests/gitrepo/.git
 cp -R ../tests/gitrepo/.notgit ../tests/gitrepo/.git
 
 #Run CMake with the selected build type
-cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DBUILD_TESTS=ON -DOS_VERSION=1 -G Ninja
+cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DBUILD_TESTS=ON -G Ninja
 
 #Build the project
 ninja

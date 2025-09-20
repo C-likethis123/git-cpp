@@ -14,11 +14,7 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            os_version: 1
-          - os: windows-latest
-            os_version: 2
           - os: ubuntu-latest
-            os_version: 3
 
     steps:
     - uses: actions/checkout@v3
@@ -36,7 +32,7 @@ jobs:
     - name: configure cmake
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Debug -DOS_VERSION=${{ matrix.os_version }} -DBUILD_TESTS=ON
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
 
     - name: build
       shell: bash
