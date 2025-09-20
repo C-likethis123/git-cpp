@@ -1,4 +1,5 @@
 #include "repository.h"
+#include <arpa/inet.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/zlib.hpp>

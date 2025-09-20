@@ -3,6 +3,7 @@
 
 #include "index_entry.h"
 #include "repository.h"
+#include <vector>
 
 class GitIndex {
 public:

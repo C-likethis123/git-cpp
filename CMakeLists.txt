@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8.2)
+cmake_minimum_required(VERSION 3.16)
 
 # Set a name and a version number for your project:
 project(
@@ -10,6 +10,7 @@ set(CMAKE_AR /usr/bin/ar)
 
 # Enable C language
 enable_language(C)
+
 
 # this needs to be in the top level CMakeLists.txt to enable tests
 include(CTest)
@@ -25,9 +26,11 @@ include(FetchContent)
 FetchContent_Declare(
   Boost
   GIT_REPOSITORY https://github.com/boostorg/boost.git
-  GIT_TAG boost-1.83.0
+  GIT_TAG boost-1.85.0
   GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(Boost)
+find_package(ZLIB REQUIRED)
+set(EXTRA_LIBS Boost::iostreams ZLIB::ZLIB)
 
 # compile the library
 add_subdirectory(src)
@@ -45,7 +48,7 @@ if(BUILD_DOCS)
 endif()
 
 # compile the tests
-option(BUILD_TESTS "Enable building of documentation (requires Doxygen)" OFF)
+option(BUILD_TESTS "Enable tests" OFF)
 if(BUILD_TESTS)
   add_subdirectory(tests)
 endif()
