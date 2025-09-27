@@ -1,3 +1,4 @@
+#include "commands/add.h"
 #include "commands/cat-file.h"
 #include "commands/checkout.h"
 #include "commands/hash-object.h"
@@ -42,6 +43,8 @@ int main(int argc, char **argv) {
     commands::tag(args);
   } else if (command == "status") {
     commands::status(args);
+  } else if (command == "add") {
+    commands::add(args);
   } else {
     std::cerr << "Unknown command: " << command << "\n";
     return -1;
