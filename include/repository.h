@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <string>
+#include <unordered_set>
 
 namespace fs = std::filesystem;
 class GitRepository {
@@ -20,6 +21,7 @@ public:
   std::string create(bool mkdir);
   fs::path repo_path(fs::path path);
   fs::path worktree_path(fs::path path);
+  std::string get_status();
   fs::path dir(const fs::path &path, bool mkdir = false);
   fs::path file(fs::path &gitdir, bool mkdir = false);
 
@@ -30,9 +32,16 @@ public:
   bool has_branch(const std::string &branch);
   bool has_object(const std::string &sha);
 
+  /**
+  Checks if the file is ignored
+  */
+  int num_ignored_patterns();
+  bool is_ignored(const fs::path &path);
+
 protected:
   fs::path worktree;
   fs::path gitdir;
+  std::unordered_set<std::string> ignore_patterns{".git"};
 };
 
 #endif // REPOSITORY_H

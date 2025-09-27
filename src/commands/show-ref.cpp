@@ -1,6 +1,7 @@
 #include "commands/show-ref.h"
 #include <iostream>
 
+#include "repo_util.h"
 #include "repository.h"
 #include "tclap/CmdLine.h"
 #include "util.h"

@@ -2,6 +2,7 @@
 
 #include "blob.h"
 #include "object.h"
+#include "repo_util.h"
 #include "repository.h"
 #include "util.h"
 #include <algorithm>

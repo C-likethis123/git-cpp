@@ -4,6 +4,7 @@
 #include "object.h"
 #include "repository.h"
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -22,6 +23,9 @@ public:
       GitRepository &repo,
       const std::string &filePathPattern); // print tree entries that
                                            // match the given file path
+
+  // maybe i need something like a git tree entry?
+  std::optional<std::string> find(std::string &file_name);
   static void instantiate_tree(
       GitTree &treeToInstantiate, GitTree &curr_tree,
       const fs::path
@@ -31,8 +35,7 @@ public:
       const fs::path
           &path); // instantiate a tree object in the working directory
   void init();
-
-protected:
+  // move this to protected later
   std::vector<std::string> pathNames;
   std::unordered_map<std::string, std::tuple<int, std::string>> fileEntries;
 };

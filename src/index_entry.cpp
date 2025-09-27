@@ -21,3 +21,5 @@ GitIndexEntry::GitIndexEntry(uint32_t ctime_sec, uint32_t ctime_nanosec,
       file_name_length_(file_name_length), file_name_(std::move(file_name)){};
 
 std::string GitIndexEntry::file_name() const { return this->file_name_; }
+
+std::string GitIndexEntry::sha1() const { return this->sha1_; };
