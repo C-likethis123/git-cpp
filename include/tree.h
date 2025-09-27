@@ -35,8 +35,7 @@ public:
       const fs::path
           &path); // instantiate a tree object in the working directory
   void init();
-
-protected:
+  // move this to protected later
   std::vector<std::string> pathNames;
   std::unordered_map<std::string, std::tuple<int, std::string>> fileEntries;
 };
