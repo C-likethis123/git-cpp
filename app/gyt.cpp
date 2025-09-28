@@ -18,36 +18,40 @@ int main(int argc, char **argv) {
     std::cerr << "Usage: " << argv[0] << " [command]\n";
     return -1;
   }
-  std::string command = argv[1];
-  std::vector<std::string> args;
-  for (int i = 1; i < argc; i++) {
-    args.push_back(argv[i]);
-  }
-  if (command == "init") {
-    commands::init(args);
-  } else if (command == "cat-file") {
-    commands::catfile(args);
-  } else if (command == "hash-object") {
-    commands::hashobject(args);
-  } else if (command == "log") {
-    commands::log(args);
-  } else if (command == "ls-tree") {
-    commands::lstree(args);
-  } else if (command == "ls-files") {
-    commands::lsfiles(args);
-  } else if (command == "checkout") {
-    commands::checkout(args);
-  } else if (command == "show-ref") {
-    commands::showref(args);
-  } else if (command == "tag") {
-    commands::tag(args);
-  } else if (command == "status") {
-    commands::status(args);
-  } else if (command == "add") {
-    commands::add(args);
-  } else {
-    std::cerr << "Unknown command: " << command << "\n";
-    return -1;
+  try {
+    std::string command = argv[1];
+    std::vector<std::string> args;
+    for (int i = 1; i < argc; i++) {
+      args.push_back(argv[i]);
+    }
+    if (command == "init") {
+      commands::init(args);
+    } else if (command == "cat-file") {
+      commands::catfile(args);
+    } else if (command == "hash-object") {
+      commands::hashobject(args);
+    } else if (command == "log") {
+      commands::log(args);
+    } else if (command == "ls-tree") {
+      commands::lstree(args);
+    } else if (command == "ls-files") {
+      commands::lsfiles(args);
+    } else if (command == "checkout") {
+      commands::checkout(args);
+    } else if (command == "show-ref") {
+      commands::showref(args);
+    } else if (command == "tag") {
+      commands::tag(args);
+    } else if (command == "status") {
+      commands::status(args);
+    } else if (command == "add") {
+      commands::add(args);
+    } else {
+      std::cerr << "Unknown command: " << command << "\n";
+      return -1;
+    }
+  } catch (const std::runtime_error &e) {
+    std::cerr << e.what() << std::endl;
   }
   return 0;
 }
