@@ -1,0 +1,3 @@
+[submodule "tests/gitrepo"]
+	path = tests/gitrepo
+	url = git@github.com:C-likethis123/git-cpp-test-fixtures.git

@@ -1,6 +1,6 @@
 #include "catch2/catch.hpp"
 #include "commands/hash-object.h"
-#include "util.h"
+#include "utils/file_utils.h"
 #include "utils/gitreposetup.h"
 #include "utils/test_helpers.h"
 #include <filesystem>
@@ -24,7 +24,7 @@ TEST_CASE("hashobject command", "[hashobject]") {
   SECTION("Valid git hashobject command - writes object into memory",
           "hashobject blob") {
     // create a file
-    create_file("test3", "test contents 3\n");
+    file_utils::create_file("test3", "test contents 3\n");
     std::vector<std::string> args({"hash-object", "-w", "test3"});
     REQUIRE_STDOUT_VALUE(commands::hashobject(args),
                          "7eaae456b03342fe252b72e0a030a274703379d1\n");

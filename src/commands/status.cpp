@@ -21,11 +21,5 @@ void status(std::vector<std::string> &args) {
 
   GitIndex index = GitIndex::read(repo);
   index.scan_status(repo);
-
-  // show whether it's up to date with remote branch - if it's there
-  // changes to be committed
-  // changes not staged for commit
-  // untracked files
-  // also need to support git ignores...
 }
 } // namespace commands

@@ -42,6 +42,8 @@ TEST_CASE("checkout command", "[checkout]") {
   }
   SECTION("checkout new branch that didn't exist before") {
     std::vector<std::string> args({"checkout", "-b", "new_branch"});
+    REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
+            "ref: refs/heads/main");
     commands::checkout(args);
 
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
@@ -51,7 +53,7 @@ TEST_CASE("checkout command", "[checkout]") {
     REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
             "ref: refs/heads/new_branch");
     REQUIRE(GitRepoSetup::get_file_contents(".git/refs/heads/new_branch") ==
-            SECOND_COMMIT);
+            HEAD_COMMIT);
   }
   SECTION("checkout new branch that didn't exist before with a specified start "
           "point") {
