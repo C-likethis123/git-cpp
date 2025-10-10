@@ -15,7 +15,7 @@ TEST_CASE("checkout command", "[checkout]") {
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
     REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
             "ref: refs/heads/test_branch");
-    REQUIRE(GitRepository(VALID_GIT_PATH).get_status() == "test_branch");
+    REQUIRE(GitRepository(VALID_GIT_PATH).get_head() == "test_branch");
   }
   SECTION("checkout existing commit", "tag name with commit") {
     std::vector<std::string> args({"checkout", SECOND_COMMIT});
@@ -28,7 +28,7 @@ TEST_CASE("checkout command", "[checkout]") {
     GitRepository repo(VALID_GIT_PATH);
 
     // Use the create function
-    REQUIRE(repo.get_status() == SECOND_COMMIT);
+    REQUIRE(repo.get_head() == SECOND_COMMIT);
   }
   SECTION("checkout existing tag", "tag name with commit") {
     std::vector<std::string> args({"checkout", TEST_TAG});
@@ -38,7 +38,7 @@ TEST_CASE("checkout command", "[checkout]") {
     // check file contents match second commit
     REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
             "ref: refs/tags/test_tag");
-    REQUIRE(GitRepository(VALID_GIT_PATH).get_status() == TEST_TAG);
+    REQUIRE(GitRepository(VALID_GIT_PATH).get_head() == TEST_TAG);
   }
   SECTION("checkout new branch that didn't exist before") {
     std::vector<std::string> args({"checkout", "-b", "new_branch"});
@@ -65,7 +65,7 @@ TEST_CASE("checkout command", "[checkout]") {
             "ref: refs/heads/new_branch");
     REQUIRE(GitRepoSetup::get_file_contents(".git/refs/heads/new_branch") ==
             FIRST_COMMIT);
-    REQUIRE(GitRepository(VALID_GIT_PATH).get_status() == "new_branch");
+    REQUIRE(GitRepository(VALID_GIT_PATH).get_head() == "new_branch");
   }
 }
 
@@ -77,6 +77,6 @@ TEST_CASE("checkout with errors", "[checkout errors]") {
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
     REQUIRE_THROWS_WITH(commands::checkout(args),
                         "fatal: a branch named 'test_branch' already exists.");
-    REQUIRE(GitRepository(VALID_GIT_PATH).get_status() == "main");
+    REQUIRE(GitRepository(VALID_GIT_PATH).get_head() == "main");
   }
 }
