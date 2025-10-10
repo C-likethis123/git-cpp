@@ -14,6 +14,9 @@ public:
   void print_matching_patterns(GitRepository &repo, const std::string &path);
   void scan_status(GitRepository &repo);
 
+  void add_file(const std::string &path, GitRepository &repo);
+  void save(GitRepository &repo);
+
 protected:
   uint32_t version_;
   std::vector<GitIndexEntry> entries_;

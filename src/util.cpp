@@ -24,6 +24,18 @@ uint32_t read_uint32_from_bytes(const std::string &s, size_t offset) {
   return ntohl(value); // if data is big-endian (common in file formats)
 }
 
+void write_uint32_to_bytes(std::stringstream &stream, uint32_t value) {
+  uint32_t network_value = htonl(value); // Convert to big-endian
+  stream.write(reinterpret_cast<const char *>(&network_value),
+               sizeof(network_value));
+}
+
+void write_uint16_to_bytes(std::stringstream &stream, uint16_t value) {
+  uint16_t network_value = htons(value); // Convert to big-endian
+  stream.write(reinterpret_cast<const char *>(&network_value),
+               sizeof(network_value));
+}
+
 std::string read_file(const fs::path &filePath, bool remove_newline = false) {
   try {
     // Open the file

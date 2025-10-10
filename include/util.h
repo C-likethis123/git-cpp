@@ -2,6 +2,7 @@
 #define UTIL_H
 
 #include <filesystem>
+#include <sstream>
 #include <string>
 namespace fs = std::filesystem;
 
@@ -16,4 +17,6 @@ std::string remove_file_prefix(const fs::path &path,
                                const fs::path &repo_prefix);
 
 uint32_t read_uint32_from_bytes(const std::string &s, size_t offset);
+void write_uint32_to_bytes(std::stringstream &stream, uint32_t value);
+void write_uint16_to_bytes(std::stringstream &stream, uint16_t value);
 #endif // UTIL_H

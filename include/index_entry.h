@@ -1,9 +1,12 @@
 #ifndef INDEX_ENTRY_H
 #define INDEX_ENTRY_H
 
+#include "repository.h"
 #include <cstdint>
+#include <filesystem>
+#include <sstream>
 #include <string>
-
+namespace fs = std::filesystem;
 class GitIndexEntry {
 public:
   GitIndexEntry(uint32_t ctime_sec, uint32_t ctime_nanosec, uint32_t mtime_sec,
@@ -13,8 +16,11 @@ public:
                 uint32_t file_size, std::string sha1, bool flag_assume_valid,
                 bool flag_extended, uint8_t flag_stage,
                 uint32_t file_name_length, std::string file_name);
+  static GitIndexEntry create_index_entry(const fs::path &path,
+                                          GitRepository &repo);
   std::string file_name() const;
   std::string sha1() const;
+  void save(GitRepository &repo, std::stringstream &stream) const;
 
 private:
   uint32_t ctime_sec_;

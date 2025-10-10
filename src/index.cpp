@@ -6,12 +6,17 @@
 #include "repository.h"
 #include "tree.h"
 #include "util.h"
+#include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
+#include <sys/stat.h>
 #include <unordered_map>
 #include <vector>
+
 namespace fs = std::filesystem;
 
 // TODO: improve this
@@ -56,7 +61,7 @@ GitIndex GitIndex::read(GitRepository &repo) {
     uint32_t ino = read_uint32_from_bytes(fileContents, ptr + 20);
     uint32_t mode = read_uint32_from_bytes(fileContents, ptr + 24);
     uint8_t object_type = (mode << 16) >> 12; // bits 31..28
-    uint8_t unused = (mode >> 20) >> 9;       // bits 27..25
+    uint8_t unused = mode >> 29;              // bits 27..25
     uint16_t permissions = mode & 0x1FF;      // bits 24..16
     uint32_t uid = read_uint32_from_bytes(fileContents, ptr + 28);
     uint32_t gid = read_uint32_from_bytes(fileContents, ptr + 32);
@@ -225,4 +230,35 @@ void GitIndex::scan_status(GitRepository &repo) {
   for (const auto &file : staged_deletions) {
     std::cout << "deleted: " << file << std::endl;
   }
+}
+
+void GitIndex::add_file(const std::string &path, GitRepository &repo) {
+  entries_.erase(std::remove_if(entries_.begin(), entries_.end(),
+                                [path](const GitIndexEntry &entry) {
+                                  return entry.file_name() == path;
+                                }),
+                 entries_.end());
+
+  entries_.emplace_back(GitIndexEntry::create_index_entry(path, repo));
+  std::sort(entries_.begin(), entries_.end(),
+            [](const GitIndexEntry &a, const GitIndexEntry &b) {
+              return a.file_name() < b.file_name();
+            });
+}
+
+void GitIndex::save(GitRepository &repo) {
+  std::stringstream filestream;
+
+  // Write header (12 bytes)
+  filestream.write("DIRC", 4);                        // Signature
+  write_uint32_to_bytes(filestream, version_);        // Version
+  write_uint32_to_bytes(filestream, entries_.size()); // Entry count
+
+  for (const auto &entry : entries_) {
+    entry.save(repo, filestream);
+  }
+  const std::string index_sha = sha1_hexdigest(filestream.str());
+  filestream.write(hexToBinary(index_sha).c_str(), 20);
+  fs::path index_path = repo.repo_path("index_test");
+  create_file(index_path, filestream.str());
 }
