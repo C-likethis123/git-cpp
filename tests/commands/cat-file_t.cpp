@@ -12,13 +12,13 @@ TEST_CASE("catfile command", "[catfile]") {
     std::vector<std::string> args({"cat-file", "commit", "head"});
     REQUIRE_STDOUT_VALUE(
         commands::catfile(args),
-        "tree 19f66fa2b7cba386a1d185449eed1c024d71df25\n"
-        "parent 1723ac93b92db1fc2c28de8e5da814136937f8c6\n"
-        "author Chow Jia Ying <chowjiaying211@gmail.com> 1747142657 +0800\n"
-        "committer Chow Jia Ying <chowjiaying211@gmail.com> 1747142657 "
+        "tree 2842c57bba208dfff78c2ce033ccf8f13ffe4d62\n"
+        "parent 6c2c22e7b5b7b1682e3c14668499e84141aca0d4\n"
+        "author Chow Jia Ying <chowjiaying211@gmail.com> 1760236003 +0800\n"
+        "committer Chow Jia Ying <chowjiaying211@gmail.com> 1760236003 "
         "+0800\n\n\n"
 
-        "Test file2\n");
+        "Add gitignore\n");
   }
   SECTION("Valid git catfile command - catfile a blob", "catfile blob") {
     std::vector<std::string> args(

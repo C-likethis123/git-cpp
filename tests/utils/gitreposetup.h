@@ -10,6 +10,7 @@ Uses RAII to manage the setup and teardown of a sample Git repo
 extern const std::string FIRST_COMMIT;
 extern const std::string SECOND_COMMIT;
 extern const std::string THIRD_COMMIT;
+extern const std::string HEAD_COMMIT;
 extern const std::string TEST_TAG;
 extern const fs::path VALID_GIT_PATH;
 extern const fs::path OLD_CWD;

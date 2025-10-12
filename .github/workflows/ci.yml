@@ -24,11 +24,6 @@ jobs:
     - name: make build directory
       run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: setup tests
-      shell: bash
-      working-directory: ${{github.workspace}}/tests/gitrepo
-      run: cp -R .notgit .git
-
     - name: configure cmake
       shell: bash
       working-directory: ${{runner.workspace}}/build
