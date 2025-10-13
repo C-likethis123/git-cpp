@@ -1,5 +1,6 @@
 #include "repository.h"
 #include "inih/INIReader.h"
+#include "pack_index.h"
 #include "util.h"
 #include "wildmatch/wildmatch.h"
 #include "wildmatch/wildmatch.hpp"
@@ -160,10 +161,22 @@ fs::path GitRepository::object_path(const std::string &sha) {
   return gitdir / "objects" / dir / path;
 }
 
-bool GitRepository::has_object(const std::string &sha) {
+bool GitRepository::has_loose_object(const std::string &sha) {
   return fs::exists(object_path(sha));
 }
 
+bool GitRepository::has_pack_object(const std::string &sha) {
+  fs::path pack_dir = gitdir / "objects/pack";
+  for (auto &entry : fs::directory_iterator(pack_dir)) {
+    if (entry.path().extension() == ".idx") {
+      PackIndex idx(entry.path());
+      if (idx.has_object(sha)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 /**
 Checks if the file is ignored
 Each pattern is a glob file pattern, should parse and match it

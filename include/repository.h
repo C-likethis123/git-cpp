@@ -30,8 +30,8 @@ public:
 
   /* Checks if refs exists */
   bool has_branch(const std::string &branch);
-  bool has_object(const std::string &sha);
-
+  bool has_loose_object(const std::string &sha);
+  bool has_pack_object(const std::string &sha);
   /**
   Checks if the file is ignored
   */

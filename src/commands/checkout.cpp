@@ -37,7 +37,7 @@ void checkout(std::vector<std::string> &args) {
     GitCommit head = GitCommit::read(repo, "HEAD");
     GitTree treeObj = GitTree::read(repo, head.get_tree());
     GitTree::instantiate_tree(tree, treeObj, repo.worktree_path(""));
-    if (repo.has_object(hash)) {
+    if (repo.has_loose_object(hash)) {
       repo.update_head(hash);
     } else if (fs::exists(repo.repo_path("refs/tags/" + hash))) {
       repo.update_head("ref: refs/tags/" + hash);
