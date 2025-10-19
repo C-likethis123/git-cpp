@@ -120,7 +120,6 @@ void GitIndex::scan_status(GitRepository &repo) {
   std::vector<std::string> untracked;
   std::vector<std::string> deleted;
 
-  std::cout << "Changes not staged for commit:" << std::endl;
   for (auto it = fs::recursive_directory_iterator(repo.worktree_path("."));
        it != fs::recursive_directory_iterator(); ++it) {
     const auto &entry = *it;
@@ -152,25 +151,18 @@ void GitIndex::scan_status(GitRepository &repo) {
 
       if (file_time_sec != index_entry->second.mtime_sec() ||
           file_size != index_entry->second.file_size()) {
+        // Only compute SHA1 if file appears to have changed
         std::string file_sha1 =
             GitObject::write(repo, "blob", read_file(entry.path()), false);
-        modified.emplace_back(relative_path_str);
+        if (file_sha1 != index_entry->second.sha1()) {
+          modified.emplace_back(relative_path_str);
+        }
       }
     }
 
     if (!found_in_index) {
       untracked.emplace_back(relative_path_str);
     }
-  }
-
-  for (const auto &file : modified) {
-    std::cout << "modified: " << file << std::endl;
-  }
-  for (const auto &file : untracked) {
-    std::cout << "untracked: " << file << std::endl;
-  }
-  for (const auto &file : deleted) {
-    std::cout << "deleted: " << file << std::endl;
   }
 
   std::vector<std::string> staged_modifications;
@@ -207,16 +199,39 @@ void GitIndex::scan_status(GitRepository &repo) {
     }
   }
 
-  // Print staged changes
-  std::cout << "Changes to be committed:" << std::endl;
-  for (const auto &file : staged_modifications) {
-    std::cout << "modified: " << file << std::endl;
+  bool has_no_unstaged_changes =
+      (modified.size() + untracked.size() + deleted.size()) == 0;
+  bool has_no_staged_changes =
+      (staged_modifications.size() + staged_additions.size() +
+       staged_deletions.size()) == 0;
+  if (has_no_unstaged_changes && has_no_staged_changes) {
+    std::cout << "nothing to commit, working tree clean" << std::endl;
   }
-  for (const auto &file : staged_additions) {
-    std::cout << "new file: " << file << std::endl;
+  if (!has_no_staged_changes) {
+    // Print staged changes
+    std::cout << "Changes to be committed:" << std::endl;
+    for (const auto &file : staged_modifications) {
+      std::cout << "modified: " << file << std::endl;
+    }
+    for (const auto &file : staged_additions) {
+      std::cout << "new file: " << file << std::endl;
+    }
+    for (const auto &file : staged_deletions) {
+      std::cout << "deleted: " << file << std::endl;
+    }
+    std::cout << "\n";
   }
-  for (const auto &file : staged_deletions) {
-    std::cout << "deleted: " << file << std::endl;
+  if (!has_no_unstaged_changes) {
+    std::cout << "Changes not staged for commit:" << std::endl;
+    for (const auto &file : modified) {
+      std::cout << "modified: " << file << std::endl;
+    }
+    for (const auto &file : untracked) {
+      std::cout << "untracked: " << file << std::endl;
+    }
+    for (const auto &file : deleted) {
+      std::cout << "deleted: " << file << std::endl;
+    }
   }
 }
 

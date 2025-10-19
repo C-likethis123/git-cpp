@@ -11,30 +11,26 @@ namespace fs = std::filesystem;
 
 TEST_CASE("status command", "[status]") {
   GitRepoSetup gitRepoSetup;
-  //   SECTION("Valid git status", "nothing to commit, working tree clean") {
-  //     std::vector<std::string> args({"status"});
-  //     commands::status(args);
+  SECTION("Valid git status", "nothing to commit, working tree clean") {
+    std::vector<std::string> args({"status"});
 
-  //     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
-  //     REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") == "HEAD");
-  //     REQUIRE_STDOUT_VALUE(
-  //         commands::status(args),
-  //         "On: main\n\nNo commits yet\n\nUntracked "
-  //         "files:\n\tREADME\n\nnothing added to commit but untracked files
-  //         " "present (use \"git add\" to track)\n");
-  //   }
+    REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
+    REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
+            "ref: refs/heads/main");
+    REQUIRE_STDOUT_VALUE(commands::status(args),
+                         "On: main\n\nnothing to commit, working tree clean\n");
+  }
 
   SECTION("Valid git status", "untracked files") {
     std::vector<std::string> args({"status"});
-    commands::status(args);
 
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
     REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
             "ref: refs/heads/main");
     file_utils::create_file(VALID_GIT_PATH / "README", "test contents");
-    REQUIRE_STDOUT_VALUE(commands::status(args),
-                         "On: main\n\nChanges not staged for commit:\n\n"
-                         "untracked: README\n");
+    REQUIRE_STDOUT_VALUE(
+        commands::status(args),
+        "On: main\n\nChanges not staged for commit:\nuntracked: README\n");
   }
 
   //   SECTION("Valid git status", "new file, change staged") {
