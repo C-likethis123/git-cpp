@@ -121,8 +121,13 @@ void GitIndex::scan_status(GitRepository &repo) {
   std::vector<std::string> deleted;
 
   std::cout << "Changes not staged for commit:" << std::endl;
+  int file_count = 0;
+  const int MAX_FILES = 1000; // Safety limit
+
   for (auto it = fs::recursive_directory_iterator(repo.worktree_path("."));
-       it != fs::recursive_directory_iterator(); ++it) {
+       it != fs::recursive_directory_iterator() && file_count < MAX_FILES;
+       ++it) {
+    file_count++;
     const auto &entry = *it;
     if (repo.is_ignored(entry.path())) {
       if (entry.is_directory()) {
@@ -144,17 +149,27 @@ void GitIndex::scan_status(GitRepository &repo) {
       // check if modified
       // TODO: if an entire folder is modified or has changes, ignore the
       // rest.
-      auto file_time = fs::last_write_time(entry.path());
-      auto file_time_sec = std::chrono::duration_cast<std::chrono::seconds>(
-                               file_time.time_since_epoch())
-                               .count();
-      auto file_size = fs::file_size(entry.path());
+      try {
+        auto file_time = fs::last_write_time(entry.path());
+        auto file_time_sec = static_cast<uint32_t>(
+            std::chrono::duration_cast<std::chrono::seconds>(
+                file_time.time_since_epoch())
+                .count());
+        auto file_size = fs::file_size(entry.path());
 
-      if (file_time_sec != index_entry->second.mtime_sec() ||
-          file_size != index_entry->second.file_size()) {
-        std::string file_sha1 =
-            GitObject::write(repo, "blob", read_file(entry.path()), false);
-        modified.emplace_back(relative_path_str);
+        if (file_time_sec != index_entry->second.mtime_sec() ||
+            file_size != index_entry->second.file_size()) {
+          // Only compute SHA1 if file appears to have changed
+          std::string file_sha1 =
+              GitObject::write(repo, "blob", read_file(entry.path()), false);
+          if (file_sha1 != index_entry->second.sha1()) {
+            modified.emplace_back(relative_path_str);
+          }
+        }
+      } catch (const std::exception &e) {
+        // If we can't read file stats, skip this file
+        std::cout << "Skipping file due to error: " << relative_path_str
+                  << std::endl;
       }
     }
 

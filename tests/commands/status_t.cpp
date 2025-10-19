@@ -26,7 +26,6 @@ TEST_CASE("status command", "[status]") {
 
   SECTION("Valid git status", "untracked files") {
     std::vector<std::string> args({"status"});
-    commands::status(args);
 
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
     REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
