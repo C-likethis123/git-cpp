@@ -19,6 +19,8 @@ public:
   static GitIndexEntry create_index_entry(const fs::path &path,
                                           GitRepository &repo);
   std::string file_name() const;
+  uint32_t mtime_sec() const;
+  uint32_t file_size() const;
   std::string sha1() const;
   void save(GitRepository &repo, std::stringstream &stream) const;
 

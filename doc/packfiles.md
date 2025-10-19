@@ -16,10 +16,17 @@ is an OBJ_OFS_DELTA object
 
 # *idx format
 
+1. Fanout table
+- it contains 256 entries
+- For each entry (from 00-FF), it says how many objects starts with bytes less than or equal that value.
+2. Sorted SHA-1 list
+3. Offsets
+- A byte offset in the .pack file where each object's data starts
 
-# How to implement in log (draft)
-1. I get a SHA from a commit object
-2. I want to find the commit object of that SHA, but it's in a packfile
-3. I will read in .idx fanout table to find objects starting from the first two digits.
-4. Then do binary search on sorted SHA-1 list.
-5. Look up offset for entry #46
+
+## How to find an object from a SHA in a pack file
+1. Look in .idx fanout table at position 0x9d
+2. Binary search the sorted SHA-1 list from position 45-47
+3. In the offset table, the object starts at byte 327.
+4. Seek to byte 327, decompress and read the object
+

@@ -55,3 +55,6 @@ DartConfiguration.tcl
 # Ninja logs
 trace*.json
 ninja_log
+
+# Temporary fix before I implement ignoring git submodules
+tests/gitrepo/**
