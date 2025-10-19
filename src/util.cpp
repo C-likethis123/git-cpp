@@ -1,3 +1,4 @@
+#include "util.h"
 #include <arpa/inet.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/iostreams/copy.hpp>
@@ -16,9 +17,17 @@
 
 namespace fs = std::filesystem;
 
+std::string read_bytes(std::ifstream &file_pos, size_t size) {
+  std::string bytes;
+  bytes.resize(size);
+  file_pos.read(bytes.data(), size);
+  return bytes;
+}
+
 uint32_t read_uint32_from_bytes(const std::string &s, size_t offset) {
   if (offset + 4 > s.size())
-    throw std::runtime_error("out of range");
+    throw std::runtime_error("out of range: " + std::to_string(offset + 4) +
+                             " > " + std::to_string(s.size()));
   uint32_t value;
   std::memcpy(&value, s.data() + offset, sizeof(value));
   return ntohl(value); // if data is big-endian (common in file formats)
@@ -36,7 +45,7 @@ void write_uint16_to_bytes(std::stringstream &stream, uint16_t value) {
                sizeof(network_value));
 }
 
-std::string read_file(const fs::path &filePath, bool remove_newline = false) {
+std::string read_file(const fs::path &filePath, bool remove_newline) {
   try {
     // Open the file
     std::ifstream fileStream(filePath.string());
@@ -62,7 +71,7 @@ std::string read_file(const fs::path &filePath, bool remove_newline = false) {
   }
 }
 
-bool create_file(const fs::path &filePath, const std::string &content = "") {
+bool create_file(const fs::path &filePath, const std::string &content) {
   try {
     // Create the file
     std::ofstream fileStream(filePath.string());

@@ -15,7 +15,7 @@ TEST_CASE("tag command", "[tag]") {
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
     REQUIRE(fs::exists(".git/refs/tags/v1.0"));
     REQUIRE(GitRepoSetup::get_file_contents(".git/refs/tags/v1.0") ==
-            SECOND_COMMIT);
+            HEAD_COMMIT);
   }
   SECTION("Valid git tag command - tag name with commit",
           "tag name with commit") {
@@ -38,7 +38,7 @@ TEST_CASE("tag with errors", "[tag errors]") {
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
     REQUIRE(fs::exists(".git/refs/tags/v1.0"));
     REQUIRE(GitRepoSetup::get_file_contents(".git/refs/tags/v1.0") ==
-            SECOND_COMMIT);
+            HEAD_COMMIT);
 
     std::vector<std::string> args2({"tag", "v1.0"});
     REQUIRE_THROWS_WITH(commands::tag(args2), "tag 'v1.0' already exists");

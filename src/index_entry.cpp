@@ -34,6 +34,9 @@ std::string GitIndexEntry::file_name() const { return this->file_name_; }
 
 std::string GitIndexEntry::sha1() const { return this->sha1_; }
 
+uint32_t GitIndexEntry::mtime_sec() const { return this->mtime_sec_; }
+uint32_t GitIndexEntry::file_size() const { return this->file_size_; }
+
 GitIndexEntry GitIndexEntry::create_index_entry(const fs::path &path,
                                                 GitRepository &repo) {
   struct stat file_stat;

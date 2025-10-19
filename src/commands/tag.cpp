@@ -15,7 +15,7 @@ void tag(std::vector<std::string> &args) {
       parser.isCommitSet() ? parser.getCommit() : GitObject::find(repo, "HEAD");
   std::string tag = parser.getTag();
   // ERROR: if the commit doesn't exist.
-  if (!repo.has_object(commit)) {
+  if (!repo.has_loose_object(commit)) {
     std::string error_message = commit + ": not a valid commit";
     throw std::runtime_error(error_message);
   }

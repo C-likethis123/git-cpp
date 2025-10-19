@@ -4,11 +4,12 @@
 #include "index_entry.h"
 #include "repository.h"
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 class GitIndex {
 public:
-  GitIndex(uint32_t fileVersion, std::vector<GitIndexEntry> entries);
+  GitIndex(uint32_t fileVersion,
+           std::unordered_map<std::string, GitIndexEntry> entries);
   static GitIndex read(GitRepository &repo);
 
   void print_matching_patterns(GitRepository &repo, const std::string &path);
@@ -19,7 +20,7 @@ public:
 
 protected:
   uint32_t version_;
-  std::vector<GitIndexEntry> entries_;
+  std::unordered_map<std::string, GitIndexEntry> entries_;
 
   // void find_modified_unstaged(GitRepository &repo,
   //                             std::vector<std::string> &modified,

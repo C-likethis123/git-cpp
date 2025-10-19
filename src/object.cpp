@@ -19,7 +19,9 @@ GitObject::GitObject(const std::string &format) { this->format = format; }
 void GitObject::init() {}
 
 GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
-  auto [fmt, payload] = read_git_object_data(repo, sha);
+  auto [fmt, payload] = repo.has_loose_object(sha)
+                            ? read_git_object_data(repo, sha)
+                            : read_from_pack(repo.dir("objects/pack") / sha, 0);
 
   if (fmt == "blob") {
     return new GitBlob(payload);
@@ -72,7 +74,9 @@ std::string GitObject::find(GitRepository &repo, const std::string &name,
     ref_path = repo.repo_path("refs/tags/" + ref_name);
   } else if (fs::exists(repo.repo_path("refs/remotes/" + ref_name))) {
     ref_path = repo.repo_path("refs/remotes/" + ref_name);
-  } else if (repo.has_object(ref_name)) {
+  } else if (repo.has_loose_object(ref_name)) {
+    return ref_name;
+  } else if (repo.has_pack_object(ref_name)) {
     return ref_name;
   } else {
     throw std::runtime_error(name + ": not a valid reference");

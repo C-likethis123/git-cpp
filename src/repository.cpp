@@ -1,7 +1,7 @@
 #include "repository.h"
 #include "inih/INIReader.h"
+#include "pack_index.h"
 #include "util.h"
-#include "wildmatch/wildmatch.h"
 #include "wildmatch/wildmatch.hpp"
 #include <boost/algorithm/string.hpp>
 #include <filesystem>
@@ -160,10 +160,22 @@ fs::path GitRepository::object_path(const std::string &sha) {
   return gitdir / "objects" / dir / path;
 }
 
-bool GitRepository::has_object(const std::string &sha) {
+bool GitRepository::has_loose_object(const std::string &sha) {
   return fs::exists(object_path(sha));
 }
 
+bool GitRepository::has_pack_object(const std::string &sha) {
+  fs::path pack_dir = gitdir / "objects/pack";
+  for (auto &entry : fs::directory_iterator(pack_dir)) {
+    if (entry.path().extension() == ".idx") {
+      PackIndex idx(entry.path());
+      if (idx.has_object(sha)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 /**
 Checks if the file is ignored
 Each pattern is a glob file pattern, should parse and match it
@@ -178,7 +190,7 @@ bool GitRepository::is_ignored(const fs::path &path) {
                                  wild::CASEFOLD | wild::LEADING_DIR |
                                  wild::WILDSTAR;
   constexpr int no_pathname_flags =
-      wild::PERIOD | wild::CASEFOLD | wild::LEADING_DIR;
+      wild::PERIOD | wild::CASEFOLD | wild::LEADING_DIR | wild::WILDSTAR;
 
   for (const auto &pattern : ignore_patterns) {
     // For patterns that contain path separators or end with '/', use PATHNAME
@@ -206,6 +218,13 @@ bool GitRepository::is_ignored(const fs::path &path) {
       // Normal pattern matching
       if (wild::match(pattern, relative_path_str, flags)) {
         return true;
+      }
+      // For simple patterns, also try matching anywhere in the repository
+      if (!use_pathname) {
+        std::string anywhere_pattern = "**/" + pattern;
+        if (wild::match(anywhere_pattern, relative_path_str, pathname_flags)) {
+          return true;
+        }
       }
     }
   }

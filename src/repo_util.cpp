@@ -1,3 +1,4 @@
+#include "pack_util.h"
 #include "repository.h"
 #include "util.h"
 #include <boost/iostreams/copy.hpp>
@@ -55,4 +56,40 @@ read_git_object_data(GitRepository &repo, const std::string &sha) {
     throw std::runtime_error("Malformed object: bad length");
   }
   return std::pair<std::string, std::string>{fmt, raw.substr(y + 1)};
+}
+
+std::pair<std::string, std::string> read_from_pack(const fs::path &pack_path,
+                                                   size_t offset) {
+  std::ifstream file(pack_path, std::ios::binary);
+
+  // Skip pack file header (12 bytes: signature + version + object count)
+  file.seekg(12 + offset);
+
+  // Read the object header to get type and size
+  auto [object_type, object_size] = read_pack_object_header(file);
+
+  // For now, handle only non-delta objects (types 1-4)
+  if (object_type >= 6) {
+    throw std::runtime_error("Delta objects not yet implemented");
+  }
+
+  // Read and decompress the object data
+  std::string compressed_data = read_bytes(file, object_size);
+
+  // Decompress using zlib
+  std::stringstream compressed_stream(compressed_data);
+  std::stringstream decompressed_stream;
+
+  boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
+  in.push(boost::iostreams::zlib_decompressor());
+  in.push(compressed_stream);
+
+  try {
+    boost::iostreams::copy(in, decompressed_stream);
+  } catch (const boost::iostreams::zlib_error &e) {
+    throw std::runtime_error("Zlib decompression error: " +
+                             std::string(e.what()));
+  }
+
+  return {type_to_string(object_type), decompressed_stream.str()};
 }

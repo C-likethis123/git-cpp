@@ -1,5 +1,4 @@
 #include "index.h"
-
 #include "commit.h"
 #include "index_entry.h"
 #include "object.h"
@@ -7,10 +6,10 @@
 #include "tree.h"
 #include "util.h"
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <sys/stat.h>
@@ -28,8 +27,6 @@ void build_file_map(const GitTree &tree, const std::string &prefix,
     std::string full_path = prefix.empty() ? path : prefix + "/" + path;
     auto &[mode, sha] = tree.fileEntries.at(path);
 
-    // TODO: this would not work if there are packfiles.
-
     if (mode == 0100644 || mode == 0100755) {
       // It's a file (100644 = regular file, 100755 = executable)
       file_map[full_path] = sha;
@@ -41,7 +38,8 @@ void build_file_map(const GitTree &tree, const std::string &prefix,
   }
 }
 
-GitIndex::GitIndex(uint32_t fileVersion, std::vector<GitIndexEntry> entries)
+GitIndex::GitIndex(uint32_t fileVersion,
+                   std::unordered_map<std::string, GitIndexEntry> entries)
     : version_(fileVersion), entries_(std::move(entries)){};
 
 GitIndex GitIndex::read(GitRepository &repo) {
@@ -49,9 +47,8 @@ GitIndex GitIndex::read(GitRepository &repo) {
   std::string fileContents = read_file(file_path);
   uint32_t fileVersion = read_uint32_from_bytes(fileContents, 4);
   uint32_t fileEntryCount = read_uint32_from_bytes(fileContents, 8);
-  size_t ptr = 0;
-  fileContents = fileContents.substr(12);
-  std::vector<GitIndexEntry> indexEntries;
+  size_t ptr = 12;
+  std::unordered_map<std::string, GitIndexEntry> indexEntries;
   for (uint32_t i = 0; i < fileEntryCount; ++i) {
     uint32_t ctime_sec = read_uint32_from_bytes(fileContents, ptr);
     uint32_t ctime_nanosec = read_uint32_from_bytes(fileContents, ptr + 4);
@@ -74,20 +71,22 @@ GitIndex GitIndex::read(GitRepository &repo) {
     uint8_t flag_stage = (file_name_and_status & 0x3000);
     uint32_t file_name_length = file_name_and_status & 0xFFF;
     std::string file_name{};
+    // had to subtract 12 from the pointer calculation because the file
+    // contents are read from the file starting at 12 bytes in.
     if (file_name_length < 0xFFF) {
       file_name = fileContents.substr(ptr + 62, file_name_length);
-      ptr = ceil((ptr + 62 + file_name_length + 1) / 8.0) * 8;
+      ptr = ceil((ptr + 50 + file_name_length + 1) / 8.0) * 8 + 12;
 
     } else {
       size_t idx = fileContents.find('\x00', ptr + 64);
       file_name = fileContents.substr(ptr + 64, idx - ptr - 64);
-      ptr = ceil((idx + 1) / 8.0) * 8;
+      ptr = ceil((idx - 12 + 1) / 8.0) * 8 + 12;
     }
-    indexEntries.emplace_back(ctime_sec, ctime_nanosec, mtime_sec,
-                              mtime_nanosec, dev, ino, mode, object_type,
-                              unused, permissions, uid, gid, file_size, sha1,
-                              flag_assume_valid, flag_extended, flag_stage,
-                              file_name_length, file_name);
+    indexEntries.try_emplace(file_name, ctime_sec, ctime_nanosec, mtime_sec,
+                             mtime_nanosec, dev, ino, mode, object_type, unused,
+                             permissions, uid, gid, file_size, sha1,
+                             flag_assume_valid, flag_extended, flag_stage,
+                             file_name_length, file_name);
   }
 
   return GitIndex(fileVersion, indexEntries);
@@ -95,8 +94,7 @@ GitIndex GitIndex::read(GitRepository &repo) {
 
 void GitIndex::print_matching_patterns(GitRepository &repo,
                                        const std::string &path) {
-  for (auto &entry : entries_) {
-    std::string file_name = entry.file_name();
+  for (auto &[file_name, entry] : entries_) {
     fs::path path_in_repo = repo.worktree_path(file_name);
     fs::path prefix_to_remove = repo.worktree_path(path);
     // TODO: fix bug where the file name is too long to handle
@@ -140,30 +138,28 @@ void GitIndex::scan_status(GitRepository &repo) {
         fs::relative(entry.path(), repo.worktree_path("."));
     std::string relative_path_str = relative_path.string();
     bool found_in_index = false;
-    for (const auto &index_entry : entries_) {
-      if (index_entry.file_name() == relative_path_str) {
-        found_in_index = true;
-        // check if modified
-        // TODO: if an entire folder is modified or has changes, ignore the
-        // rest.
+    auto index_entry = entries_.find(relative_path_str);
+    if (index_entry != entries_.end()) {
+      found_in_index = true;
+      // check if modified
+      // TODO: if an entire folder is modified or has changes, ignore the
+      // rest.
+      auto file_time = fs::last_write_time(entry.path());
+      auto file_time_sec = std::chrono::duration_cast<std::chrono::seconds>(
+                               file_time.time_since_epoch())
+                               .count();
+      auto file_size = fs::file_size(entry.path());
+
+      if (file_time_sec != index_entry->second.mtime_sec() ||
+          file_size != index_entry->second.file_size()) {
         std::string file_sha1 =
             GitObject::write(repo, "blob", read_file(entry.path()), false);
-        if (file_sha1 != index_entry.sha1()) {
-          modified.emplace_back(relative_path_str);
-        }
-        break;
+        modified.emplace_back(relative_path_str);
       }
     }
+
     if (!found_in_index) {
       untracked.emplace_back(relative_path_str);
-    }
-  }
-
-  // find deleted items
-  for (const auto &index_entry : entries_) {
-    fs::path file_path = repo.worktree_path(index_entry.file_name());
-    if (!fs::exists(file_path)) {
-      deleted.emplace_back(index_entry.file_name());
     }
   }
 
@@ -190,32 +186,24 @@ void GitIndex::scan_status(GitRepository &repo) {
   build_file_map(treeObj, "", head_files, repo);
 
   // Compare index entries with HEAD tree
-  for (const auto &index_entry : entries_) {
-    std::string file_path = index_entry.file_name();
-
+  for (const auto &[file_path, index_entry] : entries_) {
     if (head_files.find(file_path) != head_files.end()) {
       // File exists in HEAD, check if it's modified
       const std::string &head_sha = head_files[file_path];
       if (index_entry.sha1() != head_sha) {
-        staged_modifications.push_back(file_path);
+        staged_modifications.emplace_back(file_path);
       }
     } else {
       // File doesn't exist in HEAD, it's a staged addition
-      staged_additions.push_back(file_path);
+      staged_additions.emplace_back(file_path);
     }
   }
 
   // Check for staged deletions (files in HEAD but not in index)
   for (const auto &head_file : head_files) {
     bool found_in_index = false;
-    for (const auto &index_entry : entries_) {
-      if (index_entry.file_name() == head_file.first) {
-        found_in_index = true;
-        break;
-      }
-    }
-    if (!found_in_index) {
-      staged_deletions.push_back(head_file.first);
+    if (entries_.find(head_file.first) == entries_.end()) {
+      staged_deletions.emplace_back(head_file.first);
     }
   }
 
@@ -233,17 +221,9 @@ void GitIndex::scan_status(GitRepository &repo) {
 }
 
 void GitIndex::add_file(const std::string &path, GitRepository &repo) {
-  entries_.erase(std::remove_if(entries_.begin(), entries_.end(),
-                                [path](const GitIndexEntry &entry) {
-                                  return entry.file_name() == path;
-                                }),
-                 entries_.end());
+  entries_.erase(path);
 
-  entries_.emplace_back(GitIndexEntry::create_index_entry(path, repo));
-  std::sort(entries_.begin(), entries_.end(),
-            [](const GitIndexEntry &a, const GitIndexEntry &b) {
-              return a.file_name() < b.file_name();
-            });
+  entries_.emplace(path, GitIndexEntry::create_index_entry(path, repo));
 }
 
 void GitIndex::save(GitRepository &repo) {
@@ -254,9 +234,18 @@ void GitIndex::save(GitRepository &repo) {
   write_uint32_to_bytes(filestream, version_);        // Version
   write_uint32_to_bytes(filestream, entries_.size()); // Entry count
 
-  for (const auto &entry : entries_) {
+  // Create a vector of pairs for sorting
+  std::vector<std::pair<std::string, GitIndexEntry>> sorted_entries(
+      entries_.begin(), entries_.end());
+  std::sort(sorted_entries.begin(), sorted_entries.end(),
+            [](const auto &a, const auto &b) {
+              return a.first < b.first; // Sort by file name
+            });
+
+  for (const auto &[file_name, entry] : sorted_entries) {
     entry.save(repo, filestream);
   }
+
   const std::string index_sha = sha1_hexdigest(filestream.str());
   filestream.write(hexToBinary(index_sha).c_str(), 20);
   fs::path index_path = repo.repo_path("index_test");

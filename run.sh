@@ -11,9 +11,9 @@ then
 fi
 
 #remove old build if any
-if [ -f "build/bin/gyt" ];
+if [ -f "$(pwd)/app/gyt" ];
 then 
-    rm -rf build/bin/gyt 
+    rm -rf $(pwd)/app/gyt 
 fi
 
 #Print the selected build type
@@ -27,5 +27,6 @@ cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -G Nin
 ninja
 
 #symlink - so I can run it like gyt[arguments....]
-sudo rm /usr/local/bin/gyt 
-sudo ln -s "$(pwd)/build/bin/gyt" /usr/local/bin/gyt
+sudo rm /usr/local/bin/gyt
+echo "Symlinking gyt from $(pwd)/build/app/gyt to /usr/local/bin/gyt"
+sudo ln -s "$(pwd)/app/gyt" /usr/local/bin/gyt

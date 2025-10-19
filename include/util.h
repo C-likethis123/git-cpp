@@ -2,10 +2,11 @@
 #define UTIL_H
 
 #include <filesystem>
+#include <fstream>
 #include <sstream>
 #include <string>
 namespace fs = std::filesystem;
-
+std::string read_bytes(std::ifstream &file_pos, size_t size);
 std::string read_file(const fs::path &filePath, bool remove_newline = false);
 bool create_file(const fs::path &filePath, const std::string &content = "");
 std::string sha1_hexdigest(const std::string &data);
