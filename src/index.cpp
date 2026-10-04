@@ -219,9 +219,9 @@ void GitIndex::scan_status(GitRepository &repo) {
     for (const auto &file : staged_deletions) {
       std::cout << "deleted: " << file << std::endl;
     }
-    std::cout << "\n";
   }
   if (!has_no_unstaged_changes) {
+    std::cout << "\n";
     std::cout << "Changes not staged for commit:" << std::endl;
     for (const auto &file : modified) {
       std::cout << "modified: " << file << std::endl;
@@ -263,6 +263,6 @@ void GitIndex::save(GitRepository &repo) {
 
   const std::string index_sha = sha1_hexdigest(filestream.str());
   filestream.write(hexToBinary(index_sha).c_str(), 20);
-  fs::path index_path = repo.repo_path("index_test");
+  fs::path index_path = repo.repo_path("index");
   create_file(index_path, filestream.str());
 }
