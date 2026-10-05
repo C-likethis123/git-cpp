@@ -2,6 +2,7 @@
 #define STATUS_FORMATTER_H
 
 #include <iosfwd>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -22,7 +23,8 @@ struct StatusResult {
 // Detect whether standard output supports automatic colour output.
 bool use_status_colour();
 void print_status(const StatusResult &status, std::ostream &out,
-                  bool colour_enabled);
+                  bool colour_enabled,
+                  const std::filesystem::path &current_directory = ".");
 
 } // namespace status_formatter
 

@@ -130,4 +130,46 @@ TEST_CASE("status command", "[status]") {
         "Untracked files:\n"
         "\tREADME\n\n");
   }
+
+  SECTION("Paths are relative to a nested current directory") {
+    const auto nested = VALID_GIT_PATH / "nested" / "child";
+    fs::create_directories(nested);
+    REQUIRE(file_utils::create_file(nested / "added", "staged contents\n"));
+    std::vector<std::string> add_args({"add", "nested/child/added"});
+    commands::add(add_args);
+    REQUIRE(file_utils::create_file(VALID_GIT_PATH / "test", "modified contents\n"));
+    REQUIRE(file_utils::create_file(nested / "untracked", "untracked contents\n"));
+
+    fs::current_path(nested);
+    std::vector<std::string> args({"status"});
+    REQUIRE_STDOUT_VALUE(
+        commands::status(args),
+        "On: main\n"
+        "Changes to be committed:\n"
+        "\tnew file: added\n\n"
+        "Changes not staged for commit:\n"
+        "\tmodified: ../../test\n\n"
+        "Untracked files:\n"
+        "\tuntracked\n\n");
+  }
+
+  SECTION("Deleted paths are relative to the current directory") {
+    const auto nested = VALID_GIT_PATH / "nested";
+    fs::create_directories(nested);
+    const bool staged = GENERATE(false, true);
+    if (staged) {
+      REQUIRE(std::system("git --git-dir=.git --work-tree=. rm --quiet -- test") == 0);
+    } else {
+      REQUIRE(fs::remove(VALID_GIT_PATH / "test"));
+    }
+
+    fs::current_path(nested);
+    std::vector<std::string> args({"status"});
+    REQUIRE_STDOUT_VALUE(
+        commands::status(args),
+        std::string("On: main\n") +
+            (staged ? "Changes to be committed:\n"
+                    : "Changes not staged for commit:\n") +
+            "\tdeleted: ../test\n");
+  }
 }
