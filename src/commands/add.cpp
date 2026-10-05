@@ -19,7 +19,7 @@ void add(std::vector<std::string> &args) {
     // TODO: treat path as a pattern instead of an absolute file path
     fs::path path_relative_to_repo = fs::relative(path, repo.worktree_path(""));
     fs::path path_to_search =
-        repo.worktree_path("").parent_path() / path_relative_to_repo;
+        repo.worktree_path(path_relative_to_repo);
     std::cout << "add: " << path_relative_to_repo << std::endl;
 
     // check if file exists

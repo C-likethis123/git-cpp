@@ -58,3 +58,6 @@ ninja_log
 
 # Temporary fix before I implement ignoring git submodules
 tests/gitrepo/**
+
+## Others
+.DS_Store
