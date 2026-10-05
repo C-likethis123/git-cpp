@@ -9,6 +9,7 @@ namespace commands {
 void catfile(std::vector<std::string> &args) {
   CatfileParser &parser = CatfileParser::get();
   parser.parse(args);
+  // TODO: type is not used here. How do we cat-file tags?
   std::string type = parser.getType();
   std::string hash = parser.getHash();
 
