@@ -27,14 +27,12 @@ void build_file_map(const GitTree &tree, const std::string &prefix,
   for (const auto &path : tree.pathNames) {
     std::string full_path = prefix.empty() ? path : prefix + "/" + path;
     auto &[mode, sha] = tree.fileEntries.at(path);
-
-    if (mode == 0100644 || mode == 0100755) {
-      // It's a file (100644 = regular file, 100755 = executable)
-      file_map[full_path] = sha;
-    } else if (mode == 0040000) {
+    if (mode == 0040000) {
       // It's a directory (040000), recurse into it
       GitTree sub_tree = GitTree::read(repo, sha);
       build_file_map(sub_tree, full_path, file_map, repo);
+    } else {
+      file_map[full_path] = sha;
     }
   }
 }
@@ -174,6 +172,9 @@ void GitIndex::scan_status(GitRepository &repo) {
 
   // Compare index entries with HEAD tree
   for (const auto &[file_path, index_entry] : entries_) {
+    if (!fs::exists(repo.worktree_path(file_path))) {
+      status.unstaged.deleted.emplace_back(file_path);
+    }
     if (head_files.find(file_path) != head_files.end()) {
       // File exists in HEAD, check if it's modified
       const std::string &head_sha = head_files[file_path];
@@ -195,7 +196,9 @@ void GitIndex::scan_status(GitRepository &repo) {
   }
 
   status_formatter::print_status(status, std::cout,
-                                status_formatter::use_status_colour());
+                                status_formatter::use_status_colour(),
+                                fs::relative(fs::current_path(),
+                                             repo.worktree_path(".")));
 }
 
 void GitIndex::add_file(const std::string &path, GitRepository &repo) {

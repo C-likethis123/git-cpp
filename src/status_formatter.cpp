@@ -18,7 +18,8 @@ bool use_status_colour() {
 }
 
 void print_status(const StatusResult &status, std::ostream &out,
-                  bool colour_enabled) {
+                  bool colour_enabled,
+                  const std::filesystem::path &current_directory) {
   const bool has_no_unstaged_changes = status.unstaged.modified.empty() &&
                                        status.unstaged.deleted.empty();
   const bool has_no_staged_changes = status.staged.modified.empty() &&
@@ -33,7 +34,11 @@ void print_status(const StatusResult &status, std::ostream &out,
   const auto print_files = [&](const std::vector<std::string> &files,
                                const char *label, const char *colour) {
     for (const auto &file : files) {
-      out << (colour_enabled ? colour : "") << '\t' << label << file
+      // Lexical conversion also works for deleted files and preserves symlinks.
+      const auto display_path =
+          std::filesystem::path(file).lexically_relative(current_directory);
+      out << (colour_enabled ? colour : "") << '\t' << label
+          << display_path.generic_string()
           << (colour_enabled ? reset : "") << '\n';
     }
   };

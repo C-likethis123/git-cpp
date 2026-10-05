@@ -5,6 +5,7 @@
 #include "utils/file_utils.h"
 #include "utils/gitreposetup.h"
 #include "utils/test_helpers.h"
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 
@@ -76,33 +77,57 @@ TEST_CASE("status command", "[status]") {
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
     REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
             "ref: refs/heads/main");
+    REQUIRE(file_utils::create_file(VALID_GIT_PATH / "test",
+                                    "modified tracked file contents\n"));
+    std::vector<std::string> add_args({"add", "test"});
+    commands::add(add_args);
     REQUIRE_STDOUT_VALUE(
         commands::status(args),
         "On: main\n"
-        "Untracked files:\n"\tREADME\n\nnothing added to commit but untracked files");
+        "Changes to be committed:\n"
+        "\tmodified: test\n");
   }
 
-  // SECTION("Valid git status", "deleted files, change not staged") {
-  //   std::vector<std::string> args({"status"});
+  SECTION("Deleted files, change not staged") {
+    std::vector<std::string> args({"status"});
 
-  //   REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
-  //   REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
-  //           "ref: refs/heads/main");
-  // }
+    REQUIRE(fs::remove(VALID_GIT_PATH / "test"));
+    REQUIRE_STDOUT_VALUE(
+        commands::status(args),
+        "On: main\n"
+        "Changes not staged for commit:\n"
+        "\tdeleted: test\n");
+  }
 
-  // SECTION("Valid git status", "deleted files, change staged") {
-  //   std::vector<std::string> args({"status"});
+  SECTION("Deleted files, change staged") {
+    std::vector<std::string> args({"status"});
 
-  //   REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
-  //   REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
-  //           "ref: refs/heads/main");
-  // }
+    // Use Git to prepare the index: commands::add cannot stage deletions yet.
+    REQUIRE(std::system("git --git-dir=.git --work-tree=. rm --quiet -- test") == 0);
+    REQUIRE_FALSE(fs::exists(VALID_GIT_PATH / "test"));
+    REQUIRE_STDOUT_VALUE(
+        commands::status(args),
+        "On: main\n"
+        "Changes to be committed:\n"
+        "\tdeleted: test\n");
+  }
 
-  // SECTION("Gitignore", "file in gitignore not detected") {
-  //   std::vector<std::string> args({"status"});
+  SECTION("Gitignore: ignored file is not reported") {
+    std::vector<std::string> args({"status"});
 
-  //   REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
-  //   REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
-  //           "ref: refs/heads/main");
-  // }
+    REQUIRE(file_utils::create_file(VALID_GIT_PATH / "test3", "ignored contents\n"));
+    REQUIRE_STDOUT_VALUE(
+        commands::status(args),
+        "On: main\n"
+        "nothing to commit, working tree clean\n");
+
+    // A non-ignored file must still be reported alongside the ignored file.
+    REQUIRE(file_utils::create_file(VALID_GIT_PATH / "README", "visible contents\n"));
+    args = {"status"};
+    REQUIRE_STDOUT_VALUE(
+        commands::status(args),
+        "On: main\n"
+        "Untracked files:\n"
+        "\tREADME\n\n");
+  }
 }
