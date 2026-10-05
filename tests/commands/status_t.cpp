@@ -52,7 +52,7 @@ TEST_CASE("status command", "[status]") {
         commands::status(args),
         "On: main\n"
         "Changes to be committed:\n"
-        "new file: README\n");
+        "\tnew file: README\n");
   }
 
   SECTION("Valid git status", "modified files, change not staged") {
@@ -61,24 +61,26 @@ TEST_CASE("status command", "[status]") {
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
     REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
             "ref: refs/heads/main");
+    REQUIRE(file_utils::create_file(VALID_GIT_PATH / "test",
+                                    "modified tracked file contents\n"));
     REQUIRE_STDOUT_VALUE(
         commands::status(args),
         "On: main\n"
         "Changes not staged for commit:\n"
-        "\tmodified: README\n\n");
+        "\tmodified: test\n");
   }
 
-  // SECTION("Valid git status", "modified files, change staged") {
-  //   std::vector<std::string> args({"status"});
+  SECTION("Valid git status", "modified files, change staged") {
+    std::vector<std::string> args({"status"});
 
-  //   REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
-  //   REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
-  //           "ref: refs/heads/main");
-  //   REQUIRE_STDOUT_VALUE(
-  //       commands::status(args),
-  //       "On: main\n\nUntracked "
-  //       "files:\n\tREADME\n\nnothing added to commit but untracked files");
-  // }
+    REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
+    REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
+            "ref: refs/heads/main");
+    REQUIRE_STDOUT_VALUE(
+        commands::status(args),
+        "On: main\n"
+        "Untracked files:\n"\tREADME\n\nnothing added to commit but untracked files");
+  }
 
   // SECTION("Valid git status", "deleted files, change not staged") {
   //   std::vector<std::string> args({"status"});

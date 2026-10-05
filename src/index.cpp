@@ -3,6 +3,7 @@
 #include "index_entry.h"
 #include "object.h"
 #include "repository.h"
+#include "status_formatter.h"
 #include "tree.h"
 #include "util.h"
 #include <algorithm>
@@ -116,9 +117,7 @@ directory.
 Gitignore is respected, but it's not perfect.
 */
 void GitIndex::scan_status(GitRepository &repo) {
-  std::vector<std::string> modified;
-  std::vector<std::string> untracked;
-  std::vector<std::string> deleted;
+  status_formatter::StatusResult status;
 
   for (auto it = fs::recursive_directory_iterator(repo.worktree_path("."));
        it != fs::recursive_directory_iterator(); ++it) {
@@ -155,19 +154,15 @@ void GitIndex::scan_status(GitRepository &repo) {
         std::string file_sha1 =
             GitObject::write(repo, "blob", read_file(entry.path()), false);
         if (file_sha1 != index_entry->second.sha1()) {
-          modified.emplace_back(relative_path_str);
+          status.unstaged.modified.emplace_back(relative_path_str);
         }
       }
     }
 
     if (!found_in_index) {
-      untracked.emplace_back(relative_path_str);
+      status.untracked.emplace_back(relative_path_str);
     }
   }
-
-  std::vector<std::string> staged_modifications;
-  std::vector<std::string> staged_additions;
-  std::vector<std::string> staged_deletions;
 
   // Get the HEAD commit and its tree
   GitCommit head = GitCommit::read(repo, "HEAD");
@@ -183,11 +178,11 @@ void GitIndex::scan_status(GitRepository &repo) {
       // File exists in HEAD, check if it's modified
       const std::string &head_sha = head_files[file_path];
       if (index_entry.sha1() != head_sha) {
-        staged_modifications.emplace_back(file_path);
+        status.staged.modified.emplace_back(file_path);
       }
     } else {
       // File doesn't exist in HEAD, it's a staged addition
-      staged_additions.emplace_back(file_path);
+      status.staged.added.emplace_back(file_path);
     }
   }
 
@@ -195,51 +190,12 @@ void GitIndex::scan_status(GitRepository &repo) {
   for (const auto &head_file : head_files) {
     bool found_in_index = false;
     if (entries_.find(head_file.first) == entries_.end()) {
-      staged_deletions.emplace_back(head_file.first);
+      status.staged.deleted.emplace_back(head_file.first);
     }
   }
 
-  bool has_no_unstaged_changes =
-      (modified.size() + untracked.size() + deleted.size()) == 0;
-  bool has_no_staged_changes =
-      (staged_modifications.size() + staged_additions.size() +
-       staged_deletions.size()) == 0;
-  if (has_no_unstaged_changes && has_no_staged_changes) {
-    std::cout << "nothing to commit, working tree clean" << std::endl;
-  }
-  if (!has_no_staged_changes) {
-    // Print staged changes
-    std::cout << "Changes to be committed:" << std::endl;
-    for (const auto &file : staged_modifications) {
-      std::cout << "modified: " << file << std::endl;
-    }
-    for (const auto &file : staged_additions) {
-      std::cout << "new file: " << file << std::endl;
-    }
-    for (const auto &file : staged_deletions) {
-      std::cout << "deleted: " << file << std::endl;
-    }
-  }
-  if (!has_no_unstaged_changes) {
-    if (!has_no_staged_changes) {
-      std::cout << std::endl;
-    }
-    std::cout << "Changes not staged for commit:" << std::endl;
-    for (const auto &file : modified) {
-      std::cout << "modified: " << file << std::endl;
-    }
-    for (const auto &file : deleted) {
-      std::cout << "deleted: " << file << std::endl;
-    }
-
-    std::cout << "Untracked files:" << std::endl;
-    for (const auto &file : untracked) {
-      std::cout << "untracked: " << file << std::endl;
-    }
-    if (untracked.size() > 0) {
-        std::cout << std::endl;
-    }
-  }
+  status_formatter::print_status(status, std::cout,
+                                status_formatter::use_status_colour());
 }
 
 void GitIndex::add_file(const std::string &path, GitRepository &repo) {
