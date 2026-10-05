@@ -221,7 +221,9 @@ void GitIndex::scan_status(GitRepository &repo) {
     }
   }
   if (!has_no_unstaged_changes) {
-    std::cout << "\n";
+    if (!has_no_staged_changes) {
+      std::cout << "\n";
+    }
     std::cout << "Changes not staged for commit:" << std::endl;
     for (const auto &file : modified) {
       std::cout << "modified: " << file << std::endl;
