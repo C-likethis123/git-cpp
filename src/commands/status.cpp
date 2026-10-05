@@ -17,7 +17,7 @@ void status(std::vector<std::string> &args) {
   // process args
   GitRepository repo = GitRepository::find();
   const std::string branch = repo.get_head();
-  std::cout << "On: " << branch << "\n\n";
+  std::cout << "On: " << branch << std::endl;
 
   GitIndex index = GitIndex::read(repo);
   index.scan_status(repo);
