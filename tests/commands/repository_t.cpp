@@ -28,11 +28,23 @@ TEST_CASE("GitRepository Create", "[GitRepository]") {
     REQUIRE(fs::exists(".git/description"));
     REQUIRE(fs::exists(".git/HEAD"));
     REQUIRE(fs::exists(".git/config"));
+  }
 
-    // Optionally, you can also check the contents of the files if needed
-    // For example:
-    // REQUIRE(util::readFile(createGitPath + "description") == "Expected
-    // contents");
+  SECTION("Create Git repository in specified path") {
+      std::string createGitPath = "./brandnew";
+      GitRepository repo(createGitPath, true);
+
+      // Use the create function
+      REQUIRE_NOTHROW(repo.create(true));
+
+      // Assert that specific files are created
+      REQUIRE(fs::exists("brandnew/.git/branches"));
+      REQUIRE(fs::exists("brandnew/.git/description"));
+      REQUIRE(fs::exists("brandnew/.git/HEAD"));
+      REQUIRE(fs::exists("brandnew/.git/config"));
+      REQUIRE(fs::exists("brandnew/.git/objects"));
+      REQUIRE(fs::exists("brandnew/.git/refs/heads"));
+      REQUIRE(fs::exists("brandnew/.git/refs/tags"));
   }
 }
 

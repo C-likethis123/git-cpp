@@ -1,5 +1,5 @@
-file(GLOB TEST_SOURCES "commands/*.cpp")
-file(GLOB UTILS_SOURCES "utils/*.cpp")
+file(GLOB TEST_SOURCES CONFIGURE_DEPENDS "commands/*.cpp")
+file(GLOB UTILS_SOURCES CONFIGURE_DEPENDS "utils/*.cpp")
 add_executable(tests tests.cpp ${TEST_SOURCES} ${UTILS_SOURCES})
 target_include_directories(tests PUBLIC ../ext ${CMAKE_CURRENT_SOURCE_DIR})
 
