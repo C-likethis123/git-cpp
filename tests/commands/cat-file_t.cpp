@@ -26,29 +26,23 @@ TEST_CASE("catfile command", "[catfile]") {
     REQUIRE_STDOUT_VALUE(commands::catfile(args), "test\n");
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
   }
+  SECTION("Valid git catfile command - catfile a tree", "catfile tree") {
+      std::vector<std::string> args({"cat-file", "tree", "HEAD"});
+      REQUIRE_STDOUT_VALUE(
+          commands::catfile(args),
+          GitRepoSetup::get_file_contents(OLD_CWD / "fixtures/cat_file_tree.bin")
+      );
+  }
 }
 
-// TEST_CASE("catfile with errors", "[catfile errors]") {
-//   GitRepoSetup gitRepoSetup;
-//   SECTION("Git catfile already exists") {
-//     std::vector<std::string> args({"catfile", "v1.0"});
-//     commands::catfile(args);
+TEST_CASE("catfile with errors", "[catfile errors]") {
+  GitRepoSetup gitRepoSetup;
+  SECTION("Git catfile failed with non-existent commit") {
+    std::vector<std::string> args({"catfile", "tag", "nonexistentcommit"});
+    REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
+    REQUIRE(!fs::exists(".git/refs/tags/nonexistentcommit"));
 
-//     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
-//     REQUIRE(fs::exists(".git/refs/tags/v1.0"));
-//     REQUIRE(GitRepoSetup::get_file_contents(".git/refs/tags/v1.0") ==
-//             SECOND_COMMIT);
-
-//     std::vector<std::string> args2({"tag", "v1.0"});
-//     REQUIRE_THROWS_WITH(commands::catfile(args2), "tag 'v1.0' already
-//     exists");
-//   }
-//   SECTION("Git tag failed with non-existent commit") {
-//     std::vector<std::string> args({"tag", "v1.0", "nonexistentcommit"});
-//     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
-
-//     REQUIRE_THROWS_WITH(commands::catfile(args),
-//                         "nonexistentcommit: not a valid commit");
-//     REQUIRE(!fs::exists(".git/refs/tags/v1.0"));
-//   }
-// }
+    REQUIRE_THROWS_WITH(commands::catfile(args),
+                        "nonexistentcommit: not a valid reference");
+  }
+}

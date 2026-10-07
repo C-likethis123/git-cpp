@@ -17,5 +17,8 @@ if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/.git/modules/tests/gitrepo)
        DESTINATION ${CMAKE_BINARY_DIR}/tests/gitrepo/.git)
 endif()
 
+## Copy fixtures
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/fixtures
+     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 include(../cmake/Catch.cmake)
 catch_discover_tests(tests)
