@@ -2,7 +2,7 @@
 #include "inih/INIReader.h"
 #include "pack_index.h"
 #include "util.h"
-#include "wildmatch/wildmatch.hpp"
+#include "glob.h"
 #include <boost/algorithm/string.hpp>
 #include <filesystem>
 #include <fstream>
@@ -184,51 +184,51 @@ according to glob file rules
 bool GitRepository::is_ignored(const fs::path &path) {
   fs::path relative_path = fs::relative(path, worktree);
   std::string relative_path_str = relative_path.generic_string();
+  return glob::matches(ignore_patterns, relative_path_str);
+  // // Use different flags for different pattern types
+  // constexpr int pathname_flags = wild::PATHNAME | wild::PERIOD |
+  //                                wild::CASEFOLD | wild::LEADING_DIR |
+  //                                wild::WILDSTAR;
+  // constexpr int no_pathname_flags =
+  //     wild::PERIOD | wild::CASEFOLD | wild::LEADING_DIR | wild::WILDSTAR;
 
-  // Use different flags for different pattern types
-  constexpr int pathname_flags = wild::PATHNAME | wild::PERIOD |
-                                 wild::CASEFOLD | wild::LEADING_DIR |
-                                 wild::WILDSTAR;
-  constexpr int no_pathname_flags =
-      wild::PERIOD | wild::CASEFOLD | wild::LEADING_DIR | wild::WILDSTAR;
+  // for (const auto &pattern : ignore_patterns) {
+  //   // For patterns that contain path separators or end with '/', use PATHNAME
+  //   // flags For simple patterns like *.a, use no PATHNAME flags to match
+  //   // anywhere
+  //   bool use_pathname =
+  //       (pattern.find('/') != std::string::npos) || pattern.back() == '/';
+  //   int flags = use_pathname ? pathname_flags : no_pathname_flags;
 
-  for (const auto &pattern : ignore_patterns) {
-    // For patterns that contain path separators or end with '/', use PATHNAME
-    // flags For simple patterns like *.a, use no PATHNAME flags to match
-    // anywhere
-    bool use_pathname =
-        (pattern.find('/') != std::string::npos) || pattern.back() == '/';
-    int flags = use_pathname ? pathname_flags : no_pathname_flags;
-
-    // Special handling for directory patterns ending with '/'
-    // In Git, .cache/ should match .cache/ directories anywhere in the
-    // repository
-    if (pattern.back() == '/' && !pattern.empty()) {
-      // Try matching the pattern as-is first
-      if (wild::match(pattern, relative_path_str, flags)) {
-        return true;
-      }
-      // Also try matching with **/ prefix and ** suffix to match anywhere in
-      // the repository
-      std::string anywhere_pattern = "**/" + pattern + "**";
-      if (wild::match(anywhere_pattern, relative_path_str, flags)) {
-        return true;
-      }
-    } else {
-      // Normal pattern matching
-      if (wild::match(pattern, relative_path_str, flags)) {
-        return true;
-      }
-      // For simple patterns, also try matching anywhere in the repository
-      if (!use_pathname) {
-        std::string anywhere_pattern = "**/" + pattern;
-        if (wild::match(anywhere_pattern, relative_path_str, pathname_flags)) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
+  //   // Special handling for directory patterns ending with '/'
+  //   // In Git, .cache/ should match .cache/ directories anywhere in the
+  //   // repository
+  //   if (pattern.back() == '/' && !pattern.empty()) {
+  //     // Try matching the pattern as-is first
+  //     if (wild::match(pattern, relative_path_str, flags)) {
+  //       return true;
+  //     }
+  //     // Also try matching with **/ prefix and ** suffix to match anywhere in
+  //     // the repository
+  //     std::string anywhere_pattern = "**/" + pattern + "**";
+  //     if (wild::match(anywhere_pattern, relative_path_str, flags)) {
+  //       return true;
+  //     }
+  //   } else {
+  //     // Normal pattern matching
+  //     if (wild::match(pattern, relative_path_str, flags)) {
+  //       return true;
+  //     }
+  //     // For simple patterns, also try matching anywhere in the repository
+  //     if (!use_pathname) {
+  //       std::string anywhere_pattern = "**/" + pattern;
+  //       if (wild::match(anywhere_pattern, relative_path_str, pathname_flags)) {
+  //         return true;
+  //       }
+  //     }
+  //   }
+  // }
+  // return false;
 }
 
 int GitRepository::num_ignored_patterns() { return ignore_patterns.size(); }

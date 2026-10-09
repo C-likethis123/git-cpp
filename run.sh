@@ -33,10 +33,11 @@ done
 
 echo "Selected build type: $BUILD_TYPE"
 echo "Configuring the project (first-time dependency downloads may take a while)..."
-cmake -S "$PROJECT_DIR" -B "$BUILD_DIR" \
+cmake --fresh -S "$PROJECT_DIR" -B "$BUILD_DIR" \
+    -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)" \
     -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-    -DBUILD_TESTS=OFF \
+    -DBUILD_TESTS=ON \
     -DFETCHCONTENT_QUIET=OFF \
     --log-level=VERBOSE -G Ninja
 

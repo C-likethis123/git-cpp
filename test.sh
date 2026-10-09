@@ -32,12 +32,19 @@ for directory in "$BUILD_DIR" "$BUILD_DIR/_deps"; do
 done
 
 echo "Selected build type: $BUILD_TYPE"
-echo "Building the project... This will take a while to install dependencies for the first time."
+echo "Configuring the project (first-time dependency downloads may take a while)..."
+cmake --fresh -S "$PROJECT_DIR" -B "$BUILD_DIR" \
+    -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)" \
+    -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+    -DBUILD_TESTS=ON \
+    -DFETCHCONTENT_QUIET=OFF \
+    --log-level=VERBOSE -G Ninja
 
 cmake --build "$BUILD_DIR"
 
 # Keep the existing verbose status-test selection.
-(cd "$BUILD_DIR" && ctest --output-on-failure -V -R status)
+(cd "$BUILD_DIR" && ctest --output-on-failure -V -R GitRepository)
 
 INSTALL_PATH=/usr/local/bin/gyt
 if [ -d "$INSTALL_PATH" ]; then

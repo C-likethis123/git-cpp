@@ -17,7 +17,16 @@ void add(std::vector<std::string> &args) {
     // TODO implement partial additions
 
     // TODO: treat path as a pattern instead of an absolute file path
+    // if no glob treat it as a prefix.
+    // this means we need to enumerate and find all the directories matching a repository
     fs::path path_relative_to_repo = fs::relative(path, repo.worktree_path(""));
+    for (auto it = fs::recursive_directory_iterator(repo.worktree_path("."));
+         it != fs::recursive_directory_iterator(); ++it) {
+             const auto &entry = *it;
+             if (glob::matches(entry.path())) {
+
+             }
+    }
     fs::path path_to_search =
         repo.worktree_path(path_relative_to_repo);
     std::cout << "add: " << path_relative_to_repo << std::endl;
