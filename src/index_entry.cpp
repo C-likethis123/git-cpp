@@ -39,8 +39,9 @@ uint32_t GitIndexEntry::file_size() const { return this->file_size_; }
 
 GitIndexEntry GitIndexEntry::create_index_entry(const fs::path &path,
                                                 GitRepository &repo) {
+  const fs::path full_path = repo.worktree_path(path);
   struct stat file_stat;
-  if (stat(path.c_str(), &file_stat) != 0) {
+  if (stat(full_path.c_str(), &file_stat) != 0) {
     throw std::runtime_error("Failed to stat file: " + path.string());
   }
 
@@ -61,11 +62,11 @@ GitIndexEntry GitIndexEntry::create_index_entry(const fs::path &path,
   uint32_t file_size = file_stat.st_size;
 
   // Create blob and sha1
-  std::string file_contents = read_file(path);
+  std::string file_contents = read_file(full_path);
   std::string sha1 = GitObject::write(repo, "blob", file_contents, false);
 
   // File name and flags
-  std::string file_name = fs::relative(path, repo.worktree_path("")).string();
+  std::string file_name = fs::relative(full_path, repo.worktree_path("")).string();
   uint32_t file_name_length = file_name.size();
   bool flag_assume_valid = false;
   bool flag_extended = false;

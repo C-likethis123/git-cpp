@@ -1,6 +1,7 @@
 #include "catch2/catch.hpp"
 #include "repository.h"
 #include "utils/gitreposetup.h"
+#include <fstream>
 
 TEST_CASE("GitRepository Construction", "[GitRepository]") {
   GitRepoSetup gitRepoSetup;
@@ -61,4 +62,27 @@ TEST_CASE("GitRepository Ignore", "[GitRepository]") {
     REQUIRE(repo.is_ignored("test2") == false);
     REQUIRE(repo.is_ignored("test3") == true);
   }
+}
+
+TEST_CASE("GitRepository ignore glob rules", "[GitRepository]") {
+  GitRepoSetup gitRepoSetup;
+  std::ofstream(".gitignore") << "*.o\ncache/\n/root.txt\nsrc/generated/\n";
+  fs::create_directories("nested/cache");
+  fs::create_directories("src/generated");
+  fs::create_directories("nested/src/generated");
+  fs::create_directories("other");
+  std::ofstream("other/cache") << "file, not directory";
+  GitRepository repo(".", true);
+
+  REQUIRE(repo.is_ignored(".git/config"));
+  REQUIRE(repo.is_ignored("nested/file.o"));
+  REQUIRE_FALSE(repo.is_ignored("nested/file.cpp"));
+  REQUIRE(repo.is_ignored("nested/cache"));
+  REQUIRE(repo.is_ignored("nested/cache/file.txt"));
+  REQUIRE_FALSE(repo.is_ignored("other/cache"));
+  REQUIRE_FALSE(repo.is_ignored("nested/cache-other/file.txt"));
+  REQUIRE(repo.is_ignored("root.txt"));
+  REQUIRE_FALSE(repo.is_ignored("nested/root.txt"));
+  REQUIRE(repo.is_ignored("src/generated/file.txt"));
+  REQUIRE_FALSE(repo.is_ignored("nested/src/generated/file.txt"));
 }
