@@ -9,7 +9,7 @@ class AddParser {
 public:
   static AddParser &get();
   void parse(std::vector<std::string> &args);
-  std::string getPath() const; // returns the path of the file to add
+  std::vector<std::string> getPaths() const;
 
 private:
   // hides constructors to avoid accidental instantiation
@@ -21,7 +21,7 @@ private:
   ~AddParser() = default;
   // data members
   TCLAP::CmdLine cmd;
-  TCLAP::UnlabeledValueArg<std::string> pathArg;
+  TCLAP::UnlabeledMultiArg<std::string> pathArg;
 };
 
 #endif // ADDPARSER_H

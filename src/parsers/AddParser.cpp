@@ -7,11 +7,11 @@ void AddParser::parse(std::vector<std::string> &args) {
   cmd.parse(args);
 }
 
-std::string AddParser::getPath() const { return pathArg.getValue(); }
+std::vector<std::string> AddParser::getPaths() const { return pathArg.getValue(); }
 
 AddParser::AddParser()
     : cmd("add", ' ', "0.1"),
-      pathArg("path", "path of the file to add", true, "", "string") {
+      pathArg("path", "paths of the files to add", true, "string") {
   cmd.ignoreUnmatched(true);
   cmd.add(pathArg);
 }
