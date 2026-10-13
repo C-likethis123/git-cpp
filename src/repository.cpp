@@ -29,29 +29,63 @@ GitRepository::GitRepository(const std::string &path, bool force)
     }
   }
 
-  // TODO: read .gitignore files in nested directories.
-  // read gitignore here
-  fs::path gitignorePath = worktree / ".gitignore";
-  if (fs::exists(gitignorePath)) {
-    try {
-      std::ifstream file(gitignorePath.string());
+  ignore_patterns.insert(".git/");
+  load_ignore_patterns();
+}
 
-      if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
-          boost::trim(line);
-          if (!line.empty() && line[0] != '#') {
-            ignore_patterns.insert(line);
-          }
-        }
-        file.close();
-      } else {
-        std::cerr << "Unable to open .gitignore file: " << gitignorePath
-                  << std::endl;
-      }
-    } catch (const std::exception &e) {
-      std::cerr << "Exception reading .gitignore: " << e.what() << std::endl;
+void GitRepository::load_ignore_patterns() {
+  load_ignore_file({});
+  for (auto it = fs::recursive_directory_iterator(worktree);
+       it != fs::recursive_directory_iterator(); ++it) {
+    const auto &entry = *it;
+    if (!entry.is_directory()) {
+      continue;
     }
+    const fs::path relative = entry.path().lexically_relative(worktree);
+    if (entry.is_symlink() || is_ignored(relative, true)) {
+      it.disable_recursion_pending();
+      continue;
+    }
+    load_ignore_file(relative);
+}
+
+void GitRepository::load_ignore_file(const fs::path &directory) {
+  const std::string prefix = directory.generic_string();
+  const fs::path ignore_file = worktree / directory / ".gitignore";
+  try {
+    if (!fs::is_regular_file(ignore_file)) {
+      return;
+    }
+    std::ifstream file(ignore_file);
+    if (!file.is_open()) {
+      std::cerr << "Unable to open .gitignore file: " << ignore_file << std::endl;
+      return;
+    }
+    std::string line;
+    while (std::getline(file, line)) {
+      boost::trim(line);
+      if (line.empty() || line[0] == '#') {
+        continue;
+      }
+      if (!prefix.empty()) {
+        const bool directory_only = line.back() == '/';
+        if (directory_only) {
+          line.pop_back();
+        }
+        if (line.empty()) {
+          continue;
+        }
+        if (line.front() == '/') {
+          line.erase(0, 1);
+        } else if (line.find('/') == std::string::npos) {
+          line = "**/" + line;
+        }
+        line = prefix + "/" + line + (directory_only ? "/" : "");
+      }
+      ignore_patterns.insert(line);
+    }
+  } catch (const std::exception &e) {
+    std::cerr << "Exception reading .gitignore: " << e.what() << std::endl;
   }
 }
 
@@ -172,15 +206,17 @@ bool GitRepository::has_pack_object(const std::string &sha) {
 Checks if the file is ignored
 Each pattern is a glob file pattern, should parse and match it
 according to glob file rules
-
-// TODO: does it supported nested gitignores?
 */
-bool GitRepository::is_ignored(const fs::path &path) {
+bool GitRepository::is_ignored(const fs::path &path) const {
   const fs::path relative_path = fs::relative(path, worktree);
+  return is_ignored(relative_path,
+                    fs::is_directory(fs::symlink_status(path)));
+}
+
+bool GitRepository::is_ignored(const fs::path &relative_path, bool directory) const {
   const std::string relative_path_str = relative_path.generic_string();
   const std::string directory_path_str =
-      (fs::is_directory(fs::symlink_status(path)) ? relative_path
-                                                : relative_path.parent_path())
+      (directory ? relative_path : relative_path.parent_path())
           .generic_string();
   constexpr int flags = wild::WILDSTAR | wild::LEADING_DIR;
 
@@ -209,7 +245,7 @@ bool GitRepository::is_ignored(const fs::path &path) {
   return false;
 }
 
-int GitRepository::num_ignored_patterns() { return ignore_patterns.size(); }
+int GitRepository::num_ignored_patterns() const { return ignore_patterns.size(); }
 
 std::string GitRepository::get_head() {
   const std::string head_contents = read_file(this->repo_path("HEAD"), true);

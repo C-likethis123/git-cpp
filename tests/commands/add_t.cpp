@@ -7,8 +7,6 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
-// TODO: how do we test this? Do we have injection?
-// Maybe we inspect the file?
 TEST_CASE("add command", "[add]") {
   GitRepoSetup gitRepoSetup;
   SECTION("Adding a new file", "add") {
@@ -77,18 +75,76 @@ TEST_CASE("add command", "[add]") {
        );
    }
 
-   // SECTION("Adding an ignored file") {
-   //     "git add ignored";
-   // }
+   SECTION("Git add wildcard matches across directory levels", "add") {
+       std::vector<std::string> args({"add", "*/newfile1"});
 
-   // SECTION("Adding the .git files should not be allowed") {
-   //     "git add .git"
-   // }
+       fs::create_directories(VALID_GIT_PATH / "newfolder");
+       file_utils::create_file(VALID_GIT_PATH / "newfolder" / "newfile1");
+       fs::create_directories(VALID_GIT_PATH / "newfolder" / "newfolder");
+       file_utils::create_file(VALID_GIT_PATH / "newfolder" / "newfolder" / "newfile1");
+
+       commands::add(args);
+       REQUIRE_THAT(
+           GitRepoSetup::get_file_contents(VALID_GIT_PATH/".git/index"),
+           Catch::Matchers::Contains("newfolder/newfile1")
+       );
+       REQUIRE_THAT(
+           GitRepoSetup::get_file_contents(VALID_GIT_PATH/".git/index"),
+           Catch::Matchers::Contains("newfolder/newfolder/newfile1")
+       );
+   }
+
+   SECTION("Git add all levels when there is a double wildcard", "add") {
+       std::vector<std::string> args({"add", "**/newfile1"});
+
+       fs::create_directories(VALID_GIT_PATH / "newfolder");
+       file_utils::create_file(VALID_GIT_PATH / "newfolder" / "newfile1");
+       fs::create_directories(VALID_GIT_PATH / "newfolder" / "newfolder1");
+       file_utils::create_file(VALID_GIT_PATH / "newfolder" / "newfolder1" / "newfile1");
+
+       commands::add(args);
+       REQUIRE_THAT(
+           GitRepoSetup::get_file_contents(VALID_GIT_PATH/".git/index"),
+           Catch::Matchers::Contains("newfolder/newfile1")
+       );
+       REQUIRE_THAT(
+           GitRepoSetup::get_file_contents(VALID_GIT_PATH/".git/index"),
+           Catch::Matchers::Contains("newfolder/newfolder1/newfile1")
+       );
+   }
+
+   SECTION("Adding an ignored file from another gitignore file should be ignored", "add") {
+       std::vector<std::string> args({"add", "ignored/test4"});
+       fs::create_directories(VALID_GIT_PATH / "ignored");
+       file_utils::create_file(VALID_GIT_PATH / "ignored/.gitignore", "test4");
+       file_utils::create_file(VALID_GIT_PATH / "ignored" / "test4");
+       REQUIRE_THROWS_WITH(commands::add(args),
+                           "path ignored/test4 did not match any files");
+       REQUIRE_THAT(
+           GitRepoSetup::get_file_contents(VALID_GIT_PATH/".git/index"),
+           !Catch::Matchers::Contains("ignored/test4")
+       );
+
+   }
+
+   SECTION("Adding the .git files should not be allowed") {
+       std::vector<std::string> args({"add", ".git"});
+       REQUIRE_THROWS_WITH(commands::add(args), "path .git did not match any files");
+       REQUIRE_THAT(
+           GitRepoSetup::get_file_contents(VALID_GIT_PATH/".git/index"),
+           !Catch::Matchers::Contains(".git/")
+       );
+   }
 }
 
-// TEST_CASE("add command errors", "[add]") {
-    // GitRepoSetup gitRepoSetup;
-    // SECTION("Adding a file that does not exist", "[add]") {
-    //     "git add x";
-    // }
-// }
+TEST_CASE("add command errors", "[add]") {
+    GitRepoSetup gitRepoSetup;
+    SECTION("Adding a file that does not exist", "[add]") {
+        std::vector<std::string> args({"add", "x"});
+        REQUIRE_THROWS_WITH(commands::add(args), "path x did not match any files");
+        REQUIRE_THAT(
+            GitRepoSetup::get_file_contents(VALID_GIT_PATH/".git/index"),
+            !Catch::Matchers::Contains("x")
+        );
+    }
+}

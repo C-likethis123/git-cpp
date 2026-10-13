@@ -35,12 +35,16 @@ public:
   /**
   Checks if the file is ignored
   */
-  int num_ignored_patterns();
-  bool is_ignored(const fs::path &path);
+  int num_ignored_patterns() const;
+  bool is_ignored(const fs::path &path) const;
+  // For callers that already know the worktree-relative path and file type.
+  bool is_ignored(const fs::path &relative_path, bool directory) const;
 
 protected:
   fs::path worktree;
   fs::path gitdir;
+  void load_ignore_patterns();
+  void load_ignore_file(const fs::path &directory);
   std::unordered_set<std::string> ignore_patterns{".git"};
 };
 
