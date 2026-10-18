@@ -16,6 +16,7 @@ TEST_CASE("checkout command", "[checkout]") {
     REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
             "ref: refs/heads/test_branch");
     REQUIRE(GitRepository(VALID_GIT_PATH).get_head() == "test_branch");
+    REQUIRE(fs::exists(VALID_GIT_PATH / "test3"));
   }
   SECTION("checkout existing commit", "tag name with commit") {
     std::vector<std::string> args({"checkout", SECOND_COMMIT});
@@ -47,9 +48,6 @@ TEST_CASE("checkout command", "[checkout]") {
     commands::checkout(args);
 
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
-    // check that the new branch was created
-    // TODO check that file contents of the worktree matches the commit
-
     REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
             "ref: refs/heads/new_branch");
     REQUIRE(GitRepoSetup::get_file_contents(".git/refs/heads/new_branch") ==
@@ -62,7 +60,6 @@ TEST_CASE("checkout command", "[checkout]") {
     commands::checkout(args);
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
     // check that the new branch was created
-    // TODO check that file contents of the worktree matches the commit
     REQUIRE(GitRepoSetup::get_file_contents(".git/HEAD") ==
             "ref: refs/heads/new_branch");
     REQUIRE(GitRepoSetup::get_file_contents(".git/refs/heads/new_branch") ==

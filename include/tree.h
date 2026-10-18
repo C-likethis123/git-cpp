@@ -21,7 +21,7 @@ public:
   serialise(GitRepository &repo) override; // convert this to a string format
   std::string print_matching_files(
       GitRepository &repo,
-      const std::string &filePathPattern); // print tree entries that
+      const std::vector<std::string> &filePathPattern); // print tree entries that
                                            // match the given file path
 
   // maybe i need something like a git tree entry?

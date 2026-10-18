@@ -47,6 +47,7 @@ void GitRepository::load_ignore_patterns() {
       continue;
     }
     load_ignore_file(relative);
+    }
 }
 
 void GitRepository::load_ignore_file(const fs::path &directory) {
