@@ -6,14 +6,13 @@
 
 namespace commands {
 void tag(std::vector<std::string> &args) {
-  TagParser &parser = TagParser::get();
-  parser.parse(args);
+  const auto options = TagParser::parse(args);
   // process args
   GitRepository repo = GitRepository::find();
   // resolve ref to find the commit hash
   std::string commit =
-      parser.isCommitSet() ? parser.getCommit() : GitObject::find(repo, "HEAD");
-  std::string tag = parser.getTag();
+      options.commitSet ? options.commit : GitObject::find(repo, "HEAD");
+  std::string tag = options.tag;
   // ERROR: if the commit doesn't exist.
   if (!repo.has_loose_object(commit)) {
     std::string error_message = commit + ": not a valid commit";

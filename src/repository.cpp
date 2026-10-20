@@ -34,6 +34,9 @@ GitRepository::GitRepository(const std::string &path, bool force)
 }
 
 void GitRepository::load_ignore_patterns() {
+  if (!fs::exists(worktree)) {
+    return;
+  }
   load_ignore_file({});
   for (auto it = fs::recursive_directory_iterator(worktree);
        it != fs::recursive_directory_iterator(); ++it) {

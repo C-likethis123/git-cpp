@@ -8,11 +8,10 @@
 
 namespace commands {
 void hashobject(std::vector<std::string> &args) {
-  HashObjectParser &parser = HashObjectParser::get();
-  parser.parse(args);
-  bool write = parser.isWrite();
-  const std::string &type = parser.getType();
-  const std::string &path = parser.getPath();
+  const auto options = HashObjectParser::parse(args);
+  bool write = options.write;
+  const std::string &type = options.type;
+  const std::string &path = options.path;
 
   GitRepository repo = GitRepository::find();
   std::string fileContents = read_file(fs::path(path));

@@ -8,10 +8,9 @@
 
 namespace commands {
 void catfile(std::vector<std::string> &args) {
-  CatfileParser &parser = CatfileParser::get();
-  parser.parse(args);
-  std::string type = parser.getType();
-  std::string hash = parser.getHash();
+  const auto options = CatfileParser::parse(args);
+  std::string type = options.type;
+  std::string hash = options.hash;
 
   GitRepository repo = GitRepository::find();
   GitObject *obj = GitObject::read(repo, GitObject::find(repo, hash));

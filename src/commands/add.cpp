@@ -79,9 +79,8 @@ bool add_path(const fs::path &relative_pattern, const fs::path &root,
 
 namespace commands {
 void add(std::vector<std::string> &args) {
-  AddParser &parser = AddParser::get();
-  parser.parse(args);
-  const std::vector<std::string> paths = parser.getPaths();
+  const auto options = AddParser::parse(args);
+  const std::vector<std::string> &paths = options.paths;
   GitRepository repo = GitRepository::find();
   const fs::path root = fs::canonical(repo.worktree_path("."));
 

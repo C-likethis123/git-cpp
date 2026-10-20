@@ -1,25 +1,17 @@
 #include "parsers/LsTreeParser.h"
-#include <string>
-#include <vector>
+#include "TclapParseScope.h"
 
-void LsTreeParser::parse(std::vector<std::string> &args) {
-  cmd.reset();
-  cmd.parse(args);
-}
-
-std::string LsTreeParser::getTreeObject() const { return treeObjArg.getValue(); }
-std::vector<std::string> LsTreeParser::getFilePathPatterns() const { return filePathPatternsArg.getValue(); }
-
-LsTreeParser::LsTreeParser()
-    : cmd("ls-tree", ' ', "0.1"),
-      treeObjArg("tree-ish", "commit ID of tree object", true, "HEAD", "string"),
-      filePathPatternsArg("path", "patterns that matches file names", false, "", "string") {
+LsTreeOptions LsTreeParser::parse(const std::vector<std::string> &args) {
+  TclapParseScope scope;
+  auto input = args;
+  TCLAP::CmdLine cmd("ls-tree", ' ', "0.1");
+  TCLAP::UnlabeledValueArg<std::string> treeObjArg(
+      "tree-ish", "commit ID of tree object", true, "HEAD", "string");
+  TCLAP::UnlabeledMultiArg<std::string> filePathPatternsArg(
+      "path", "patterns that matches file names", false, "", "string");
   cmd.ignoreUnmatched(true);
   cmd.add(treeObjArg);
   cmd.add(filePathPatternsArg);
-}
-
-LsTreeParser &LsTreeParser::get() {
-  static LsTreeParser instance;
-  return instance;
+  cmd.parse(input);
+  return {treeObjArg.getValue(), filePathPatternsArg.getValue()};
 }

@@ -2,18 +2,14 @@
 
 #include "index.h"
 #include "repository.h"
-#include "tclap/CmdLine.h"
+#include "parsers/LsFilesParser.h"
 #include <filesystem>
+#include <iostream>
 #include <string>
 
 namespace commands {
 void lsfiles(std::vector<std::string> &args) {
-  TCLAP::CmdLine cmd("ls-files", ' ', "0.1");
-
-  // defines arguments
-
-  cmd.ignoreUnmatched(true);
-  cmd.parse(args);
+  LsFilesParser::parse(args);
 
   // process args
   GitRepository repo = GitRepository::find();

@@ -4,22 +4,15 @@
 #include <iostream>
 
 #include "repository.h"
-#include "tclap/CmdLine.h"
+#include "parsers/LogParser.h"
 
 namespace commands {
 void log(std::vector<std::string> &args) {
-  TCLAP::CmdLine cmd("log", ' ', "0.1");
+  const auto options = LogParser::parse(args);
 
-  // defines arguments
-  TCLAP::UnlabeledValueArg<std::string> commitArg(
-      "commit", "Display history of given commit", false, "HEAD",
-      "commit to start at");
-  cmd.ignoreUnmatched(true);
-  cmd.add(commitArg);
-  cmd.parse(args);
   // process args
   GitRepository repo = GitRepository::find();
-  std::string commit = GitObject::find(repo, commitArg.getValue());
+  std::string commit = GitObject::find(repo, options.commit);
   GitCommit commitObj = GitCommit::read(repo, commit);
   bool hasCommit = true;
   while (hasCommit) {

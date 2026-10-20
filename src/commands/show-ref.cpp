@@ -3,15 +3,12 @@
 
 #include "repo_util.h"
 #include "repository.h"
-#include "tclap/CmdLine.h"
+#include "parsers/ShowRefParser.h"
 #include "util.h"
 
 namespace commands {
 void showref(std::vector<std::string> &args) {
-  TCLAP::CmdLine cmd("show-ref", ' ', "0.1");
-
-  // TODO defines arguments
-  cmd.parse(args);
+  ShowRefParser::parse(args);
 
   // process args
   GitRepository repo = GitRepository::find();

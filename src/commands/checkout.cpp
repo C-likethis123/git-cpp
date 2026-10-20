@@ -11,27 +11,26 @@
 namespace commands {
 void checkout(std::vector<std::string> &args) {
   // defines arguments
-  CheckoutParser &parser = CheckoutParser::get();
-  parser.parse(args);
+  const auto options = CheckoutParser::parse(args);
 
-  bool isCreateNewBranch = parser.isCreateNewBranch();
+  bool isCreateNewBranch = options.createNewBranch;
   // process args
   GitRepository repo = GitRepository::find();
   // create a new branch with the name of the commit.
   if (isCreateNewBranch) {
-    std::string branchName = parser.getCommit();
+    std::string branchName = options.commit;
     // creating at refs/heads/{branch_name}. check if the branch name exists.
     if (repo.has_branch(branchName)) {
       throw std::runtime_error("fatal: a branch named '" + branchName +
                                "' already exists.");
     }
-    bool isStartPointSet = parser.isStartPointSet();
+    bool isStartPointSet = options.startPointSet;
     std::string hash = GitObject::find(
-        repo, isStartPointSet ? parser.getStartPoint() : "HEAD");
+        repo, isStartPointSet ? options.startPoint : "HEAD");
     create_file(repo.branch_path(branchName), hash);
     repo.update_head("ref: refs/heads/" + branchName);
   } else {
-    std::string hash = parser.getCommit();
+    std::string hash = options.commit;
     GitCommit commit = GitCommit::read(repo, hash);
     GitTree tree = GitTree::read(repo, commit.get_tree());
     GitCommit head = GitCommit::read(repo, "HEAD");

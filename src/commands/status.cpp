@@ -2,17 +2,13 @@
 
 #include "index.h"
 #include "repository.h"
-#include "tclap/CmdLine.h"
+#include "parsers/StatusParser.h"
+#include <iostream>
 #include <string>
 
 namespace commands {
 void status(std::vector<std::string> &args) {
-  TCLAP::CmdLine cmd("status", ' ', "0.1");
-
-  // defines arguments
-
-  cmd.ignoreUnmatched(true);
-  cmd.parse(args);
+  StatusParser::parse(args);
 
   // process args
   GitRepository repo = GitRepository::find();
