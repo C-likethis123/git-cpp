@@ -50,7 +50,7 @@ void GitRepository::load_ignore_patterns() {
       continue;
     }
     load_ignore_file(relative);
-    }
+  }
 }
 
 void GitRepository::load_ignore_file(const fs::path &directory) {
@@ -62,7 +62,8 @@ void GitRepository::load_ignore_file(const fs::path &directory) {
     }
     std::ifstream file(ignore_file);
     if (!file.is_open()) {
-      std::cerr << "Unable to open .gitignore file: " << ignore_file << std::endl;
+      std::cerr << "Unable to open .gitignore file: " << ignore_file
+                << std::endl;
       return;
     }
     std::string line;
@@ -213,11 +214,19 @@ according to glob file rules
 */
 bool GitRepository::is_ignored(const fs::path &path) const {
   const fs::path relative_path = fs::relative(path, worktree);
-  return is_ignored(relative_path,
-                    fs::is_directory(fs::symlink_status(path)));
+  return is_ignored(relative_path, fs::is_directory(fs::symlink_status(path)));
 }
 
-bool GitRepository::is_ignored(const fs::path &relative_path, bool directory) const {
+bool GitRepository::is_ignored(const fs::path &relative_path,
+                               bool directory) const {
+  // Checks if the file is nested in a submodule
+  for (fs::path parent = directory ? relative_path
+                                   : relative_path.parent_path();
+       !parent.empty() && parent != "."; parent = parent.parent_path()) {
+    if (fs::exists(worktree / parent / ".git")) {
+      return true;
+    }
+  }
   const std::string relative_path_str = relative_path.generic_string();
   const std::string directory_path_str =
       (directory ? relative_path : relative_path.parent_path())
@@ -249,7 +258,9 @@ bool GitRepository::is_ignored(const fs::path &relative_path, bool directory) co
   return false;
 }
 
-int GitRepository::num_ignored_patterns() const { return ignore_patterns.size(); }
+int GitRepository::num_ignored_patterns() const {
+  return ignore_patterns.size();
+}
 
 std::string GitRepository::get_head() {
   const std::string head_contents = read_file(this->repo_path("HEAD"), true);

@@ -162,3 +162,52 @@ TEST_CASE("status command", "[status]") {
                              "\tdeleted: ../test\n");
   }
 }
+
+TEST_CASE("add and status ignore submodules", "[add][status]") {
+  GitRepoSetup setup;
+  const bool git_file = GENERATE(false, true);
+  fs::create_directories("vendor/module/nested");
+  if (git_file) {
+    REQUIRE(file_utils::create_file("vendor/module/.git",
+                                    "gitdir: ../../.git/modules/module\n"));
+  } else {
+    fs::create_directories("vendor/module/.git");
+  }
+  REQUIRE(file_utils::create_file("vendor/module/nested/file", "private\n"));
+  REQUIRE(std::system(
+              "git --git-dir=.git --work-tree=. update-index --add --cacheinfo 160000,"
+              "1723ac93b92db1fc2c28de8e5da814136937f8c6,vendor/module") == 0);
+
+  std::vector<std::string> status_args{"status"};
+  REQUIRE_STDOUT_VALUE(commands::status(status_args),
+                       "On: main\nnothing to commit, working tree clean\n");
+
+  // Include a normal file so add must succeed while skipping the submodule.
+  REQUIRE(file_utils::create_file("visible", "visible\n"));
+  std::vector<std::string> add_args{"add", "."};
+  REQUIRE_NOTHROW(commands::add(add_args));
+  const auto index = GitRepoSetup::get_file_contents(".git/index");
+  REQUIRE(index.find("vendor/module") != std::string::npos);
+  REQUIRE(index.find("vendor/module/nested/file") == std::string::npos);
+  REQUIRE(index.find("visible") != std::string::npos);
+  add_args = {"add", "vendor/module/nested/file"};
+  REQUIRE_THROWS_WITH(commands::add(add_args),
+                      "path vendor/module/nested/file did not match any files");
+
+  // A gitlink in HEAD must also be ignored after its working directory is gone.
+  REQUIRE(std::system("git --git-dir=.git --work-tree=. "
+                      "update-index --force-remove visible") == 0);
+  fs::remove("visible");
+  REQUIRE(std::system("git --git-dir=.git --work-tree=. "
+                      "-c user.name=Test -c user.email=test@example.com "
+                      "-c core.hooksPath=/dev/null commit -qm submodule") == 0);
+  fs::remove_all("vendor/module");
+  status_args = {"status"};
+  REQUIRE_STDOUT_VALUE(commands::status(status_args),
+                       "On: main\nnothing to commit, working tree clean\n");
+  REQUIRE(std::system("git --git-dir=.git --work-tree=. "
+                      "update-index --force-remove vendor/module") == 0);
+  status_args = {"status"};
+  REQUIRE_STDOUT_VALUE(commands::status(status_args),
+                       "On: main\nnothing to commit, working tree clean\n");
+}

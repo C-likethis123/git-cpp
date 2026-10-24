@@ -111,3 +111,20 @@ TEST_CASE("GitRepository collects nested ignore rules before matching",
   REQUIRE_FALSE(repo.is_ignored("other/file.txt", false));
   REQUIRE(repo.num_ignored_patterns() == collected_patterns);
 }
+
+TEST_CASE("GitRepository ignores nested repositories", "[GitRepository]") {
+  GitRepoSetup setup;
+  const bool git_file = GENERATE(false, true);
+  fs::create_directories("vendor/module/nested");
+  if (git_file) {
+    std::ofstream("vendor/module/.git") << "gitdir: ../../.git/modules/module\n";
+  } else {
+    fs::create_directories("vendor/module/.git");
+  }
+  std::ofstream("vendor/module/.gitignore") << "*.secret\n";
+  const GitRepository repo(".", true);
+  REQUIRE(repo.is_ignored("vendor/module"));
+  REQUIRE(repo.is_ignored("vendor/module/nested/file.txt", false));
+  REQUIRE_FALSE(repo.is_ignored("vendor/module-other/file.txt", false));
+  REQUIRE_FALSE(repo.is_ignored("vendor/file.secret", false));
+}

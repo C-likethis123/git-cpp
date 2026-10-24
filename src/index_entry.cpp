@@ -47,10 +47,14 @@ GitIndexEntry GitIndexEntry::create_index_entry(const fs::path &path,
 
   // extract timestamps
   uint32_t ctime_sec = file_stat.st_ctime;
-
-  uint32_t ctime_nanosec = file_stat.st_ctimespec.tv_nsec;
   uint32_t mtime_sec = file_stat.st_mtime;
+#if defined(__APPLE__)
+  uint32_t ctime_nanosec = file_stat.st_ctimespec.tv_nsec;
   uint32_t mtime_nanosec = file_stat.st_mtimespec.tv_nsec;
+#else
+  uint32_t ctime_nanosec = file_stat.st_ctim.tv_nsec;
+  uint32_t mtime_nanosec = file_stat.st_mtim.tv_nsec;
+#endif
 
   // extract mode
   uint32_t mode = file_stat.st_mode;
