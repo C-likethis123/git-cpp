@@ -23,4 +23,18 @@ TEST_CASE("log command", "[log]") {
                          "Date:   Tue May 13 21:13:41 2025 +0800\n\n"
                          "\tTest file\n\n");
   }
+
+  SECTION("VALID log command --with specified commit, should show from there") {
+    std::vector<std::string> args({"log", SECOND_COMMIT});
+    REQUIRE_STDOUT_VALUE(commands::log(args),
+                         "commit 6c2c22e7b5b7b1682e3c14668499e84141aca0d4\n"
+                         "Author: Chow Jia Ying <chowjiaying211@gmail.com>\n"
+                         "Date:   Tue May 13 21:24:17 2025 +0800\n\n"
+                         "\tTest file2\n\n"
+
+                         "commit 1723ac93b92db1fc2c28de8e5da814136937f8c6\n"
+                         "Author: Chow Jia Ying <chowjiaying211@gmail.com>\n"
+                         "Date:   Tue May 13 21:13:41 2025 +0800\n\n"
+                         "\tTest file\n\n");
+  }
 }
