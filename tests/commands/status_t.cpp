@@ -175,7 +175,7 @@ TEST_CASE("add and status ignore submodules", "[add][status]") {
   }
   REQUIRE(file_utils::create_file("vendor/module/nested/file", "private\n"));
   REQUIRE(std::system(
-              "git update-index --add --cacheinfo 160000,"
+              "git --git-dir=.git --work-tree=. update-index --add --cacheinfo 160000,"
               "1723ac93b92db1fc2c28de8e5da814136937f8c6,vendor/module") == 0);
 
   std::vector<std::string> status_args{"status"};
@@ -195,13 +195,18 @@ TEST_CASE("add and status ignore submodules", "[add][status]") {
                       "path vendor/module/nested/file did not match any files");
 
   // A gitlink in HEAD must also be ignored after its working directory is gone.
-  REQUIRE(std::system("git -c user.name=Test -c user.email=test@example.com "
+  REQUIRE(std::system("git --git-dir=.git --work-tree=. "
+                      "update-index --force-remove visible") == 0);
+  fs::remove("visible");
+  REQUIRE(std::system("git --git-dir=.git --work-tree=. "
+                      "-c user.name=Test -c user.email=test@example.com "
                       "-c core.hooksPath=/dev/null commit -qm submodule") == 0);
   fs::remove_all("vendor/module");
   status_args = {"status"};
   REQUIRE_STDOUT_VALUE(commands::status(status_args),
                        "On: main\nnothing to commit, working tree clean\n");
-  REQUIRE(std::system("git update-index --force-remove vendor/module") == 0);
+  REQUIRE(std::system("git --git-dir=.git --work-tree=. "
+                      "update-index --force-remove vendor/module") == 0);
   status_args = {"status"};
   REQUIRE_STDOUT_VALUE(commands::status(status_args),
                        "On: main\nnothing to commit, working tree clean\n");
