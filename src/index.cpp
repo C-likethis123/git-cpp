@@ -31,7 +31,7 @@ void build_file_map(const GitTree &tree, const std::string &prefix,
       // It's a directory (040000), recurse into it
       GitTree sub_tree = GitTree::read(repo, sha);
       build_file_map(sub_tree, full_path, file_map, repo);
-    } else {
+    } else if (mode != 0160000) {
       file_map[full_path] = sha;
     }
   }
@@ -172,6 +172,9 @@ void GitIndex::scan_status(GitRepository &repo) {
 
   // Compare index entries with HEAD tree
   for (const auto &[file_path, index_entry] : entries_) {
+    if (index_entry.is_submodule()) {
+      continue;
+    }
     if (!fs::exists(repo.worktree_path(file_path))) {
       status.unstaged.deleted.emplace_back(file_path);
     }

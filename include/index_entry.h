@@ -22,6 +22,7 @@ public:
   uint32_t mtime_sec() const;
   uint32_t file_size() const;
   std::string sha1() const;
+  bool is_submodule() const { return mode_ == 0160000; }
   void save(GitRepository &repo, std::stringstream &stream) const;
 
 private:
