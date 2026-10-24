@@ -1,4 +1,5 @@
 #include "commit.h"
+#include "date_util.h"
 #include "repo_util.h"
 #include "repository.h"
 #include <array>
@@ -37,11 +38,13 @@ std::string GitCommit::serialise(GitRepository &repo) {
 std::string GitCommit::print_commit() {
   std::stringstream ss;
   ss << "commit " << sha << "\n";
-  ss << "Author: " << this->keyValuePairs["author_name"] << " <"
+  ss << std::left << std::setw(8)
+     << "Author: " << this->keyValuePairs["author_name"] << " <"
      << this->keyValuePairs["author_email"] << ">\n";
-  ss << "Date: " << this->keyValuePairs["author_unix_timestamp"] << " "
-     << this->keyValuePairs["author_timezone"] << "\n\n";
-  ss << "    " << this->keyValuePairs["message"];
+  ss << std::setw(8) << "Date: "
+     << format_unix_time(this->keyValuePairs["author_unix_timestamp"])
+     << "\n\n";
+  ss << "\t" << this->keyValuePairs["message"];
   return ss.str();
 }
 

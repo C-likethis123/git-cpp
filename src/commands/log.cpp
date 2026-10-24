@@ -3,8 +3,8 @@
 #include "object.h"
 #include <iostream>
 
-#include "repository.h"
 #include "parsers/LogParser.h"
+#include "repository.h"
 
 namespace commands {
 void log(std::vector<std::string> &args) {

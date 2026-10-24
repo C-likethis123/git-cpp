@@ -10,7 +10,7 @@ add_library(pack_index pack_index.cpp)
 target_include_directories(pack_index PUBLIC ../include)
 target_compile_features(pack_index PUBLIC cxx_std_17)
 
-add_library(util util.cpp repo_util.cpp pack_util.cpp)
+add_library(util util.cpp repo_util.cpp pack_util.cpp date_util.cpp)
 target_link_libraries(util PRIVATE boost_libraries)
 target_include_directories(util PUBLIC ../include)
 target_compile_features(util PUBLIC cxx_std_17)
