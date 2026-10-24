@@ -7,15 +7,54 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
-// Recursively resolves ref
+// Recursively resolves loose refs, falling back to packed refs.
 std::string resolve_ref(const fs::path &ref_path, GitRepository &repo) {
-  std::string ref = read_file(ref_path, true);
-  if (ref.substr(0, 4) == "ref:") {
-    fs::path new_ref_path = repo.repo_path(ref.substr(5));
-    return resolve_ref(new_ref_path, repo);
+  if (fs::exists(ref_path)) {
+    const std::string ref = read_file(ref_path, true);
+    if (ref.compare(0, 5, "ref: ") == 0) {
+      return resolve_ref(repo.repo_path(ref.substr(5)), repo);
+    }
+    if (ref.empty()) {
+      throw std::runtime_error("Unable to read reference: " +
+                               ref_path.string());
+    }
+    return ref;
   }
-  return ref;
+
+  const fs::path packed_path = repo.repo_path("packed-refs");
+  if (fs::exists(packed_path)) {
+    std::ifstream file(packed_path);
+    if (!file.is_open()) {
+      throw std::runtime_error("Unable to read packed refs: " +
+                               packed_path.string());
+    }
+    const std::string ref_name =
+        ref_path.lexically_relative(repo.repo_path("")).generic_string();
+    std::string line;
+    while (std::getline(file, line)) {
+      if (line.empty() || line[0] == '#' || line[0] == '^') {
+        continue;
+      }
+      const auto space = line.find(' ');
+      if (space != 40 ||
+          line.substr(0, space).find_first_not_of("0123456789abcdefABCDEF") !=
+              std::string::npos ||
+          space + 1 == line.size() ||
+          line.find_first_of(" \t\r", space + 1) != std::string::npos) {
+        throw std::runtime_error("Malformed packed reference: " + line);
+      }
+      if (line.substr(space + 1) == ref_name) {
+        return line.substr(0, space);
+      }
+    }
+    if (file.bad()) {
+      throw std::runtime_error("Unable to read packed refs: " +
+                               packed_path.string());
+    }
+  }
+  throw std::runtime_error("Reference not found: " + ref_path.string());
 }
 
 std::pair<std::string, std::string>
