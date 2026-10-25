@@ -16,7 +16,7 @@ TEST_CASE("catfile command", "[catfile]") {
         "parent 6c2c22e7b5b7b1682e3c14668499e84141aca0d4\n"
         "author Chow Jia Ying <chowjiaying211@gmail.com> 1760236003 +0800\n"
         "committer Chow Jia Ying <chowjiaying211@gmail.com> 1760236003 "
-        "+0800\n\n\n"
+        "+0800\n\n"
 
         "Add gitignore\n");
   }
