@@ -4,5 +4,5 @@
 #include <ctime>
 #include <string>
 
-std::string format_unix_time(std::string &unix_timestamp_str);
+std::string format_unix_time(int64_t unix_timestamp_str);
 #endif // DATEUTIL_H

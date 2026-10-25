@@ -1,8 +1,10 @@
 #ifndef COMMIT_H
 #define COMMIT_H
 
+#include <cstdint>
+#include <optional>
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 #include "object.h"
 #include "repository.h"
@@ -23,13 +25,26 @@ public:
   serialise(GitRepository &repo) override; // convert this to a string format
   std::string print_commit();
   void init();
-  bool has_parent();
-  std::string get_parent();
+  bool has_parents();
+  const std::vector<std::string> &get_parents() const;
   std::string get_tree();
+  std::int64_t get_committer_timestamp() const;
 
 protected:
-  std::unordered_map<std::string, std::string> keyValuePairs;
+  struct Identity {
+    std::string name;
+    std::string email;
+    std::int64_t unix_timestamp;
+    std::string timezone;
+  };
+
+  std::string tree;
+  Identity author;
+  Identity committer;
+  std::optional<std::string> gpgsig;
+  std::string message;
   std::string sha;
+  std::vector<std::string> parents;
 };
 
 #endif // COMMIT_H

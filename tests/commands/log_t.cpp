@@ -59,7 +59,7 @@ TEST_CASE("log traverses merge parents by discovered commit date", "[log]") {
                        "Date:   Thu May 15 21:42:10 2025 +0800\n\n"
                        "\tfirst commit in test_branch\n\n"
 
-                       "commit 6c2c22e7b5b7b1682e3c14668499e84141aca0d4"
+                       "commit 6c2c22e7b5b7b1682e3c14668499e84141aca0d4\n"
                        "Author: Chow Jia Ying <chowjiaying211@gmail.com>\n"
                        "Date:   Tue May 13 21:24:17 2025 +0800\n\n"
                        "\tTest file2\n\n"
