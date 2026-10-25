@@ -2,8 +2,8 @@
 #include "date_util.h"
 #include "repo_util.h"
 #include "repository.h"
-#include <array>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -15,83 +15,147 @@ GitCommit::GitCommit(const std::string &data, const std::string &sha)
 
 std::string GitCommit::serialise(GitRepository &repo) {
   std::stringstream ss;
-  ss << "tree " << this->keyValuePairs["tree"] << "\n";
-  if (this->has_parent()) {
-    ss << "parent " << this->keyValuePairs["parent"] << "\n";
+  ss << "tree " << tree << "\n";
+  for (const auto &parent : parents) {
+    ss << "parent " << parent << "\n";
   }
-  ss << "author " << this->keyValuePairs["author_name"] << " <"
-     << this->keyValuePairs["author_email"] << "> "
-     << this->keyValuePairs["author_unix_timestamp"] << " "
-     << this->keyValuePairs["author_timezone"] << "\n";
-  ss << "committer " << this->keyValuePairs["committer_name"] << " <"
-     << this->keyValuePairs["committer_email"] << "> "
-     << this->keyValuePairs["committer_unix_timestamp"] << " "
-     << this->keyValuePairs["committer_timezone"] << "\n";
-  if (this->keyValuePairs.find("gpgsig") != this->keyValuePairs.end()) {
-    ss << "gpgsig " << this->keyValuePairs["gpgsig"];
+  ss << "author " << author.name << " <" << author.email << "> "
+     << author.unix_timestamp << " " << author.timezone << "\n";
+  ss << "committer " << committer.name << " <" << committer.email << "> "
+     << committer.unix_timestamp << " " << committer.timezone << "\n";
+  if (gpgsig) {
+    ss << "gpgsig " << *gpgsig << "\n";
   }
-  ss << "\n\n";
-  ss << this->keyValuePairs["message"];
+  ss << "\n";
+  ss << message;
   return ss.str();
 }
 
 std::string GitCommit::print_commit() {
   std::stringstream ss;
   ss << "commit " << sha << "\n";
-  ss << std::left << std::setw(8)
-     << "Author: " << this->keyValuePairs["author_name"] << " <"
-     << this->keyValuePairs["author_email"] << ">\n";
-  ss << std::setw(8) << "Date: "
-     << format_unix_time(this->keyValuePairs["author_unix_timestamp"])
+  if (parents.size() > 1) {
+    ss << "Merge:";
+    for (const auto &parent : parents) {
+      ss << " " << parent.substr(0, 7);
+    }
+    ss << "\n";
+  }
+  ss << std::left << std::setw(8) << "Author: " << author.name << " <"
+     << author.email << ">\n";
+  ss << std::setw(8) << "Date: " << format_unix_time(author.unix_timestamp)
      << "\n\n";
-  ss << "\t" << this->keyValuePairs["message"];
+  ss << "\t" << message;
   return ss.str();
 }
 
 void GitCommit::deserialise(const std::string &data) {
-  const std::unordered_map<std::string, std::string> keyValuePairs;
-  int pos = 0;
+  tree.clear();
+  author = {};
+  committer = {};
+  gpgsig.reset();
+  message.clear();
+  parents.clear();
+  if (data.empty()) {
+    return;
+  }
 
-  const std::array<std::string, 5> keys = {"tree", "parent", "author",
-                                           "committer", "gpgsig"};
-  const std::vector<std::pair<std::string, std::string>> sub_keys = {
-      {"name", " <"},
-      {"email", "> "},
-      {"unix_timestamp", " "},
-      {"timezone", "\n"}};
-  for (auto &key : keys) {
-    int space = data.find(key + " ", pos);
-    if (space == std::string::npos) {
+  const auto separator = data.find("\n\n");
+  if (separator == std::string::npos) {
+    throw std::runtime_error(
+        "Invalid commit: missing header/message separator");
+  }
+  message = data.substr(separator + 2);
+
+  std::istringstream headers(data.substr(0, separator));
+  std::string line;
+  std::string key;
+  std::vector<std::pair<std::string, std::string>> fields;
+  while (std::getline(headers, line)) {
+    if (line.empty()) {
+      throw std::runtime_error("Invalid commit: empty header");
+    }
+    // Multiline headers, such as gpgsig, use space-prefixed continuations.
+    if (line.front() == ' ') {
+      if (fields.empty() || key == "parent" || key == "tree" ||
+          key == "author" || key == "committer") {
+        throw std::runtime_error(
+            "Invalid commit: unexpected continuation line");
+      }
+      fields.back().second += "\n" + line;
       continue;
     }
-    int nl = data.find("\n", space);
-    if (key == "author" || key == "committer") {
-      pos = space + key.size() + 1;
-      for (auto &sub_key : sub_keys) {
-        space = data.find(sub_key.second, pos);
-        this->keyValuePairs[key + "_" + sub_key.first] =
-            data.substr(pos, space - pos);
-        pos = space + sub_key.second.size();
+    const auto space = line.find(' ');
+    if (space == std::string::npos) {
+      throw std::runtime_error("Invalid commit header");
+    }
+    key = line.substr(0, space);
+    const auto value = line.substr(space + 1);
+    fields.emplace_back(key, value);
+  }
+
+  bool has_tree = false;
+  bool has_author = false;
+  bool has_committer = false;
+  for (const auto &[key, value] : fields) {
+    if (key == "parent") {
+      if (value.empty()) {
+        throw std::runtime_error("Invalid commit: empty parent");
       }
-      pos = nl + 1;
+      parents.push_back(value);
+      continue;
+    }
+    if (key == "tree") {
+      if (has_tree || value.empty()) {
+        throw std::runtime_error("Invalid commit: duplicate or empty tree");
+      }
+      has_tree = true;
+      tree = value;
     } else if (key == "gpgsig") {
-      std::string gpgsig_end = "-----END PGP SIGNATURE-----";
-      nl = data.find(gpgsig_end, space) + gpgsig_end.size();
-      this->keyValuePairs[key] =
-          data.substr(space + key.size() + 1, nl - space - key.size() - 1);
-      pos = nl + 3;
-    } else {
-      this->keyValuePairs[key] =
-          data.substr(space + key.size() + 1, nl - space - key.size() - 1);
-      pos = nl + 1;
+      if (gpgsig) {
+        throw std::runtime_error("Invalid commit: duplicate gpgsig");
+      }
+      gpgsig = value;
+    } else if (key == "author" || key == "committer") {
+      auto &seen = key == "author" ? has_author : has_committer;
+      if (seen) {
+        throw std::runtime_error("Invalid commit: duplicate " + key);
+      }
+      seen = true;
+      auto &identity = key == "author" ? author : committer;
+      const auto email_start = value.rfind(" <");
+      const auto email_end = value.find("> ", email_start);
+      const auto timestamp_end = email_end == std::string::npos
+                                     ? std::string::npos
+                                     : value.find(' ', email_end + 2);
+      if (email_start == std::string::npos || email_end == std::string::npos ||
+          timestamp_end == std::string::npos) {
+        throw std::runtime_error("Invalid commit identity: " + key);
+      }
+      identity.name = value.substr(0, email_start);
+      identity.email =
+          value.substr(email_start + 2, email_end - email_start - 2);
+      const auto timestamp =
+          value.substr(email_end + 2, timestamp_end - email_end - 2);
+      try {
+        std::size_t consumed = 0;
+        identity.unix_timestamp = std::stoll(timestamp, &consumed);
+        if (consumed != timestamp.size() ||
+            timestamp.find_first_not_of("-0123456789") != std::string::npos) {
+          throw std::invalid_argument("Invalid timestamp");
+        }
+      } catch (const std::invalid_argument &) {
+        throw std::runtime_error("Invalid commit timestamp: " + key);
+      } catch (const std::out_of_range &) {
+        throw std::runtime_error("Invalid commit timestamp: " + key);
+      }
+      identity.timezone = value.substr(timestamp_end + 1);
     }
   }
-  int nl = data.find("\n", pos + 1);
-  this->keyValuePairs["message"] = data.substr(pos + 1, nl - pos);
-}
-
-bool GitCommit::has_parent() {
-  return this->keyValuePairs.find("parent") != this->keyValuePairs.end();
+  if (!has_tree || !has_author || !has_committer) {
+    throw std::runtime_error(
+        "Invalid commit: missing tree, author or committer");
+  }
 }
 
 GitCommit GitCommit::read(GitRepository &repo, const std::string &hash) {
@@ -103,6 +167,14 @@ GitCommit GitCommit::read(GitRepository &repo, const std::string &hash) {
   return GitCommit(payload, sha);
 }
 
-std::string GitCommit::get_parent() { return this->keyValuePairs["parent"]; }
+bool GitCommit::has_parents() { return !parents.empty(); }
 
-std::string GitCommit::get_tree() { return this->keyValuePairs["tree"]; }
+const std::vector<std::string> &GitCommit::get_parents() const {
+  return parents;
+}
+
+std::string GitCommit::get_tree() { return tree; }
+
+std::int64_t GitCommit::get_committer_timestamp() const {
+  return committer.unix_timestamp;
+}
