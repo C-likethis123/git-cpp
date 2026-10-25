@@ -2,6 +2,7 @@
 #include "commands/cat-file.h"
 #include "commands/check-ignore.h"
 #include "commands/checkout.h"
+#include "commands/commit.h"
 #include "commands/hash-object.h"
 #include "commands/init.h"
 #include "commands/log.h"
@@ -49,6 +50,8 @@ int main(int argc, char **argv) {
       commands::add(args);
     } else if (command == "check-ignore") {
       commands::checkignore(args);
+    } else if (command == "commit") {
+      commands::commit(args);
     } else {
       std::cerr << "Unknown command: " << command << "\n";
       return -1;
