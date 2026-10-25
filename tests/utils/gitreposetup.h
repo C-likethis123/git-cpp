@@ -12,6 +12,7 @@ extern const std::string SECOND_COMMIT;
 extern const std::string THIRD_COMMIT;
 extern const std::string HEAD_COMMIT;
 extern const std::string HEAD_COMMIT_TREE;
+extern const std::string TEST_MERGE_COMMIT;
 extern const std::string TEST_TAG;
 extern const fs::path VALID_GIT_PATH;
 extern const fs::path OLD_CWD;
