@@ -150,7 +150,7 @@ void GitIndex::scan_status(GitRepository &repo) {
           file_size != index_entry->second.file_size()) {
         // Only compute SHA1 if file appears to have changed
         std::string file_sha1 =
-            GitObject::write(repo, "blob", read_file(entry.path()), false);
+            GitObject::write(repo, GitObjectType::Blob, read_file(entry.path()), false);
         if (file_sha1 != index_entry->second.sha1()) {
           status.unstaged.modified.emplace_back(relative_path_str);
         }

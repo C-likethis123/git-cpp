@@ -5,7 +5,7 @@
 #include <string>
 
 GitBlob::GitBlob(const std::string &blobData)
-    : blobData(blobData), GitObject("blob"){};
+    : blobData(blobData), GitObject(GitObjectType::Blob){};
 
 GitBlob GitBlob::read(GitRepository &repo, const std::string &hash) {
   const std::string &sha = GitObject::find(repo, hash);

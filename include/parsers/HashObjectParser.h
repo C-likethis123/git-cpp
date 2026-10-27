@@ -1,12 +1,14 @@
 #ifndef HASHOBJECTPARSER_H
 #define HASHOBJECTPARSER_H
 
+#include "object.h"
+
 #include <string>
 #include <vector>
 
 struct HashObjectOptions {
   bool write;
-  std::string type;
+  GitObjectType type;
   std::string path;
 };
 

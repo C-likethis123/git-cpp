@@ -17,5 +17,6 @@ HashObjectParser::parse(const std::vector<std::string> &args) {
   cmd.add(typeArg);
   cmd.add(pathArg);
   cmd.parse(input);
-  return {writeArg.getValue(), typeArg.getValue(), pathArg.getValue()};
+  return {writeArg.getValue(), git_object_type_from_string(typeArg.getValue()),
+          pathArg.getValue()};
 }

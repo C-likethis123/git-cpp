@@ -14,5 +14,5 @@ CatfileOptions CatfileParser::parse(const std::vector<std::string> &args) {
   cmd.add(typeArg);
   cmd.add(objArg);
   cmd.parse(input);
-  return {typeArg.getValue(), objArg.getValue()};
+  return {git_object_type_from_string(typeArg.getValue()), objArg.getValue()};
 }

@@ -15,3 +15,16 @@ TEST_CASE("GitObject", "[GitObject::find]") {
     REQUIRE(GitObject::find(repo, "test_branch") == THIRD_COMMIT);
   }
 }
+
+TEST_CASE("Git object types round trip through their header names",
+          "[GitObjectType]") {
+  for (const auto type :
+       {GitObjectType::Blob, GitObjectType::Tree, GitObjectType::Commit}) {
+    REQUIRE(git_object_type_from_string(to_string(type)) == type);
+  }
+  REQUIRE(to_string(GitObjectType::Blob) == "blob");
+  REQUIRE(to_string(GitObjectType::Tree) == "tree");
+  REQUIRE(to_string(GitObjectType::Commit) == "commit");
+  REQUIRE_THROWS(git_object_type_from_string("invalid"));
+  REQUIRE_THROWS(to_string(static_cast<GitObjectType>(-1)));
+}

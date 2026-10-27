@@ -10,7 +10,7 @@
 #include <iostream>
 #include <sstream>
 
-GitTree::GitTree(const std::string &data) : GitObject("tree") {
+GitTree::GitTree(const std::string &data) : GitObject(GitObjectType::Tree) {
   this->deserialise(data);
 };
 
@@ -72,7 +72,7 @@ std::string GitTree::print_matching_files(GitRepository &repo,
     if (isFileMatch) {
         auto &[mode, sha] = this->fileEntries[path];
         GitObject *obj = GitObject::read(repo, sha);
-        std::string type = obj->get_type();
+        std::string type = to_string(obj->get_type());
         ss << std::setfill('0') << std::setw(6) << std::oct << mode << " " << type
             << " " << sha << '\t' << path << "\n";
     }

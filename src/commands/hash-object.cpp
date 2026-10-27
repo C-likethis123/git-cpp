@@ -10,7 +10,7 @@ namespace commands {
 void hashobject(std::vector<std::string> &args) {
   const auto options = HashObjectParser::parse(args);
   bool write = options.write;
-  const std::string &type = options.type;
+  const auto type = options.type;
   const std::string &path = options.path;
 
   GitRepository repo = GitRepository::find();

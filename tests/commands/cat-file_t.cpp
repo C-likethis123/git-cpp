@@ -1,5 +1,6 @@
 #include "catch2/catch.hpp"
 #include "commands/cat-file.h"
+#include "parsers/CatfileParser.h"
 #include "repository.h"
 #include "utils/gitreposetup.h"
 #include "utils/test_helpers.h"
@@ -38,11 +39,24 @@ TEST_CASE("catfile command", "[catfile]") {
 TEST_CASE("catfile with errors", "[catfile errors]") {
   GitRepoSetup gitRepoSetup;
   SECTION("Git catfile failed with non-existent commit") {
-    std::vector<std::string> args({"catfile", "tag", "nonexistentcommit"});
+    std::vector<std::string> args({"catfile", "commit", "nonexistentcommit"});
     REQUIRE_NOTHROW(GitRepository(VALID_GIT_PATH, true));
     REQUIRE(!fs::exists(".git/refs/tags/nonexistentcommit"));
 
     REQUIRE_THROWS_WITH(commands::catfile(args),
                         "nonexistentcommit: not a valid reference");
   }
+}
+
+TEST_CASE("catfile parser returns a Git object type", "[catfile][parser]") {
+  for (const auto type : {GitObjectType::Blob, GitObjectType::Tree,
+                          GitObjectType::Commit}) {
+    const auto options =
+        CatfileParser::parse({"cat-file", to_string(type), "HEAD"});
+    REQUIRE(options.type == type);
+    REQUIRE(options.hash == "HEAD");
+  }
+  REQUIRE_THROWS_WITH(
+      CatfileParser::parse({"cat-file", "invalid", "HEAD"}),
+      "Unknown type: invalid");
 }

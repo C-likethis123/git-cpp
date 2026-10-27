@@ -1,11 +1,13 @@
 #ifndef CATFILEPARSER_H
 #define CATFILEPARSER_H
 
+#include "object.h"
+
 #include <string>
 #include <vector>
 
 struct CatfileOptions {
-  std::string type;
+  GitObjectType type;
   std::string hash;
 };
 

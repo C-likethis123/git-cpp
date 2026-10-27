@@ -8,7 +8,7 @@
 #include <vector>
 
 GitCommit::GitCommit(const std::string &data, const std::string &sha)
-    : GitObject("commit") {
+    : GitObject(GitObjectType::Commit) {
   this->deserialise(data);
   this->sha = sha;
 };

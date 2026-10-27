@@ -7,27 +7,32 @@
 #include "repository.h"
 
 namespace fs = std::filesystem;
+enum class GitObjectType { Blob, Tree, Commit };
+
+std::string to_string(GitObjectType type);
+GitObjectType git_object_type_from_string(const std::string &type);
+
 class GitObject {
 public:
   GitObject();
-  GitObject(const std::string &format);
+  explicit GitObject(GitObjectType format);
 
   virtual void deserialise(const std::string &data) = 0;
   virtual std::string serialise(GitRepository &repo) = 0;
 
-  static std::string write(GitRepository &repo, const std::string &type,
+  static std::string write(GitRepository &repo, GitObjectType type,
                            const std::string &data, bool write);
   static GitObject *read(GitRepository &repo, const std::string &sha);
   static std::string find(GitRepository &repo, const std::string &name,
                           bool follow = true);
 
   void init();
-  std::string get_type() const;
+  GitObjectType get_type() const;
 
 protected:
   fs::path worktree;
   fs::path gitdir;
-  std::string format;
+  GitObjectType format = GitObjectType::Blob;
 };
 
 #endif // OBJECT_H

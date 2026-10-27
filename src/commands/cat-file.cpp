@@ -9,13 +9,13 @@
 namespace commands {
 void catfile(std::vector<std::string> &args) {
   const auto options = CatfileParser::parse(args);
-  std::string type = options.type;
+  const auto type = options.type;
   std::string hash = options.hash;
 
   GitRepository repo = GitRepository::find();
   GitObject *obj = GitObject::read(repo, GitObject::find(repo, hash));
-  std::string obj_type = obj->get_type();
-  if (type == "tree" && obj_type == "commit") {
+  const auto obj_type = obj->get_type();
+  if (type == GitObjectType::Tree && obj_type == GitObjectType::Commit) {
     GitCommit commitObj = GitCommit::read(repo, hash);
     std::string treeHash = commitObj.get_tree();
     GitObject *treeObj = GitObject::read(repo, GitObject::find(repo, treeHash));

@@ -67,7 +67,7 @@ GitIndexEntry GitIndexEntry::create_index_entry(const fs::path &path,
 
   // Create blob and sha1
   std::string file_contents = read_file(full_path);
-  std::string sha1 = GitObject::write(repo, "blob", file_contents, false);
+  std::string sha1 = GitObject::write(repo, GitObjectType::Blob, file_contents, true);
 
   // File name and flags
   std::string file_name = fs::relative(full_path, repo.worktree_path("")).string();
