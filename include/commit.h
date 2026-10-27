@@ -11,12 +11,22 @@
 
 class GitCommit : public GitObject {
 public:
+  struct Identity {
+    std::string name;
+    std::string email;
+    std::int64_t unix_timestamp;
+    std::string timezone;
+  };
+
   /**
   Assumption here: a GitCommit object will be serialised from an existing Git
   object. The SHA1 hash will be read from the file name.
   */
   GitCommit(const std::string &data = std::string(""),
             const std::string &sha = std::string(""));
+  GitCommit(const std::string &tree, const std::vector<std::string> &parents,
+            const Identity &author, const Identity &committer,
+            const std::string &message);
   static GitCommit read(GitRepository &repo, const std::string &hash);
 
   void deserialise(
@@ -31,13 +41,6 @@ public:
   std::int64_t get_committer_timestamp() const;
 
 protected:
-  struct Identity {
-    std::string name;
-    std::string email;
-    std::int64_t unix_timestamp;
-    std::string timezone;
-  };
-
   std::string tree;
   Identity author;
   Identity committer;

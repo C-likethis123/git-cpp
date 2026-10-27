@@ -11,7 +11,10 @@
 #include <cmath>
 #include <cstddef>
 #include <filesystem>
+#include <functional>
 #include <iostream>
+#include <iterator>
+#include <map>
 #include <string>
 #include <sys/stat.h>
 #include <unordered_map>
@@ -39,10 +42,14 @@ void build_file_map(const GitTree &tree, const std::string &prefix,
 
 GitIndex::GitIndex(uint32_t fileVersion,
                    std::unordered_map<std::string, GitIndexEntry> entries)
-    : version_(fileVersion), entries_(std::move(entries)){};
+    : version_(fileVersion), entries_(std::move(entries)) {};
 
 GitIndex GitIndex::read(GitRepository &repo) {
   fs::path file_path = repo.repo_path("index");
+  // defaults to creating an empty git index if it's missing
+  if (!fs::exists(file_path)) {
+    return GitIndex(2, {});
+  }
   std::string fileContents = read_file(file_path);
   uint32_t fileVersion = read_uint32_from_bytes(fileContents, 4);
   uint32_t fileEntryCount = read_uint32_from_bytes(fileContents, 8);
@@ -67,7 +74,8 @@ GitIndex GitIndex::read(GitRepository &repo) {
         read_uint32_from_bytes(fileContents, ptr + 60) >> 16;
     bool flag_assume_valid = (file_name_and_status & 0x8000) != 0;
     bool flag_extended = (file_name_and_status & 0x4000) != 0;
-    uint8_t flag_stage = (file_name_and_status & 0x3000);
+    IndexStage flag_stage =
+        static_cast<IndexStage>((file_name_and_status >> 12) & 0x3);
     uint32_t file_name_length = file_name_and_status & 0xFFF;
     std::string file_name{};
     // had to subtract 12 from the pointer calculation because the file
@@ -149,8 +157,8 @@ void GitIndex::scan_status(GitRepository &repo) {
       if (file_time_sec != index_entry->second.mtime_sec() ||
           file_size != index_entry->second.file_size()) {
         // Only compute SHA1 if file appears to have changed
-        std::string file_sha1 =
-            GitObject::write(repo, GitObjectType::Blob, read_file(entry.path()), false);
+        std::string file_sha1 = GitObject::write(
+            repo, GitObjectType::Blob, read_file(entry.path()), false);
         if (file_sha1 != index_entry->second.sha1()) {
           status.unstaged.modified.emplace_back(relative_path_str);
         }
@@ -198,16 +206,74 @@ void GitIndex::scan_status(GitRepository &repo) {
     }
   }
 
-  status_formatter::print_status(status, std::cout,
-                                status_formatter::use_status_colour(),
-                                fs::relative(fs::current_path(),
-                                             repo.worktree_path(".")));
+  status_formatter::print_status(
+      status, std::cout, status_formatter::use_status_colour(),
+      fs::relative(fs::current_path(), repo.worktree_path(".")));
 }
 
 void GitIndex::add_file(const std::string &path, GitRepository &repo) {
   entries_.erase(path);
 
   entries_.emplace(path, GitIndexEntry::create_index_entry(path, repo));
+}
+
+std::string GitIndex::write_tree(GitRepository &repo) const {
+  struct Directory {
+    GitTree tree;
+    std::map<std::string, Directory> children;
+  } root;
+
+  for (const auto &[path, entry] : entries_) {
+    if (entry.stage() != IndexStage::Resolved) {
+      throw std::runtime_error("Cannot write tree: unmerged path " + path);
+    }
+    const fs::path index_path(path);
+    // Path iteration collapses repeated separators, so reject them first.
+    if (path.empty() || index_path.is_absolute() ||
+        path.find('\0') != std::string::npos ||
+        path.find("//") != std::string::npos) {
+      throw std::runtime_error("Invalid index path: " + path);
+    }
+    Directory *directory = &root;
+    for (auto component = index_path.begin(); component != index_path.end();
+         ++component) {
+      const std::string name = component->string();
+      if (name.empty() || name == "." || name == ".." || name == ".git") {
+        throw std::runtime_error("Invalid index path: " + path);
+      }
+      if (std::next(component) == index_path.end()) {
+        if (directory->children.count(name)) {
+          throw std::runtime_error("File/directory conflict: " + path);
+        }
+        uint32_t mode = entry.mode();
+        // converts stat().st_mode to git modes
+        if ((mode & 0170000) == 0100000) {
+          mode = (mode & 0100) ? 0100755 : 0100644;
+        } else if (mode != 0120000 && mode != 0160000) {
+          throw std::runtime_error("Unsupported index mode: " + path);
+        }
+        directory->tree.pathNames.push_back(name);
+        directory->tree.fileEntries.emplace(
+            name, std::make_tuple(mode, entry.sha1()));
+        break;
+      }
+      if (directory->tree.fileEntries.count(name)) {
+        throw std::runtime_error("File/directory conflict: " + path);
+      }
+      directory = &directory->children[name];
+    }
+  }
+
+  std::function<std::string(Directory &)> write = [&](Directory &directory) {
+    for (auto &[name, child] : directory.children) {
+      const std::string sha = write(child);
+      directory.tree.pathNames.push_back(name);
+      directory.tree.fileEntries.emplace(name, std::make_tuple(0040000, sha));
+    }
+    return GitObject::write(repo, GitObjectType::Tree,
+                            directory.tree.serialise(repo), true);
+  };
+  return write(root);
 }
 
 void GitIndex::save(GitRepository &repo) {

@@ -16,6 +16,7 @@ target_include_directories(util PUBLIC ../include)
 target_compile_features(util PUBLIC cxx_std_17)
 
 add_library(inih inih.c inih.cpp)
+target_compile_definitions(inih PRIVATE INI_ALLOW_MULTILINE=0)
 target_include_directories(inih PUBLIC ../include)
 
 file(GLOB WILDMATCH_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/wildmatch/wildmatch.cpp")

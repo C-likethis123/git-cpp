@@ -7,6 +7,13 @@
 #include <sstream>
 #include <string>
 namespace fs = std::filesystem;
+enum class IndexStage : uint8_t {
+  Resolved = 0,
+  Base = 1,
+  Ours = 2,
+  Theirs = 3,
+};
+
 class GitIndexEntry {
 public:
   GitIndexEntry(uint32_t ctime_sec, uint32_t ctime_nanosec, uint32_t mtime_sec,
@@ -14,7 +21,7 @@ public:
                 uint32_t mode, uint8_t object_type, uint8_t unused,
                 uint16_t permissions, uint32_t uid, uint32_t gid,
                 uint32_t file_size, std::string sha1, bool flag_assume_valid,
-                bool flag_extended, uint8_t flag_stage,
+                bool flag_extended, IndexStage flag_stage,
                 uint32_t file_name_length, std::string file_name);
   static GitIndexEntry create_index_entry(const fs::path &path,
                                           GitRepository &repo);
@@ -22,6 +29,8 @@ public:
   uint32_t mtime_sec() const;
   uint32_t file_size() const;
   std::string sha1() const;
+  uint32_t mode() const { return mode_; }
+  IndexStage stage() const { return flag_stage_; }
   bool is_submodule() const { return mode_ == 0160000; }
   void save(GitRepository &repo, std::stringstream &stream) const;
 
@@ -42,7 +51,7 @@ private:
   std::string sha1_;
   bool flag_assume_valid_;
   bool flag_extended_;
-  uint8_t flag_stage_;
+  IndexStage flag_stage_;
   uint32_t file_name_length_;
   std::string file_name_;
 };

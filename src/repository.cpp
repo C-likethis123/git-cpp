@@ -94,6 +94,15 @@ void GitRepository::load_ignore_file(const fs::path &directory) {
   }
 }
 
+std::string GitRepository::get_branch_name() {
+  const std::string head = read_file(repo_path("HEAD"), true);
+  if (head.rfind("ref: refs/heads/", 0) != 0) {
+    throw std::runtime_error(
+        "Failed to get branch name, repo is in detached HEAD");
+  }
+  return head.substr(16);
+}
+
 /**
 Creates all files needed to represent a git directory
 */
@@ -177,6 +186,17 @@ GitRepository GitRepository::find(const fs::path &path, bool required) {
 
 void GitRepository::update_head(const std::string &new_head) {
   create_file(gitdir / "HEAD", new_head + "\n");
+}
+
+void GitRepository::update_current_ref(const std::string &commit_hash) {
+  const std::string head = read_file(repo_path("HEAD"), true);
+  const fs::path ref_path = head.rfind("ref: ", 0) == 0
+                                ? repo_path(head.substr(5))
+                                : repo_path("HEAD");
+  if (!create_file(ref_path, commit_hash + "\n")) {
+    throw std::runtime_error("Failed to update commit reference: " +
+                             ref_path.string());
+  }
 }
 
 fs::path GitRepository::branch_path(const std::string &branch) {

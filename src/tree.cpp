@@ -25,8 +25,20 @@ GitTree GitTree::read(GitRepository &repo, const std::string &hash) {
 
 std::string GitTree::serialise(GitRepository &repo) {
   std::stringstream ss;
-  for (const auto &path : this->pathNames) {
-    auto &[mode, sha] = this->fileEntries[path];
+  auto paths = pathNames;
+  // Git compares directory names as if they end in '/'.
+  std::sort(paths.begin(), paths.end(), [this](const auto &a, const auto &b) {
+    const auto key = [this](const auto &path) {
+      return path + (std::get<0>(fileEntries.at(path)) == 0040000 ? "/" : "");
+    };
+    const auto left = key(a);
+    const auto right = key(b);
+    return std::lexicographical_compare(
+        left.begin(), left.end(), right.begin(), right.end(),
+        [](unsigned char x, unsigned char y) { return x < y; });
+  });
+  for (const auto &path : paths) {
+    const auto &[mode, sha] = this->fileEntries.at(path);
     ss << std::oct << mode << " " << path << '\0' << hexToBinary(sha);
   }
   return ss.str();

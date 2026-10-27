@@ -14,6 +14,8 @@ public:
   static GitRepository find(const fs::path &path = fs::path("."),
                             bool required = true);
   void update_head(const std::string &new_head);
+  // Advance the current branch, or HEAD itself when detached.
+  void update_current_ref(const std::string &commit_hash);
 
   /**
   Creates all files needed to represent a git directory
@@ -22,6 +24,7 @@ public:
   fs::path repo_path(fs::path path);
   fs::path worktree_path(fs::path path);
   std::string get_head();
+  std::string get_branch_name();
   fs::path dir(const fs::path &path, bool mkdir = false);
   fs::path file(fs::path &gitdir, bool mkdir = false);
 

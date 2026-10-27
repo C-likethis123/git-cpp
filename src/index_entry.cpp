@@ -20,7 +20,7 @@ GitIndexEntry::GitIndexEntry(uint32_t ctime_sec, uint32_t ctime_nanosec,
                              uint16_t permissions, uint32_t uid, uint32_t gid,
                              uint32_t file_size, std::string sha1,
                              bool flag_assume_valid, bool flag_extended,
-                             uint8_t flag_stage, uint32_t file_name_length,
+                             IndexStage flag_stage, uint32_t file_name_length,
                              std::string file_name)
     : ctime_sec_(ctime_sec), ctime_nanosec_(ctime_nanosec),
       mtime_sec_(mtime_sec), mtime_nanosec_(mtime_nanosec), dev_(dev),
@@ -74,7 +74,7 @@ GitIndexEntry GitIndexEntry::create_index_entry(const fs::path &path,
   uint32_t file_name_length = file_name.size();
   bool flag_assume_valid = false;
   bool flag_extended = false;
-  uint8_t flag_stage = 0;
+  IndexStage flag_stage = IndexStage::Resolved;
 
   return GitIndexEntry(ctime_sec, ctime_nanosec, mtime_sec, mtime_nanosec,
                        file_stat.st_dev, file_stat.st_ino, mode, object_type,
@@ -113,7 +113,7 @@ void GitIndexEntry::save(GitRepository &repo, std::stringstream &stream) const {
   uint16_t actual_name_length = file_name_.size();
   uint16_t flags_and_length =
       (flag_assume_valid_ ? 0x8000 : 0) | (flag_extended_ ? 0x4000 : 0) |
-      (flag_stage_ & 0x3) << 12 | (actual_name_length & 0xFFF);
+      (static_cast<uint16_t>(flag_stage_) & 0x3) << 12 | (actual_name_length & 0xFFF);
   write_uint16_to_bytes(stream, flags_and_length);
 
   // Write file name

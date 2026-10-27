@@ -13,6 +13,13 @@ GitCommit::GitCommit(const std::string &data, const std::string &sha)
   this->sha = sha;
 };
 
+GitCommit::GitCommit(const std::string &tree,
+                     const std::vector<std::string> &parents,
+                     const Identity &author, const Identity &committer,
+                     const std::string &message)
+    : GitObject(GitObjectType::Commit), tree(tree), author(author),
+      committer(committer), message(message), parents(parents) {}
+
 std::string GitCommit::serialise(GitRepository &repo) {
   std::stringstream ss;
   ss << "tree " << tree << "\n";

@@ -13,8 +13,30 @@
 #include <sstream>
 #include <stdexcept>
 
+std::string to_string(GitObjectType type) {
+  switch (type) {
+  case GitObjectType::Blob:
+    return "blob";
+  case GitObjectType::Tree:
+    return "tree";
+  case GitObjectType::Commit:
+    return "commit";
+  }
+  throw std::runtime_error("Unknown type");
+}
+
+GitObjectType git_object_type_from_string(const std::string &type) {
+  if (type == "blob")
+    return GitObjectType::Blob;
+  if (type == "tree")
+    return GitObjectType::Tree;
+  if (type == "commit")
+    return GitObjectType::Commit;
+  throw std::runtime_error("Unknown type: " + type);
+}
+
 GitObject::GitObject() { this->init(); }
-GitObject::GitObject(const std::string &format) { this->format = format; }
+GitObject::GitObject(GitObjectType format) { this->format = format; }
 
 void GitObject::init() {}
 
@@ -32,32 +54,33 @@ GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
   }
 }
 
-std::string GitObject::write(GitRepository &repo, const std::string &type,
+std::string GitObject::write(GitRepository &repo, GitObjectType type,
                              const std::string &data, bool write) {
-  if (type == "blob") {
-    std::ostringstream oss;
-    oss << "blob " << data.size() << '\0' << data;
-    std::string result = oss.str();
-    std::string sha = sha1_hexdigest(result);
+  std::ostringstream oss;
+  oss << to_string(type) << " " << data.size() << '\0' << data;
+  std::string result = oss.str();
+  std::string sha = sha1_hexdigest(result);
 
-    if (write) {
-      fs::path file_path = repo.object_path(sha);
-      fs::path paths = repo.file(file_path, write);
-
-      // compress files
-      std::stringstream compressed;
-      boost::iostreams::filtering_streambuf<boost::iostreams::output> out;
-      out.push(boost::iostreams::zlib_compressor());
-      out.push(compressed);
-      boost::iostreams::copy(boost::iostreams::basic_array_source<char>(
-                                 result.data(), result.size()),
-                             out);
-      create_file(paths, compressed.str());
+  if (write) {
+    if (repo.has_loose_object(sha)) {
+      return sha;
     }
-    return sha;
-  } else {
-    throw std::runtime_error("Unknown type");
+    fs::path file_path = repo.object_path(sha);
+    fs::path paths = repo.file(file_path, write);
+
+    // compress files
+    std::stringstream compressed;
+    boost::iostreams::filtering_streambuf<boost::iostreams::output> out;
+    out.push(boost::iostreams::zlib_compressor());
+    out.push(compressed);
+    boost::iostreams::copy(boost::iostreams::basic_array_source<char>(
+                               result.data(), result.size()),
+                           out);
+    if (!create_file(paths, compressed.str())) {
+      throw std::runtime_error("Failed to write object: " + sha);
+    }
   }
+  return sha;
 }
 
 // XXX: food for thought: how does git handle the situation where
@@ -84,4 +107,4 @@ std::string GitObject::find(GitRepository &repo, const std::string &name,
   return resolve_ref(ref_path, repo);
 }
 
-std::string GitObject::get_type() const { return this->format; }
+GitObjectType GitObject::get_type() const { return this->format; }

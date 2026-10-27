@@ -17,6 +17,7 @@ public:
 
   void add_file(const std::string &path, GitRepository &repo);
   void save(GitRepository &repo);
+  std::string write_tree(GitRepository &repo) const;
 
 protected:
   uint32_t version_;
