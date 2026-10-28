@@ -44,9 +44,13 @@ cmake --fresh -S "$PROJECT_DIR" -B "$BUILD_DIR" \
 cmake --build "$BUILD_DIR"
 
 # Keep the existing verbose status-test selection.
-(cd "$BUILD_DIR" && ctest --output-on-failure -V -R GitRepository)
+(cd "$BUILD_DIR" && ctest --output-on-failure)
 
 INSTALL_PATH=/usr/local/bin/gyt
+if [ -L "$INSTALL_PATH" ] && [ "$(readlink "$INSTALL_PATH")" = "$BUILD_DIR/app/gyt" ]; then
+    echo "gyt is already linked to $BUILD_DIR/app/gyt"
+    exit 0
+fi
 if [ -d "$INSTALL_PATH" ]; then
     echo "Cannot install gyt: $INSTALL_PATH is a directory." >&2
     exit 1
