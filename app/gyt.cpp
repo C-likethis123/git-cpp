@@ -12,53 +12,53 @@
 #include "commands/show-ref.h"
 #include "commands/status.h"
 #include "commands/tag.h"
+#include "tclap/CmdLine.h"
+#include "tclap/ValuesConstraint.h"
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
 int main(int argc, char **argv) {
-  if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " [command]\n";
-    return -1;
+  using CommandHandler = void (*)(std::vector<std::string> &);
+  const std::map<std::string, CommandHandler> handlers{
+      {"init", commands::init},
+      {"add", commands::add},
+      {"commit", commands::commit},
+      {"status", commands::status},
+      {"log", commands::log},
+      {"checkout", commands::checkout},
+      {"tag", commands::tag},
+      {"cat-file", commands::catfile},
+      {"hash-object", commands::hashobject},
+      {"ls-files", commands::lsfiles},
+      {"ls-tree", commands::lstree},
+      {"show-ref", commands::showref},
+      {"check-ignore", commands::checkignore},
+      {"merge", commands::merge}};
+  std::string command;
+  {
+    std::vector<std::string> commandNames;
+    for (const auto &handler : handlers) {
+      commandNames.push_back(handler.first);
+    }
+    TCLAP::ValuesConstraint<std::string> allowedCommands(commandNames);
+    TCLAP::CmdLine cli("A Git implementation in C++. "
+                       "Run 'gyt <command> --help' for command options.",
+                       ' ', "0.1");
+    TCLAP::UnlabeledValueArg<std::string> commandArg(
+        "command", "Command to execute", true, "", &allowedCommands);
+    cli.add(commandArg);
+    // Leave command-specific options to the command's parser.
+    cli.parse(argc > 1 ? 2 : 1, argv);
+    command = commandArg.getValue();
   }
   try {
-    std::string command = argv[1];
     std::vector<std::string> args;
     for (int i = 1; i < argc; i++) {
       args.push_back(argv[i]);
     }
-    if (command == "init") {
-      commands::init(args);
-    } else if (command == "cat-file") {
-      commands::catfile(args);
-    } else if (command == "hash-object") {
-      commands::hashobject(args);
-    } else if (command == "log") {
-      commands::log(args);
-    } else if (command == "ls-tree") {
-      commands::lstree(args);
-    } else if (command == "ls-files") {
-      commands::lsfiles(args);
-    } else if (command == "checkout") {
-      commands::checkout(args);
-    } else if (command == "show-ref") {
-      commands::showref(args);
-    } else if (command == "tag") {
-      commands::tag(args);
-    } else if (command == "status") {
-      commands::status(args);
-    } else if (command == "add") {
-      commands::add(args);
-    } else if (command == "check-ignore") {
-      commands::checkignore(args);
-    } else if (command == "commit") {
-      commands::commit(args);
-    } else if (command == "merge") {
-      commands::merge(args);
-    } else {
-      std::cerr << "Unknown command: " << command << "\n";
-      return -1;
-    }
+    handlers.at(command)(args);
   } catch (const std::runtime_error &e) {
     std::cerr << e.what() << std::endl;
   }
