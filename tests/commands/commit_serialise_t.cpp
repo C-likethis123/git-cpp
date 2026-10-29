@@ -10,11 +10,14 @@ TEST_CASE("New commits use the shared serializer", "[commit]") {
   const std::string identity =
       "author Test User <test@example.com> 1700000000 +0800\n"
       "committer Test User <test@example.com> 1700000001 +0800\n";
-  const GitCommit::Identity author{"Test User", "test@example.com", 1700000000, "+0800"};
-  const GitCommit::Identity committer{"Test User", "test@example.com", 1700000001, "+0800"};
+  const GitCommit::Identity author{"Test User", "test@example.com", 1700000000,
+                                   "+0800"};
+  const GitCommit::Identity committer{"Test User", "test@example.com",
+                                      1700000001, "+0800"};
   GitCommit commit("1111111111111111111111111111111111111111",
                    {first_parent, second_parent}, author, committer,
                    "subject\n\nbody\n");
-  CHECK(commit.serialise(repo) == tree + "parent " + first_parent + "\nparent " +
-        second_parent + "\n" + identity + "\nsubject\n\nbody\n");
+  CHECK(commit.serialise() == tree + "parent " + first_parent + "\nparent " +
+                                  second_parent + "\n" + identity +
+                                  "\nsubject\n\nbody\n");
 }

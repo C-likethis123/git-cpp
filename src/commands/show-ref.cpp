@@ -1,9 +1,9 @@
 #include "commands/show-ref.h"
 #include <iostream>
 
+#include "parsers/ShowRefParser.h"
 #include "repo_util.h"
 #include "repository.h"
-#include "parsers/ShowRefParser.h"
 #include "util.h"
 
 namespace commands {
@@ -24,7 +24,7 @@ void showref(std::vector<std::string> &args) {
   for (const auto &entry : fs::recursive_directory_iterator(refs_path)) {
     fs::path path = entry.path();
     if (fs::is_regular_file(path)) {
-      std::string sha = resolve_ref(path, repo);
+      std::string sha = resolve_ref(path);
       std::cout << sha << " " << remove_file_prefix(path, gitdir) << "\n";
     }
   }

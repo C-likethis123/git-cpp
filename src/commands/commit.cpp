@@ -17,9 +17,9 @@ void commit(std::vector<std::string> &args) {
   const std::string &message = options.message;
   GitRepository repo = GitRepository::find();
 
-  const std::string tree = GitIndex::read(repo).write_tree(repo);
+  const std::string tree = GitIndex::read().write_tree();
 
-  const std::string &parent_commit = GitObject::find(repo, "head");
+  const std::string &parent_commit = GitObject::find("head");
 
   // create commit
   std::time_t curr_time = std::time(nullptr);
@@ -47,8 +47,8 @@ void commit(std::vector<std::string> &args) {
   }
   const GitCommit::Identity identity{name, email, curr_time, timezone};
   GitCommit commit(tree, {parent_commit}, identity, identity, message + "\n");
-  const std::string created_hash = GitObject::write(
-      repo, GitObjectType::Commit, commit.serialise(repo), true);
+  const std::string created_hash =
+      GitObject::write(GitObjectType::Commit, commit.serialise(), true);
   repo.update_current_ref(created_hash);
   std::string branch_name = repo.get_branch_name();
   std::cout << "[" << branch_name << " " << created_hash.substr(0, 7) << "] "

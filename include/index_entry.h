@@ -23,8 +23,7 @@ public:
                 uint32_t file_size, std::string sha1, bool flag_assume_valid,
                 bool flag_extended, IndexStage flag_stage,
                 uint32_t file_name_length, std::string file_name);
-  static GitIndexEntry create_index_entry(const fs::path &path,
-                                          GitRepository &repo);
+  static GitIndexEntry create_index_entry(const fs::path &path);
   std::string file_name() const;
   uint32_t mtime_sec() const;
   uint32_t file_size() const;
@@ -32,7 +31,7 @@ public:
   uint32_t mode() const { return mode_; }
   IndexStage stage() const { return flag_stage_; }
   bool is_submodule() const { return mode_ == 0160000; }
-  void save(GitRepository &repo, std::stringstream &stream) const;
+  void save(std::stringstream &stream) const;
 
 private:
   uint32_t ctime_sec_;

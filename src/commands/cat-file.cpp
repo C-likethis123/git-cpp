@@ -1,10 +1,9 @@
 #include "commands/cat-file.h"
 #include <iostream>
 
-#include "object.h"
 #include "commit.h"
+#include "object.h"
 #include "parsers/CatfileParser.h"
-#include "repository.h"
 
 namespace commands {
 void catfile(std::vector<std::string> &args) {
@@ -12,16 +11,15 @@ void catfile(std::vector<std::string> &args) {
   const auto type = options.type;
   std::string hash = options.hash;
 
-  GitRepository repo = GitRepository::find();
-  GitObject *obj = GitObject::read(repo, GitObject::find(repo, hash));
+  GitObject *obj = GitObject::read(GitObject::find(hash));
   const auto obj_type = obj->get_type();
   if (type == GitObjectType::Tree && obj_type == GitObjectType::Commit) {
-    GitCommit commitObj = GitCommit::read(repo, hash);
+    GitCommit commitObj = GitCommit::read(hash);
     std::string treeHash = commitObj.get_tree();
-    GitObject *treeObj = GitObject::read(repo, GitObject::find(repo, treeHash));
-    std::cout << treeObj->serialise(repo);
+    GitObject *treeObj = GitObject::read(treeHash);
+    std::cout << treeObj->serialise();
   } else {
-      std::cout << obj->serialise(repo);
+    std::cout << obj->serialise();
   }
 }
 } // namespace commands

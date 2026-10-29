@@ -31,8 +31,7 @@ public:
 
   void deserialise(
       const std::string &data) override; // convert string format to data object
-  std::string
-  serialise(GitRepository &repo) override; // convert this to a string format
+  std::string serialise() override;      // convert this to a string format
   std::string print_commit();
   void init();
   bool has_parents();

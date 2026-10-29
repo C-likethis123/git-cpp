@@ -17,10 +17,8 @@ public:
 
   void deserialise(
       const std::string &data) override; // convert string format to data object
-  std::string
-  serialise(GitRepository &repo) override; // convert this to a string format
-  void print_matching_files(GitRepository &repo,
-                            const std::vector<std::string>
+  std::string serialise() override;      // convert this to a string format
+  void print_matching_files(const std::vector<std::string>
                                 &filePathPattern); // print tree entries that
                                                    // match the given file path
 

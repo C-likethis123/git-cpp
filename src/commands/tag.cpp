@@ -11,7 +11,7 @@ void tag(std::vector<std::string> &args) {
   GitRepository repo = GitRepository::find();
   // resolve ref to find the commit hash
   std::string commit =
-      options.commitSet ? options.commit : GitObject::find(repo, "HEAD");
+      options.commitSet ? options.commit : GitObject::find("HEAD");
   std::string tag = options.tag;
   // ERROR: if the commit doesn't exist.
   if (!repo.has_loose_object(commit)) {
