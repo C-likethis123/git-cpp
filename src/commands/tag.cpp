@@ -19,7 +19,7 @@ void tag(std::vector<std::string> &args) {
     throw std::runtime_error(error_message);
   }
   // ERROR: if the tag already exists
-  fs::path tag_path = repo.repo_path("refs/tags/" + tag);
+  fs::path tag_path = repo.tag_path(tag);
   if (fs::is_regular_file(tag_path)) {
     std::string error_message = "tag '" + tag + "' already exists";
     throw std::runtime_error(error_message);

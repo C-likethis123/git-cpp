@@ -227,6 +227,15 @@ bool GitRepository::has_pack_object(const std::string &sha) {
   }
   return false;
 }
+
+fs::path GitRepository::tag_path(const std::string &tag) {
+  return gitdir / "refs/tags" / tag;
+}
+
+bool GitRepository::has_tag(const std::string &tag) {
+  return fs::exists(tag_path(tag));
+}
+
 /**
 Checks if the file is ignored
 Each pattern is a glob file pattern, should parse and match it

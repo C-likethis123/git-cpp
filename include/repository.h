@@ -30,9 +30,11 @@ public:
 
   fs::path branch_path(const std::string &branch);
   fs::path object_path(const std::string &sha);
+  fs::path tag_path(const std::string &tag);
 
   /* Checks if refs exists */
   bool has_branch(const std::string &branch);
+  bool has_tag(const std::string &tag);
   bool has_loose_object(const std::string &sha);
   bool has_pack_object(const std::string &sha);
   /**

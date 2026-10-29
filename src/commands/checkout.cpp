@@ -38,10 +38,10 @@ void checkout(std::vector<std::string> &args) {
     GitTree::instantiate_tree(tree, treeObj, repo.worktree_path(""));
     if (repo.has_loose_object(hash)) {
       repo.update_head(hash);
-    } else if (fs::exists(repo.repo_path("refs/tags/" + hash))) {
-      repo.update_head("ref: refs/tags/" + hash);
+    } else if (repo.has_tag(hash)) {
+      repo.update_head(repo.tag_path(hash));
     } else {
-      repo.update_head("ref: refs/heads/" + hash);
+      repo.update_head(repo.branch_path(hash));
     }
   }
 }

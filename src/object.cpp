@@ -96,8 +96,8 @@ std::string GitObject::find(const std::string &name, bool follow) {
     ref_path = repo.repo_path("HEAD");
   } else if (repo.has_branch(ref_name)) {
     ref_path = repo.branch_path(ref_name);
-  } else if (fs::exists(repo.repo_path("refs/tags/" + ref_name))) {
-    ref_path = repo.repo_path("refs/tags/" + ref_name);
+  } else if (repo.has_tag(ref_name)) {
+    ref_path = repo.tag_path(ref_name);
   } else if (fs::exists(repo.repo_path("refs/remotes/" + ref_name))) {
     ref_path = repo.repo_path("refs/remotes/" + ref_name);
   } else if (repo.has_loose_object(ref_name)) {
