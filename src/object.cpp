@@ -3,6 +3,7 @@
 #include "boost/algorithm/string/case_conv.hpp"
 #include "commit.h"
 #include "repo_util.h"
+#include "repository.h"
 #include "tree.h"
 #include "util.h"
 #include <boost/iostreams/copy.hpp>
@@ -85,8 +86,8 @@ std::string GitObject::write(GitRepository &repo, GitObjectType type,
 
 // XXX: food for thought: how does git handle the situation where
 // the branch name is the same as a tag?
-std::string GitObject::find(GitRepository &repo, const std::string &name,
-                            bool follow) {
+std::string GitObject::find(const std::string &name, bool follow) {
+  GitRepository repo = GitRepository::find();
   fs::path ref_path;
   std::string ref_name = boost::algorithm::to_lower_copy(name);
   if (ref_name == "head") {
@@ -104,7 +105,7 @@ std::string GitObject::find(GitRepository &repo, const std::string &name,
   } else {
     throw std::runtime_error(name + ": not a valid reference");
   }
-  return resolve_ref(ref_path, repo);
+  return resolve_ref(ref_path);
 }
 
 GitObjectType GitObject::get_type() const { return this->format; }

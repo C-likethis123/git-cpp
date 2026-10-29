@@ -15,15 +15,15 @@ GitTree::GitTree(const std::string &data) : GitObject(GitObjectType::Tree) {
   this->deserialise(data);
 };
 
-GitTree GitTree::read(GitRepository &repo, const std::string &hash) {
-  const std::string &sha = GitObject::find(repo, hash);
-  auto [fmt, payload] = read_git_object_data(repo, sha);
+GitTree GitTree::read(const std::string &hash) {
+  const std::string &sha = GitObject::find(hash);
+  auto [fmt, payload] = read_git_object_data(sha);
   if (fmt == "tree") {
     return GitTree(payload);
   } else if (fmt == "commit") {
-    GitCommit commitObj = GitCommit::read(repo, hash);
+    GitCommit commitObj = GitCommit::read(hash);
     std::string treeHash = commitObj.get_tree();
-    return read(repo, treeHash);
+    return read(treeHash);
   } else {
     throw std::runtime_error("Invalid tree object: " + hash);
   }

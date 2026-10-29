@@ -32,7 +32,7 @@ void build_file_map(const GitTree &tree, const std::string &prefix,
     auto &[mode, sha] = tree.fileEntries.at(path);
     if (mode == 0040000) {
       // It's a directory (040000), recurse into it
-      GitTree sub_tree = GitTree::read(repo, sha);
+      GitTree sub_tree = GitTree::read(sha);
       build_file_map(sub_tree, full_path, file_map, repo);
     } else if (mode != 0160000) {
       file_map[full_path] = sha;
@@ -172,7 +172,7 @@ void GitIndex::scan_status(GitRepository &repo) {
 
   // Get the HEAD commit and its tree
   GitCommit head = GitCommit::read(repo, "HEAD");
-  GitTree treeObj = GitTree::read(repo, head.get_tree());
+  GitTree treeObj = GitTree::read(head.get_tree());
 
   // Create a map of file paths to SHA1 hashes for efficient lookup
   std::unordered_map<std::string, std::string> head_files;

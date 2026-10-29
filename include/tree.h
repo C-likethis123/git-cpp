@@ -13,7 +13,7 @@ namespace fs = std::filesystem;
 class GitTree : public GitObject {
 public:
   GitTree(const std::string &data = std::string(""));
-  static GitTree read(GitRepository &repo, const std::string &hash);
+  static GitTree read(const std::string &hash);
 
   void deserialise(
       const std::string &data) override; // convert string format to data object

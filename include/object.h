@@ -23,8 +23,7 @@ public:
   static std::string write(GitRepository &repo, GitObjectType type,
                            const std::string &data, bool write);
   static GitObject *read(GitRepository &repo, const std::string &sha);
-  static std::string find(GitRepository &repo, const std::string &name,
-                          bool follow = true);
+  static std::string find(const std::string &name, bool follow = true);
 
   void init();
   GitObjectType get_type() const;

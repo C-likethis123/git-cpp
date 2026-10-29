@@ -165,9 +165,9 @@ void GitCommit::deserialise(const std::string &data) {
   }
 }
 
-GitCommit GitCommit::read(GitRepository &repo, const std::string &hash) {
-  const std::string &sha = GitObject::find(repo, hash);
-  auto [fmt, payload] = read_git_object_data(repo, sha);
+GitCommit GitCommit::read(const std::string &hash) {
+  const std::string &sha = GitObject::find(hash);
+  auto [fmt, payload] = read_git_object_data(sha);
   if (fmt != "commit") {
     throw std::runtime_error("Invalid commit object: " + hash);
   }
