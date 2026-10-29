@@ -14,8 +14,9 @@
 namespace {
 class CommitOutput {
 public:
-  CommitOutput() : out(std::cout.rdbuf(buffer.rdbuf())),
-                   err(std::cerr.rdbuf(errors.rdbuf())) {}
+  CommitOutput()
+      : out(std::cout.rdbuf(buffer.rdbuf())),
+        err(std::cerr.rdbuf(errors.rdbuf())) {}
   ~CommitOutput() {
     std::cout.rdbuf(out);
     std::cerr.rdbuf(err);
@@ -37,8 +38,10 @@ private:
 };
 
 void configure_identity(GitRepository &repo) {
-  create_file(repo.repo_path("config"), read_file(repo.repo_path("config")) +
-      "\n[user]\n\tname = Commit Test\n\temail = commit@example.com\n");
+  create_file(
+      repo.repo_path("config"),
+      read_file(repo.repo_path("config")) +
+          "\n[user]\n\tname = Commit Test\n\temail = commit@example.com\n");
 }
 } // namespace
 
@@ -50,8 +53,8 @@ TEST_CASE("commit writes a valid object from the staged snapshot",
   GitIndex index(2, {});
   fs::create_directories("nested");
   file_utils::create_file("nested/staged", "staged content\n");
-  index.add_file("nested/staged", repo);
-  index.save(repo);
+  index.add_file("nested/staged");
+  index.save();
   const auto original_index = read_file(repo.repo_path("index"));
   file_utils::create_file("nested/staged", "unstaged content\n");
   file_utils::create_file("untracked", "untracked content\n");
@@ -60,24 +63,28 @@ TEST_CASE("commit writes a valid object from the staged snapshot",
   CommitOutput output;
   commands::commit(args);
   const auto hash = output.hash();
-  const auto [type, payload] = read_git_object_data(repo, hash);
+  const auto [type, payload] = read_git_object_data(hash);
   CHECK(type == "commit");
-  CHECK(GitObject::write(repo, GitObjectType::Commit, payload, false) == hash);
+  CHECK(GitObject::write(GitObjectType::Commit, payload, false) == hash);
   CHECK(payload.find("\nparent " + HEAD_COMMIT + "\n") != std::string::npos);
   CHECK(payload.find("\n\nsubject\n\nbody\n") != std::string::npos);
-  CHECK(std::regex_search(payload, std::regex(
-      "\nauthor Commit Test <commit@example.com> [0-9]+ [+-][0-9]{4}\n")));
-  CHECK(std::regex_search(payload, std::regex(
-      "\ncommitter Commit Test <commit@example.com> [0-9]+ [+-][0-9]{4}\n")));
+  CHECK(std::regex_search(
+      payload,
+      std::regex(
+          "\nauthor Commit Test <commit@example.com> [0-9]+ [+-][0-9]{4}\n")));
+  CHECK(std::regex_search(
+      payload, std::regex("\ncommitter Commit Test <commit@example.com> [0-9]+ "
+                          "[+-][0-9]{4}\n")));
 
-  // Inspect the tree independently so malformed identities do not hide staging bugs.
+  // Inspect the tree independently so malformed identities do not hide staging
+  // bugs.
   REQUIRE(payload.substr(0, 5) == "tree ");
-  const auto tree = GitTree::read(repo, payload.substr(5, 40));
+  const auto tree = GitTree::read(payload.substr(5, 40));
   REQUIRE(tree.fileEntries.size() == 1);
-  const auto nested = GitTree::read(repo, std::get<1>(tree.fileEntries.at("nested")));
+  const auto nested = GitTree::read(std::get<1>(tree.fileEntries.at("nested")));
   REQUIRE(nested.fileEntries.size() == 1);
-  CHECK(read_git_object_data(repo, std::get<1>(nested.fileEntries.at("staged"))).second ==
-        "staged content\n");
+  CHECK(read_git_object_data(std::get<1>(nested.fileEntries.at("staged")))
+            .second == "staged content\n");
   CHECK(read_file("nested/staged") == "unstaged content\n");
   CHECK(read_file(repo.repo_path("index")) == original_index);
 }
@@ -89,34 +96,36 @@ TEST_CASE("commit advances the current branch and preserves symbolic HEAD",
   configure_identity(repo);
   const auto head = read_file(repo.repo_path("HEAD"));
   file_utils::create_file("newfile", "new content");
-  auto index = GitIndex::read(repo);
-  index.add_file("newfile", repo);
-  index.save(repo);
+  auto index = GitIndex::read();
+  index.add_file("newfile");
+  index.save();
 
   std::vector<std::string> args{"commit", "-m", "new commit"};
   CommitOutput output;
   commands::commit(args);
   CHECK(read_file(repo.repo_path("HEAD")) == head);
-  CHECK(GitObject::find(repo, "HEAD") == output.hash());
-  CHECK(GitRepoSetup::get_file_contents(repo.branch_path("main")) == output.hash());
+  CHECK(GitObject::find("HEAD") == output.hash());
+  CHECK(GitRepoSetup::get_file_contents(repo.branch_path("main")) ==
+        output.hash());
 }
 
-TEST_CASE("commit creates a root commit on an unborn branch", "[commit-command]") {
+TEST_CASE("commit creates a root commit on an unborn branch",
+          "[commit-command]") {
   GitRepoSetup setup;
   auto repo = GitRepository::find();
   configure_identity(repo);
   create_file(repo.repo_path("HEAD"), "ref: refs/heads/unborn\n");
   GitIndex index(2, {});
   file_utils::create_file("first", "initial content");
-  index.add_file("first", repo);
-  index.save(repo);
+  index.add_file("first");
+  index.save();
 
   std::vector<std::string> args{"commit", "-m", "initial commit"};
   CommitOutput output;
   REQUIRE_NOTHROW(commands::commit(args));
   const auto hash = output.hash();
-  CHECK(GitObject::find(repo, "HEAD") == hash);
-  const auto payload = read_git_object_data(repo, hash).second;
+  CHECK(GitObject::find("HEAD") == hash);
+  const auto payload = read_git_object_data(hash).second;
   const auto headers_end = payload.find("\n\n");
   REQUIRE(headers_end != std::string::npos);
   CHECK(payload.substr(0, headers_end).find("\nparent ") == std::string::npos);
@@ -129,31 +138,34 @@ TEST_CASE("commit advances detached HEAD without moving the branch",
   configure_identity(repo);
   create_file(repo.repo_path("HEAD"), HEAD_COMMIT + "\n");
   file_utils::create_file("newfile", "detached content");
-  auto index = GitIndex::read(repo);
-  index.add_file("newfile", repo);
-  index.save(repo);
+  auto index = GitIndex::read();
+  index.add_file("newfile");
+  index.save();
 
   std::vector<std::string> args{"commit", "-m", "detached commit"};
   CommitOutput output;
   commands::commit(args);
-  CHECK(GitRepoSetup::get_file_contents(repo.repo_path("HEAD")) == output.hash());
-  CHECK(GitRepoSetup::get_file_contents(repo.branch_path("main")) == HEAD_COMMIT);
+  CHECK(GitRepoSetup::get_file_contents(repo.repo_path("HEAD")) ==
+        output.hash());
+  CHECK(GitRepoSetup::get_file_contents(repo.branch_path("main")) ==
+        HEAD_COMMIT);
 }
 
 TEST_CASE("commit rejects unresolved conflicts without moving HEAD",
           "[commit-command]") {
   GitRepoSetup setup;
   auto repo = GitRepository::find();
-  const auto stage = GENERATE(IndexStage::Base, IndexStage::Ours, IndexStage::Theirs);
-  GitIndexEntry entry(0, 0, 0, 0, 0, 0, 0100644, 0, 0, 0, 0, 0, 0,
-                      HEAD_COMMIT, false, false, stage, 8, "conflict");
-  GitIndex(2, {{"conflict", entry}}).save(repo);
+  const auto stage =
+      GENERATE(IndexStage::Base, IndexStage::Ours, IndexStage::Theirs);
+  GitIndexEntry entry(0, 0, 0, 0, 0, 0, 0100644, 0, 0, 0, 0, 0, 0, HEAD_COMMIT,
+                      false, false, stage, 8, "conflict");
+  GitIndex(2, {{"conflict", entry}}).save(COMMIT_H);
   const auto original_index = read_file(repo.repo_path("index"));
   std::vector<std::string> args{"commit", "-m", "unresolved"};
   CommitOutput output;
   REQUIRE_THROWS_WITH(commands::commit(args),
                       "Cannot write tree: unmerged path conflict");
-  CHECK(GitObject::find(repo, "HEAD") == HEAD_COMMIT);
+  CHECK(GitObject::find("HEAD") == HEAD_COMMIT);
   CHECK(read_file(repo.repo_path("index")) == original_index);
 }
 
@@ -169,6 +181,6 @@ TEST_CASE("commit rejects invalid arguments without changing repository state",
   CommitOutput output;
   REQUIRE_THROWS(commands::commit(args));
   CHECK(read_file(repo.repo_path("HEAD")) == head);
-  CHECK(GitObject::find(repo, "HEAD") == HEAD_COMMIT);
+  CHECK(GitObject::find("HEAD") == HEAD_COMMIT);
   CHECK(read_file(repo.repo_path("index")) == index);
 }

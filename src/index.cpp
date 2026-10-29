@@ -32,7 +32,7 @@ void build_file_map(const GitTree &tree, const std::string &prefix,
     auto &[mode, sha] = tree.fileEntries.at(path);
     if (mode == 0040000) {
       // It's a directory (040000), recurse into it
-      GitTree sub_tree = GitTree::read(repo, sha);
+      GitTree sub_tree = GitTree::read(sha);
       build_file_map(sub_tree, full_path, file_map, repo);
     } else if (mode != 0160000) {
       file_map[full_path] = sha;
@@ -44,7 +44,8 @@ GitIndex::GitIndex(uint32_t fileVersion,
                    std::unordered_map<std::string, GitIndexEntry> entries)
     : version_(fileVersion), entries_(std::move(entries)) {};
 
-GitIndex GitIndex::read(GitRepository &repo) {
+GitIndex GitIndex::read() {
+  GitRepository repo = GitRepository::find();
   fs::path file_path = repo.repo_path("index");
   // defaults to creating an empty git index if it's missing
   if (!fs::exists(file_path)) {
@@ -99,8 +100,8 @@ GitIndex GitIndex::read(GitRepository &repo) {
   return GitIndex(fileVersion, indexEntries);
 }
 
-void GitIndex::print_matching_patterns(GitRepository &repo,
-                                       const std::string &path) {
+void GitIndex::print_matching_patterns(const std::string &path) {
+  GitRepository repo = GitRepository::find();
   for (auto &[file_name, entry] : entries_) {
     fs::path path_in_repo = repo.worktree_path(file_name);
     fs::path prefix_to_remove = repo.worktree_path(path);
@@ -122,7 +123,8 @@ directory.
 
 Gitignore is respected, but it's not perfect.
 */
-void GitIndex::scan_status(GitRepository &repo) {
+void GitIndex::scan_status() {
+  GitRepository repo = GitRepository::find();
   status_formatter::StatusResult status;
 
   for (auto it = fs::recursive_directory_iterator(repo.worktree_path("."));
@@ -158,7 +160,7 @@ void GitIndex::scan_status(GitRepository &repo) {
           file_size != index_entry->second.file_size()) {
         // Only compute SHA1 if file appears to have changed
         std::string file_sha1 = GitObject::write(
-            repo, GitObjectType::Blob, read_file(entry.path()), false);
+            GitObjectType::Blob, read_file(entry.path()), false);
         if (file_sha1 != index_entry->second.sha1()) {
           status.unstaged.modified.emplace_back(relative_path_str);
         }
@@ -171,8 +173,8 @@ void GitIndex::scan_status(GitRepository &repo) {
   }
 
   // Get the HEAD commit and its tree
-  GitCommit head = GitCommit::read(repo, "HEAD");
-  GitTree treeObj = GitTree::read(repo, head.get_tree());
+  GitCommit head = GitCommit::read("HEAD");
+  GitTree treeObj = GitTree::read(head.get_tree());
 
   // Create a map of file paths to SHA1 hashes for efficient lookup
   std::unordered_map<std::string, std::string> head_files;
@@ -211,13 +213,13 @@ void GitIndex::scan_status(GitRepository &repo) {
       fs::relative(fs::current_path(), repo.worktree_path(".")));
 }
 
-void GitIndex::add_file(const std::string &path, GitRepository &repo) {
+void GitIndex::add_file(const std::string &path) {
   entries_.erase(path);
 
-  entries_.emplace(path, GitIndexEntry::create_index_entry(path, repo));
+  entries_.emplace(path, GitIndexEntry::create_index_entry(path));
 }
 
-std::string GitIndex::write_tree(GitRepository &repo) const {
+std::string GitIndex::write_tree() const {
   struct Directory {
     GitTree tree;
     std::map<std::string, Directory> children;
@@ -270,13 +272,13 @@ std::string GitIndex::write_tree(GitRepository &repo) const {
       directory.tree.pathNames.push_back(name);
       directory.tree.fileEntries.emplace(name, std::make_tuple(0040000, sha));
     }
-    return GitObject::write(repo, GitObjectType::Tree,
-                            directory.tree.serialise(repo), true);
+    return GitObject::write(GitObjectType::Tree, directory.tree.serialise(),
+                            true);
   };
   return write(root);
 }
 
-void GitIndex::save(GitRepository &repo) {
+void GitIndex::save() {
   std::stringstream filestream;
 
   // Write header (12 bytes)
@@ -293,11 +295,12 @@ void GitIndex::save(GitRepository &repo) {
             });
 
   for (const auto &[file_name, entry] : sorted_entries) {
-    entry.save(repo, filestream);
+    entry.save(filestream);
   }
 
   const std::string index_sha = sha1_hexdigest(filestream.str());
   filestream.write(hexToBinary(index_sha).c_str(), 20);
+  GitRepository repo = GitRepository::find();
   fs::path index_path = repo.repo_path("index");
   create_file(index_path, filestream.str());
 }

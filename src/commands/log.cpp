@@ -7,13 +7,11 @@
 #include <utility>
 
 #include "parsers/LogParser.h"
-#include "repository.h"
 
 namespace commands {
 void log(std::vector<std::string> &args) {
   const auto options = LogParser::parse(args);
-  GitRepository repo = GitRepository::find();
-  std::string commit = GitObject::find(repo, options.commit);
+  std::string commit = GitObject::find(options.commit);
   struct PendingCommit {
     GitCommit commit;
     std::int64_t timestamp;
@@ -32,7 +30,7 @@ void log(std::vector<std::string> &args) {
   std::size_t order = 0;
   const auto enqueue = [&](const std::string &id) {
     if (discovered.insert(id).second) {
-      auto next = GitCommit::read(repo, id);
+      auto next = GitCommit::read(id);
       const auto timestamp = next.get_committer_timestamp();
       pending.push({std::move(next), timestamp, order++});
     }

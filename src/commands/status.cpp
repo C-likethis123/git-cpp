@@ -1,8 +1,8 @@
 #include "commands/status.h"
 
 #include "index.h"
-#include "repository.h"
 #include "parsers/StatusParser.h"
+#include "repository.h"
 #include <iostream>
 #include <string>
 
@@ -15,7 +15,7 @@ void status(std::vector<std::string> &args) {
   const std::string branch = repo.get_head();
   std::cout << "On: " << branch << std::endl;
 
-  GitIndex index = GitIndex::read(repo);
-  index.scan_status(repo);
+  GitIndex index = GitIndex::read();
+  index.scan_status();
 }
 } // namespace commands

@@ -3,6 +3,7 @@
 #include "boost/algorithm/string/case_conv.hpp"
 #include "commit.h"
 #include "repo_util.h"
+#include "repository.h"
 #include "tree.h"
 #include "util.h"
 #include <boost/iostreams/copy.hpp>
@@ -40,9 +41,10 @@ GitObject::GitObject(GitObjectType format) { this->format = format; }
 
 void GitObject::init() {}
 
-GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
+GitObject *GitObject::read(const std::string &sha) {
+  GitRepository repo = GitRepository::find();
   auto [fmt, payload] = repo.has_loose_object(sha)
-                            ? read_git_object_data(repo, sha)
+                            ? read_git_object_data(sha)
                             : read_from_pack(repo.dir("objects/pack") / sha, 0);
 
   if (fmt == "blob") {
@@ -54,8 +56,9 @@ GitObject *GitObject::read(GitRepository &repo, const std::string &sha) {
   }
 }
 
-std::string GitObject::write(GitRepository &repo, GitObjectType type,
-                             const std::string &data, bool write) {
+std::string GitObject::write(GitObjectType type, const std::string &data,
+                             bool write) {
+  GitRepository repo = GitRepository::find();
   std::ostringstream oss;
   oss << to_string(type) << " " << data.size() << '\0' << data;
   std::string result = oss.str();
@@ -85,8 +88,8 @@ std::string GitObject::write(GitRepository &repo, GitObjectType type,
 
 // XXX: food for thought: how does git handle the situation where
 // the branch name is the same as a tag?
-std::string GitObject::find(GitRepository &repo, const std::string &name,
-                            bool follow) {
+std::string GitObject::find(const std::string &name, bool follow) {
+  GitRepository repo = GitRepository::find();
   fs::path ref_path;
   std::string ref_name = boost::algorithm::to_lower_copy(name);
   if (ref_name == "head") {
@@ -104,7 +107,7 @@ std::string GitObject::find(GitRepository &repo, const std::string &name,
   } else {
     throw std::runtime_error(name + ": not a valid reference");
   }
-  return resolve_ref(ref_path, repo);
+  return resolve_ref(ref_path);
 }
 
 GitObjectType GitObject::get_type() const { return this->format; }

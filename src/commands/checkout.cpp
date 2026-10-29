@@ -25,16 +25,16 @@ void checkout(std::vector<std::string> &args) {
                                "' already exists.");
     }
     bool isStartPointSet = options.startPointSet;
-    std::string hash = GitObject::find(
-        repo, isStartPointSet ? options.startPoint : "HEAD");
+    std::string hash =
+        GitObject::find(isStartPointSet ? options.startPoint : "HEAD");
     create_file(repo.branch_path(branchName), hash);
     repo.update_head("ref: refs/heads/" + branchName);
   } else {
     std::string hash = options.commit;
-    GitCommit commit = GitCommit::read(repo, hash);
-    GitTree tree = GitTree::read(repo, commit.get_tree());
-    GitCommit head = GitCommit::read(repo, "HEAD");
-    GitTree treeObj = GitTree::read(repo, head.get_tree());
+    GitCommit commit = GitCommit::read(hash);
+    GitTree tree = GitTree::read(commit.get_tree());
+    GitCommit head = GitCommit::read("HEAD");
+    GitTree treeObj = GitTree::read(head.get_tree());
     GitTree::instantiate_tree(tree, treeObj, repo.worktree_path(""));
     if (repo.has_loose_object(hash)) {
       repo.update_head(hash);

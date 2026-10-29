@@ -13,16 +13,14 @@ namespace fs = std::filesystem;
 class GitTree : public GitObject {
 public:
   GitTree(const std::string &data = std::string(""));
-  static GitTree read(GitRepository &repo, const std::string &hash);
+  static GitTree read(const std::string &hash);
 
   void deserialise(
       const std::string &data) override; // convert string format to data object
-  std::string
-  serialise(GitRepository &repo) override; // convert this to a string format
-  std::string print_matching_files(
-      GitRepository &repo,
-      const std::vector<std::string> &filePathPattern); // print tree entries that
-                                           // match the given file path
+  std::string serialise() override;      // convert this to a string format
+  void print_matching_files(const std::vector<std::string>
+                                &filePathPattern); // print tree entries that
+                                                   // match the given file path
 
   // maybe i need something like a git tree entry?
   std::optional<std::string> find(std::string &file_name);

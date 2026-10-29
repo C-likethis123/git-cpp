@@ -278,10 +278,6 @@ bool GitRepository::is_ignored(const fs::path &relative_path,
   return false;
 }
 
-int GitRepository::num_ignored_patterns() const {
-  return ignore_patterns.size();
-}
-
 std::string GitRepository::get_head() {
   const std::string head_contents = read_file(this->repo_path("HEAD"), true);
   if (head_contents.rfind("ref: ", 0) == 0) {

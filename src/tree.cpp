@@ -1,10 +1,11 @@
 #include "tree.h"
-#include "wildmatch/wildmatch.hpp"
 #include "blob.h"
+#include "commit.h"
 #include "object.h"
 #include "repo_util.h"
 #include "repository.h"
 #include "util.h"
+#include "wildmatch/wildmatch.hpp"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -14,16 +15,21 @@ GitTree::GitTree(const std::string &data) : GitObject(GitObjectType::Tree) {
   this->deserialise(data);
 };
 
-GitTree GitTree::read(GitRepository &repo, const std::string &hash) {
-  const std::string &sha = GitObject::find(repo, hash);
-  auto [fmt, payload] = read_git_object_data(repo, sha);
-  if (fmt != "tree") {
+GitTree GitTree::read(const std::string &hash) {
+  const std::string &sha = GitObject::find(hash);
+  auto [fmt, payload] = read_git_object_data(sha);
+  if (fmt == "tree") {
+    return GitTree(payload);
+  } else if (fmt == "commit") {
+    GitCommit commitObj = GitCommit::read(hash);
+    std::string treeHash = commitObj.get_tree();
+    return read(treeHash);
+  } else {
     throw std::runtime_error("Invalid tree object: " + hash);
   }
-  return GitTree(payload);
 }
 
-std::string GitTree::serialise(GitRepository &repo) {
+std::string GitTree::serialise() {
   std::stringstream ss;
   auto paths = pathNames;
   // Git compares directory names as if they end in '/'.
@@ -63,33 +69,32 @@ void GitTree::deserialise(const std::string &data) {
   std::sort(pathNames.begin(), pathNames.end());
 }
 
-std::string GitTree::print_matching_files(GitRepository &repo,
-                                          const std::vector<std::string> &filePathPatterns) {
-  std::stringstream ss;
-  auto findDot = std::find(filePathPatterns.begin(), filePathPatterns.end(), ".");
-  bool isPrintEveryFile = findDot != filePathPatterns.end() || filePathPatterns.empty();
+void GitTree::print_matching_files(
+    const std::vector<std::string> &filePathPatterns) {
+  auto findDot =
+      std::find(filePathPatterns.begin(), filePathPatterns.end(), ".");
+  bool isPrintEveryFile =
+      findDot != filePathPatterns.end() || filePathPatterns.empty();
   for (const auto &path : this->pathNames) {
     bool isFileMatch = isPrintEveryFile;
     // file path match happens if a globbing sequence matches OR
     // if it's a full match.
     if (!isFileMatch) {
-        for (const auto &filePath : filePathPatterns) {
-            if (wild::match(filePath, path)) {
-                isFileMatch = true;
-                break;
-            }
+      for (const auto &filePath : filePathPatterns) {
+        if (wild::match(filePath, path)) {
+          isFileMatch = true;
+          break;
         }
+      }
     }
 
     if (isFileMatch) {
-        auto &[mode, sha] = this->fileEntries[path];
-        GitObject *obj = GitObject::read(repo, sha);
-        std::string type = to_string(obj->get_type());
-        ss << std::setfill('0') << std::setw(6) << std::oct << mode << " " << type
-            << " " << sha << '\t' << path << "\n";
+      auto &[mode, sha] = this->fileEntries[path];
+      std::string type = get_file_type(mode);
+      std::cout << std::setfill('0') << std::setw(6) << std::oct << mode << " "
+                << type << " " << sha << '\t' << path << "\n";
     }
   }
-  return ss.str();
 }
 
 /**
@@ -121,15 +126,15 @@ void GitTree::instantiate_tree(GitTree &treeToInstantiate, GitTree &curr_tree,
         if (tree_file_type == "blob") {
           // assume that the directory contents match the tree contents here
           fs::remove(new_file_path);
-          GitBlob obj = GitBlob::read(repo, sha);
-          create_file(new_file_path, obj.serialise(repo));
+          GitBlob obj = GitBlob::read(sha);
+          create_file(new_file_path, obj.serialise());
         } else if (tree_file_type == "tree" && new_file_type == "blob") {
           fs::remove_all(new_file_path);
-          GitBlob obj = GitBlob::read(repo, sha);
-          create_file(new_file_path, obj.serialise(repo));
+          GitBlob obj = GitBlob::read(sha);
+          create_file(new_file_path, obj.serialise());
         } else {
-          GitTree subTreeToInstantiate = GitTree::read(repo, sha);
-          GitTree curr_subTree = GitTree::read(repo, curr_sha);
+          GitTree subTreeToInstantiate = GitTree::read(sha);
+          GitTree curr_subTree = GitTree::read(curr_sha);
           instantiate_tree(subTreeToInstantiate, curr_subTree, new_file_path);
         }
       }
@@ -140,11 +145,11 @@ void GitTree::instantiate_tree(GitTree &treeToInstantiate, GitTree &curr_tree,
     } else {
       // not found in the current tree, create it
       if (new_file_type == "blob") {
-        GitBlob obj = GitBlob::read(repo, sha);
-        create_file(new_file_path, obj.serialise(repo));
+        GitBlob obj = GitBlob::read(sha);
+        create_file(new_file_path, obj.serialise());
       } else {
         fs::create_directories(new_file_path);
-        GitTree subTreeToInstantiate = GitTree::read(repo, sha);
+        GitTree subTreeToInstantiate = GitTree::read(sha);
         instantiate_tree(subTreeToInstantiate, new_file_path);
       }
       // assumption here: the file is created, so change the file mode
@@ -178,11 +183,11 @@ void GitTree::instantiate_tree(GitTree &treeToInstantiate,
     const auto new_file_type = get_file_type(mode);
     const auto new_file_path = path / filePath;
     if (new_file_type == "blob") {
-      GitBlob obj = GitBlob::read(repo, sha);
-      create_file(new_file_path, obj.serialise(repo));
+      GitBlob obj = GitBlob::read(sha);
+      create_file(new_file_path, obj.serialise());
     } else {
       fs::create_directories(new_file_path);
-      GitTree subTreeToInstantiate = GitTree::read(repo, sha);
+      GitTree subTreeToInstantiate = GitTree::read(sha);
       instantiate_tree(subTreeToInstantiate, new_file_path);
     }
 

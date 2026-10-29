@@ -27,12 +27,11 @@ public:
   GitCommit(const std::string &tree, const std::vector<std::string> &parents,
             const Identity &author, const Identity &committer,
             const std::string &message);
-  static GitCommit read(GitRepository &repo, const std::string &hash);
+  static GitCommit read(const std::string &hash);
 
   void deserialise(
       const std::string &data) override; // convert string format to data object
-  std::string
-  serialise(GitRepository &repo) override; // convert this to a string format
+  std::string serialise() override;      // convert this to a string format
   std::string print_commit();
   void init();
   bool has_parents();

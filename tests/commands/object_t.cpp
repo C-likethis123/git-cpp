@@ -9,10 +9,10 @@ TEST_CASE("GitObject", "[GitObject::find]") {
     // Provide a path to a valid git repository
     GitRepository repo(".");
 
-    REQUIRE(GitObject::find(repo, "HEAD") == HEAD_COMMIT);
-    REQUIRE(GitObject::find(repo, SECOND_COMMIT) == SECOND_COMMIT);
-    REQUIRE(GitObject::find(repo, "tagv1.0") == SECOND_COMMIT);
-    REQUIRE(GitObject::find(repo, "test_branch") == THIRD_COMMIT);
+    REQUIRE(GitObject::find("HEAD") == HEAD_COMMIT);
+    REQUIRE(GitObject::find(SECOND_COMMIT) == SECOND_COMMIT);
+    REQUIRE(GitObject::find("tagv1.0") == SECOND_COMMIT);
+    REQUIRE(GitObject::find("test_branch") == THIRD_COMMIT);
   }
 }
 

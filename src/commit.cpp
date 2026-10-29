@@ -1,7 +1,6 @@
 #include "commit.h"
 #include "date_util.h"
 #include "repo_util.h"
-#include "repository.h"
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -20,7 +19,7 @@ GitCommit::GitCommit(const std::string &tree,
     : GitObject(GitObjectType::Commit), tree(tree), author(author),
       committer(committer), message(message), parents(parents) {}
 
-std::string GitCommit::serialise(GitRepository &repo) {
+std::string GitCommit::serialise() {
   std::stringstream ss;
   ss << "tree " << tree << "\n";
   for (const auto &parent : parents) {
@@ -165,9 +164,9 @@ void GitCommit::deserialise(const std::string &data) {
   }
 }
 
-GitCommit GitCommit::read(GitRepository &repo, const std::string &hash) {
-  const std::string &sha = GitObject::find(repo, hash);
-  auto [fmt, payload] = read_git_object_data(repo, sha);
+GitCommit GitCommit::read(const std::string &hash) {
+  const std::string &sha = GitObject::find(hash);
+  auto [fmt, payload] = read_git_object_data(sha);
   if (fmt != "commit") {
     throw std::runtime_error("Invalid commit object: " + hash);
   }

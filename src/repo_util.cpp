@@ -10,11 +10,12 @@
 #include <stdexcept>
 
 // Recursively resolves loose refs, falling back to packed refs.
-std::string resolve_ref(const fs::path &ref_path, GitRepository &repo) {
+std::string resolve_ref(const fs::path &ref_path) {
+  GitRepository repo = GitRepository::find();
   if (fs::exists(ref_path)) {
     const std::string ref = read_file(ref_path, true);
     if (ref.compare(0, 5, "ref: ") == 0) {
-      return resolve_ref(repo.repo_path(ref.substr(5)), repo);
+      return resolve_ref(repo.repo_path(ref.substr(5)));
     }
     if (ref.empty()) {
       throw std::runtime_error("Unable to read reference: " +
@@ -58,7 +59,8 @@ std::string resolve_ref(const fs::path &ref_path, GitRepository &repo) {
 }
 
 std::pair<std::string, std::string>
-read_git_object_data(GitRepository &repo, const std::string &sha) {
+read_git_object_data(const std::string &sha) {
+  GitRepository repo = GitRepository::find();
   fs::path file_path = repo.object_path(sha);
   fs::path paths = repo.file(file_path);
 

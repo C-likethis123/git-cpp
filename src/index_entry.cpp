@@ -3,7 +3,6 @@
 #include "object.h"
 #include "repository.h"
 #include "util.h"
-#include <bitset>
 #include <cstdint>
 #include <filesystem>
 #include <sstream>
@@ -28,7 +27,7 @@ GitIndexEntry::GitIndexEntry(uint32_t ctime_sec, uint32_t ctime_nanosec,
       permissions_(permissions), uid_(uid), gid_(gid), file_size_(file_size),
       sha1_(std::move(sha1)), flag_assume_valid_(flag_assume_valid),
       flag_extended_(flag_extended), flag_stage_(flag_stage),
-      file_name_length_(file_name_length), file_name_(std::move(file_name)){};
+      file_name_length_(file_name_length), file_name_(std::move(file_name)) {};
 
 std::string GitIndexEntry::file_name() const { return this->file_name_; }
 
@@ -37,8 +36,8 @@ std::string GitIndexEntry::sha1() const { return this->sha1_; }
 uint32_t GitIndexEntry::mtime_sec() const { return this->mtime_sec_; }
 uint32_t GitIndexEntry::file_size() const { return this->file_size_; }
 
-GitIndexEntry GitIndexEntry::create_index_entry(const fs::path &path,
-                                                GitRepository &repo) {
+GitIndexEntry GitIndexEntry::create_index_entry(const fs::path &path) {
+  GitRepository repo = GitRepository::find();
   const fs::path full_path = repo.worktree_path(path);
   struct stat file_stat;
   if (stat(full_path.c_str(), &file_stat) != 0) {
@@ -67,10 +66,11 @@ GitIndexEntry GitIndexEntry::create_index_entry(const fs::path &path,
 
   // Create blob and sha1
   std::string file_contents = read_file(full_path);
-  std::string sha1 = GitObject::write(repo, GitObjectType::Blob, file_contents, true);
+  std::string sha1 = GitObject::write(GitObjectType::Blob, file_contents, true);
 
   // File name and flags
-  std::string file_name = fs::relative(full_path, repo.worktree_path("")).string();
+  std::string file_name =
+      fs::relative(full_path, repo.worktree_path("")).string();
   uint32_t file_name_length = file_name.size();
   bool flag_assume_valid = false;
   bool flag_extended = false;
@@ -83,7 +83,7 @@ GitIndexEntry GitIndexEntry::create_index_entry(const fs::path &path,
                        file_name_length, file_name);
 }
 
-void GitIndexEntry::save(GitRepository &repo, std::stringstream &stream) const {
+void GitIndexEntry::save(std::stringstream &stream) const {
   std::streampos entry_start = stream.tellp();
 
   // Write timestamps (16 bytes)
@@ -111,9 +111,10 @@ void GitIndexEntry::save(GitRepository &repo, std::stringstream &stream) const {
 
   // Write flags and file name length (2 bytes)
   uint16_t actual_name_length = file_name_.size();
-  uint16_t flags_and_length =
-      (flag_assume_valid_ ? 0x8000 : 0) | (flag_extended_ ? 0x4000 : 0) |
-      (static_cast<uint16_t>(flag_stage_) & 0x3) << 12 | (actual_name_length & 0xFFF);
+  uint16_t flags_and_length = (flag_assume_valid_ ? 0x8000 : 0) |
+                              (flag_extended_ ? 0x4000 : 0) |
+                              (static_cast<uint16_t>(flag_stage_) & 0x3) << 12 |
+                              (actual_name_length & 0xFFF);
   write_uint16_to_bytes(stream, flags_and_length);
 
   // Write file name
