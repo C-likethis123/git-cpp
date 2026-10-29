@@ -1,5 +1,6 @@
 #include "tree.h"
 #include "blob.h"
+#include "commit.h"
 #include "object.h"
 #include "repo_util.h"
 #include "repository.h"
@@ -17,10 +18,15 @@ GitTree::GitTree(const std::string &data) : GitObject(GitObjectType::Tree) {
 GitTree GitTree::read(GitRepository &repo, const std::string &hash) {
   const std::string &sha = GitObject::find(repo, hash);
   auto [fmt, payload] = read_git_object_data(repo, sha);
-  if (fmt != "tree") {
+  if (fmt == "tree") {
+    return GitTree(payload);
+  } else if (fmt == "commit") {
+    GitCommit commitObj = GitCommit::read(repo, hash);
+    std::string treeHash = commitObj.get_tree();
+    return read(repo, treeHash);
+  } else {
     throw std::runtime_error("Invalid tree object: " + hash);
   }
-  return GitTree(payload);
 }
 
 std::string GitTree::serialise(GitRepository &repo) {
