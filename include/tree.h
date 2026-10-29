@@ -19,10 +19,10 @@ public:
       const std::string &data) override; // convert string format to data object
   std::string
   serialise(GitRepository &repo) override; // convert this to a string format
-  std::string print_matching_files(
-      GitRepository &repo,
-      const std::vector<std::string> &filePathPattern); // print tree entries that
-                                           // match the given file path
+  void print_matching_files(GitRepository &repo,
+                            const std::vector<std::string>
+                                &filePathPattern); // print tree entries that
+                                                   // match the given file path
 
   // maybe i need something like a git tree entry?
   std::optional<std::string> find(std::string &file_name);

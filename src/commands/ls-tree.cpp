@@ -2,9 +2,9 @@
 #include <iostream>
 #include <string>
 
+#include "parsers/LsTreeParser.h"
 #include "repository.h"
 #include "tree.h"
-#include "parsers/LsTreeParser.h"
 
 namespace commands {
 void lstree(std::vector<std::string> &args) {
@@ -15,6 +15,6 @@ void lstree(std::vector<std::string> &args) {
 
   GitRepository repo = GitRepository::find();
   GitTree tree = GitTree::read(repo, treeHash);
-  std::cout << tree.print_matching_files(repo, filePathPatterns);
+  tree.print_matching_files(repo, filePathPatterns);
 }
 } // namespace commands

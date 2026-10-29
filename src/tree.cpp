@@ -69,9 +69,8 @@ void GitTree::deserialise(const std::string &data) {
   std::sort(pathNames.begin(), pathNames.end());
 }
 
-std::string GitTree::print_matching_files(
+void GitTree::print_matching_files(
     GitRepository &repo, const std::vector<std::string> &filePathPatterns) {
-  std::stringstream ss;
   auto findDot =
       std::find(filePathPatterns.begin(), filePathPatterns.end(), ".");
   bool isPrintEveryFile =
@@ -92,11 +91,10 @@ std::string GitTree::print_matching_files(
     if (isFileMatch) {
       auto &[mode, sha] = this->fileEntries[path];
       std::string type = get_file_type(mode);
-      ss << std::setfill('0') << std::setw(6) << std::oct << mode << " " << type
-         << " " << sha << '\t' << path << "\n";
+      std::cout << std::setfill('0') << std::setw(6) << std::oct << mode << " "
+                << type << " " << sha << '\t' << path << "\n";
     }
   }
-  return ss.str();
 }
 
 /**
