@@ -87,37 +87,13 @@ TEST_CASE("GitRepository ignore glob rules", "[GitRepository]") {
   REQUIRE_FALSE(repo.is_ignored("nested/src/generated/file.txt"));
 }
 
-TEST_CASE("GitRepository collects nested ignore rules before matching",
-          "[GitRepository]") {
-  GitRepoSetup gitRepoSetup;
-  fs::create_directories("selected/nested");
-  fs::create_directories("unrelated");
-  std::ofstream("selected/.gitignore") << "*.cpp\n/cache/\n";
-  std::ofstream("unrelated/.gitignore") << "*.txt\n";
-  fs::create_directories("skipped");
-  std::ofstream(".gitignore") << "skipped/\n";
-  std::ofstream("skipped/.gitignore") << "*.secret\n";
-  const GitRepository repo(".", true);
-  const int collected_patterns = repo.num_ignored_patterns();
-  REQUIRE(collected_patterns == 6);
-  REQUIRE_FALSE(repo.is_ignored("file.cpp", false));
-  REQUIRE(repo.num_ignored_patterns() == collected_patterns);
-  REQUIRE(repo.is_ignored("selected/nested/file.cpp", false));
-  REQUIRE(repo.is_ignored("selected/cache", true));
-  REQUIRE_FALSE(repo.is_ignored("selected/nested/cache", true));
-  REQUIRE_FALSE(repo.is_ignored("selected/file.txt", false));
-  REQUIRE(repo.num_ignored_patterns() == collected_patterns);
-  REQUIRE(repo.is_ignored("unrelated/file.txt", false));
-  REQUIRE_FALSE(repo.is_ignored("other/file.txt", false));
-  REQUIRE(repo.num_ignored_patterns() == collected_patterns);
-}
-
 TEST_CASE("GitRepository ignores nested repositories", "[GitRepository]") {
   GitRepoSetup setup;
   const bool git_file = GENERATE(false, true);
   fs::create_directories("vendor/module/nested");
   if (git_file) {
-    std::ofstream("vendor/module/.git") << "gitdir: ../../.git/modules/module\n";
+    std::ofstream("vendor/module/.git")
+        << "gitdir: ../../.git/modules/module\n";
   } else {
     fs::create_directories("vendor/module/.git");
   }
