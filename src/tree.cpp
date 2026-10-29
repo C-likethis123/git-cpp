@@ -1,10 +1,10 @@
 #include "tree.h"
-#include "wildmatch/wildmatch.hpp"
 #include "blob.h"
 #include "object.h"
 #include "repo_util.h"
 #include "repository.h"
 #include "util.h"
+#include "wildmatch/wildmatch.hpp"
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -63,30 +63,31 @@ void GitTree::deserialise(const std::string &data) {
   std::sort(pathNames.begin(), pathNames.end());
 }
 
-std::string GitTree::print_matching_files(GitRepository &repo,
-                                          const std::vector<std::string> &filePathPatterns) {
+std::string GitTree::print_matching_files(
+    GitRepository &repo, const std::vector<std::string> &filePathPatterns) {
   std::stringstream ss;
-  auto findDot = std::find(filePathPatterns.begin(), filePathPatterns.end(), ".");
-  bool isPrintEveryFile = findDot != filePathPatterns.end() || filePathPatterns.empty();
+  auto findDot =
+      std::find(filePathPatterns.begin(), filePathPatterns.end(), ".");
+  bool isPrintEveryFile =
+      findDot != filePathPatterns.end() || filePathPatterns.empty();
   for (const auto &path : this->pathNames) {
     bool isFileMatch = isPrintEveryFile;
     // file path match happens if a globbing sequence matches OR
     // if it's a full match.
     if (!isFileMatch) {
-        for (const auto &filePath : filePathPatterns) {
-            if (wild::match(filePath, path)) {
-                isFileMatch = true;
-                break;
-            }
+      for (const auto &filePath : filePathPatterns) {
+        if (wild::match(filePath, path)) {
+          isFileMatch = true;
+          break;
         }
+      }
     }
 
     if (isFileMatch) {
-        auto &[mode, sha] = this->fileEntries[path];
-        GitObject *obj = GitObject::read(repo, sha);
-        std::string type = to_string(obj->get_type());
-        ss << std::setfill('0') << std::setw(6) << std::oct << mode << " " << type
-            << " " << sha << '\t' << path << "\n";
+      auto &[mode, sha] = this->fileEntries[path];
+      std::string type = get_file_type(mode);
+      ss << std::setfill('0') << std::setw(6) << std::oct << mode << " " << type
+         << " " << sha << '\t' << path << "\n";
     }
   }
   return ss.str();
