@@ -8,6 +8,7 @@
 #include "commands/log.h"
 #include "commands/ls-files.h"
 #include "commands/ls-tree.h"
+#include "commands/merge.h"
 #include "commands/show-ref.h"
 #include "commands/status.h"
 #include "commands/tag.h"
@@ -52,6 +53,8 @@ int main(int argc, char **argv) {
       commands::checkignore(args);
     } else if (command == "commit") {
       commands::commit(args);
+    } else if (command == "merge") {
+      commands::merge(args);
     } else {
       std::cerr << "Unknown command: " << command << "\n";
       return -1;
