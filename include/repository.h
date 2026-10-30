@@ -21,22 +21,23 @@ public:
   Creates all files needed to represent a git directory
   */
   std::string create(bool mkdir);
-  fs::path repo_path(fs::path path);
-  fs::path worktree_path(fs::path path);
+  fs::path repo_path(fs::path path) const;
+  fs::path worktree_path(fs::path path) const;
   std::string get_head();
   std::string get_branch_name();
   fs::path dir(const fs::path &path, bool mkdir = false);
   fs::path file(fs::path &gitdir, bool mkdir = false);
 
-  fs::path branch_path(const std::string &branch);
-  fs::path object_path(const std::string &sha);
-  fs::path tag_path(const std::string &tag);
+  fs::path branch_path(const std::string &branch) const;
+  fs::path object_path(const std::string &sha) const;
+  fs::path tag_path(const std::string &tag) const;
 
   /* Checks if refs exists */
-  bool has_branch(const std::string &branch);
-  bool has_tag(const std::string &tag);
-  bool has_loose_object(const std::string &sha);
-  bool has_pack_object(const std::string &sha);
+  bool has_branch(const std::string &branch) const;
+  bool has_tag(const std::string &tag) const;
+  bool has_loose_object(const std::string &sha) const;
+  bool has_pack_object(const std::string &sha) const;
+  bool has_detached_head() const;
   /**
   Checks if the file is ignored
   */

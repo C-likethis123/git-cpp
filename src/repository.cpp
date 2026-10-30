@@ -130,12 +130,14 @@ std::string GitRepository::create(bool mkdir) {
 Computes the path under repo's gitdir - used for files that store the
 repository's metadata
 */
-fs::path GitRepository::repo_path(fs::path path) { return gitdir / path; }
+fs::path GitRepository::repo_path(fs::path path) const { return gitdir / path; }
 /*
 Computes a path under the worktree - used for files that are tracked in the
 repository
 */
-fs::path GitRepository::worktree_path(fs::path path) { return worktree / path; }
+fs::path GitRepository::worktree_path(fs::path path) const {
+  return worktree / path;
+}
 /*
 Creates a directory, or returns None if it is a directory under the git
 repository given
@@ -199,23 +201,23 @@ void GitRepository::update_current_ref(const std::string &commit_hash) {
   }
 }
 
-fs::path GitRepository::branch_path(const std::string &branch) {
+fs::path GitRepository::branch_path(const std::string &branch) const {
   return gitdir / "refs/heads" / branch;
 }
-bool GitRepository::has_branch(const std::string &branch) {
+bool GitRepository::has_branch(const std::string &branch) const {
   return fs::exists(branch_path(branch));
 }
-fs::path GitRepository::object_path(const std::string &sha) {
+fs::path GitRepository::object_path(const std::string &sha) const {
   std::string dir = sha.substr(0, 2);
   std::string path = sha.substr(2);
   return gitdir / "objects" / dir / path;
 }
 
-bool GitRepository::has_loose_object(const std::string &sha) {
+bool GitRepository::has_loose_object(const std::string &sha) const {
   return fs::exists(object_path(sha));
 }
 
-bool GitRepository::has_pack_object(const std::string &sha) {
+bool GitRepository::has_pack_object(const std::string &sha) const {
   fs::path pack_dir = gitdir / "objects/pack";
   for (auto &entry : fs::directory_iterator(pack_dir)) {
     if (entry.path().extension() == ".idx") {
@@ -228,12 +230,17 @@ bool GitRepository::has_pack_object(const std::string &sha) {
   return false;
 }
 
-fs::path GitRepository::tag_path(const std::string &tag) {
+fs::path GitRepository::tag_path(const std::string &tag) const {
   return gitdir / "refs/tags" / tag;
 }
 
-bool GitRepository::has_tag(const std::string &tag) {
+bool GitRepository::has_tag(const std::string &tag) const {
   return fs::exists(tag_path(tag));
+}
+
+bool GitRepository::has_detached_head() const {
+  const std::string head_contents = read_file(repo_path("HEAD"), true);
+  return head_contents.rfind("ref: ", 0) != 0;
 }
 
 /**

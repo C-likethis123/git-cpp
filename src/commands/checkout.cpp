@@ -39,9 +39,9 @@ void checkout(std::vector<std::string> &args) {
     if (repo.has_loose_object(hash)) {
       repo.update_head(hash);
     } else if (repo.has_tag(hash)) {
-      repo.update_head(repo.tag_path(hash));
+      repo.update_head("ref: refs/tags/" + hash);
     } else {
-      repo.update_head(repo.branch_path(hash));
+      repo.update_head("ref: refs/heads/" + hash);
     }
   }
 }

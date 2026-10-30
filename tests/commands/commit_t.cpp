@@ -7,36 +7,11 @@
 #include "util.h"
 #include "utils/file_utils.h"
 #include "utils/gitreposetup.h"
+#include "utils/test_helpers.h"
 #include <iostream>
 #include <regex>
-#include <sstream>
 
 namespace {
-class CommitOutput {
-public:
-  CommitOutput()
-      : out(std::cout.rdbuf(buffer.rdbuf())),
-        err(std::cerr.rdbuf(errors.rdbuf())) {}
-  ~CommitOutput() {
-    std::cout.rdbuf(out);
-    std::cerr.rdbuf(err);
-  }
-  std::string hash() const {
-    std::smatch match;
-    const auto output = buffer.str();
-    if (!std::regex_search(output, match, std::regex("\\[([0-9a-f]{40})\\]"))) {
-      throw std::runtime_error("commit did not print its object ID");
-    }
-    return match[1].str();
-  }
-
-private:
-  std::ostringstream buffer;
-  std::ostringstream errors;
-  std::streambuf *out;
-  std::streambuf *err;
-};
-
 void configure_identity(GitRepository &repo) {
   create_file(
       repo.repo_path("config"),
@@ -60,9 +35,10 @@ TEST_CASE("commit writes a valid object from the staged snapshot",
   file_utils::create_file("untracked", "untracked content\n");
 
   std::vector<std::string> args{"commit", "-m", "subject\n\nbody"};
-  CommitOutput output;
-  commands::commit(args);
-  const auto hash = output.hash();
+  REQUIRE_STDOUT_VALUE(
+      commands::commit(args),
+      "[main " + GitObject::find("HEAD").substr(0, 7) + "] subject\n\nbody\n");
+  const auto hash = GitObject::find("HEAD");
   const auto [type, payload] = read_git_object_data(hash);
   CHECK(type == "commit");
   CHECK(GitObject::write(GitObjectType::Commit, payload, false) == hash);
@@ -101,12 +77,13 @@ TEST_CASE("commit advances the current branch and preserves symbolic HEAD",
   index.save();
 
   std::vector<std::string> args{"commit", "-m", "new commit"};
-  CommitOutput output;
-  commands::commit(args);
+  REQUIRE_STDOUT_VALUE(
+      commands::commit(args),
+      "[main " + GitObject::find("HEAD").substr(0, 7) + "] new commit\n");
+  const auto hash = GitObject::find("HEAD");
+  CHECK(hash != HEAD_COMMIT);
   CHECK(read_file(repo.repo_path("HEAD")) == head);
-  CHECK(GitObject::find("HEAD") == output.hash());
-  CHECK(GitRepoSetup::get_file_contents(repo.branch_path("main")) ==
-        output.hash());
+  CHECK(GitRepoSetup::get_file_contents(repo.branch_path("main")) == hash);
 }
 
 TEST_CASE("commit creates a root commit on an unborn branch",
@@ -121,10 +98,10 @@ TEST_CASE("commit creates a root commit on an unborn branch",
   index.save();
 
   std::vector<std::string> args{"commit", "-m", "initial commit"};
-  CommitOutput output;
-  REQUIRE_NOTHROW(commands::commit(args));
-  const auto hash = output.hash();
-  CHECK(GitObject::find("HEAD") == hash);
+  REQUIRE_STDOUT_VALUE(
+      commands::commit(args),
+      "[unborn " + GitObject::find("HEAD").substr(0, 7) + "] initial commit\n");
+  const auto hash = GitObject::find("HEAD");
   const auto payload = read_git_object_data(hash).second;
   const auto headers_end = payload.find("\n\n");
   REQUIRE(headers_end != std::string::npos);
@@ -143,10 +120,12 @@ TEST_CASE("commit advances detached HEAD without moving the branch",
   index.save();
 
   std::vector<std::string> args{"commit", "-m", "detached commit"};
-  CommitOutput output;
-  commands::commit(args);
-  CHECK(GitRepoSetup::get_file_contents(repo.repo_path("HEAD")) ==
-        output.hash());
+  REQUIRE_STDOUT_VALUE(
+      commands::commit(args),
+      "[" + GitObject::find("HEAD").substr(0, 7) + "] detached commit\n");
+  const auto hash = GitObject::find("HEAD");
+  CHECK(hash != HEAD_COMMIT);
+  CHECK(GitRepoSetup::get_file_contents(repo.repo_path("HEAD")) == hash);
   CHECK(GitRepoSetup::get_file_contents(repo.branch_path("main")) ==
         HEAD_COMMIT);
 }
@@ -162,7 +141,6 @@ TEST_CASE("commit rejects unresolved conflicts without moving HEAD",
   GitIndex(2, {{"conflict", entry}}).save(COMMIT_H);
   const auto original_index = read_file(repo.repo_path("index"));
   std::vector<std::string> args{"commit", "-m", "unresolved"};
-  CommitOutput output;
   REQUIRE_THROWS_WITH(commands::commit(args),
                       "Cannot write tree: unmerged path conflict");
   CHECK(GitObject::find("HEAD") == HEAD_COMMIT);
@@ -178,9 +156,19 @@ TEST_CASE("commit rejects invalid arguments without changing repository state",
                        std::vector<std::string>{"commit", "--unknown"});
   const auto head = read_file(repo.repo_path("HEAD"));
   const auto index = read_file(repo.repo_path("index"));
-  CommitOutput output;
   REQUIRE_THROWS(commands::commit(args));
   CHECK(read_file(repo.repo_path("HEAD")) == head);
   CHECK(GitObject::find("HEAD") == HEAD_COMMIT);
   CHECK(read_file(repo.repo_path("index")) == index);
+}
+
+TEST_CASE("stdout assertion restores the stream when a command throws",
+          "[test-helpers]") {
+  const auto previous = std::cout.rdbuf();
+  const auto throwing_command = [] {
+    REQUIRE_STDOUT_VALUE(throw std::runtime_error("command failed"), "");
+  };
+  REQUIRE_THROWS_WITH(throwing_command(), "command failed");
+  const auto restored = std::cout.rdbuf(previous);
+  CHECK(restored == previous);
 }

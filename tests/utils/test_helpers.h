@@ -5,14 +5,27 @@
 #include <iostream>
 #include <sstream>
 
-#define REQUIRE_STDOUT_VALUE(text, value)                                      \
-  do {                                                                         \
-    std::stringstream buffer;                                                  \
-    std::streambuf *oldCout = std::cout.rdbuf();                               \
-    std::cout.rdbuf(buffer.rdbuf());                                           \
-    text;                                                                      \
-    std::cout.rdbuf(oldCout);                                                  \
+namespace test_helpers {
+class StdoutGuard {
+public:
+  explicit StdoutGuard(std::streambuf *buffer) : previous(std::cout.rdbuf(buffer)) {}
+  ~StdoutGuard() { std::cout.rdbuf(previous); }
+  StdoutGuard(const StdoutGuard &) = delete;
+  StdoutGuard &operator=(const StdoutGuard &) = delete;
+
+private:
+  std::streambuf *previous;
+};
+} // namespace test_helpers
+
+#define REQUIRE_STDOUT_VALUE(text, value)                                       \
+  do {                                                                        \
+    std::stringstream buffer;                                                 \
+    {                                                                         \
+      test_helpers::StdoutGuard guard(buffer.rdbuf());                          \
+      text;                                                                   \
+    }                                                                         \
     REQUIRE(buffer.str() == value);                                            \
   } while (false)
 
-#endif // TEST_HELPERS_HP
+#endif // TEST_HELPERS_HPP
