@@ -4,6 +4,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 GitCommit::GitCommit(const std::string &data, const std::string &sha)
@@ -184,4 +185,29 @@ std::string GitCommit::get_tree() const { return tree; }
 
 std::int64_t GitCommit::get_committer_timestamp() const {
   return committer.unix_timestamp;
+}
+
+bool GitCommit::has_ancestor(const GitCommit &commit) const {
+  if (sha.empty() || commit.sha.empty()) {
+    throw std::runtime_error("Ancestry requires commits with object IDs");
+  }
+  if (sha == commit.sha) {
+    return true;
+  }
+
+  std::vector<std::string> pending = parents;
+  std::unordered_set<std::string> visited{sha};
+  while (!pending.empty()) {
+    const auto hash = pending.back();
+    pending.pop_back();
+    if (!visited.insert(hash).second) {
+      continue;
+    }
+    if (hash == commit.sha) {
+      return true;
+    }
+    const auto parent = GitCommit::read(hash);
+    pending.insert(pending.end(), parent.parents.begin(), parent.parents.end());
+  }
+  return false;
 }
