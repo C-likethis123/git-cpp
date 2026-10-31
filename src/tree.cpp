@@ -110,11 +110,11 @@ directory if the new sha points to a file.
 function)
   - if the file mode is different, change the file mode.
 */
-void GitTree::instantiate_tree(GitTree &treeToInstantiate, GitTree &curr_tree,
-                               const fs::path &path) {
+void GitTree::instantiate_tree(const GitTree &treeToInstantiate,
+                               const GitTree &curr_tree, const fs::path &path) {
   GitRepository repo = GitRepository::find();
   for (const auto &filePath : treeToInstantiate.pathNames) {
-    auto &[mode, sha] = treeToInstantiate.fileEntries[filePath];
+    auto &[mode, sha] = treeToInstantiate.fileEntries.at(filePath);
     const auto new_file_type = get_file_type(mode);
     const auto new_file_path = path / filePath;
     // attempt to find it in the current tree
@@ -160,7 +160,7 @@ void GitTree::instantiate_tree(GitTree &treeToInstantiate, GitTree &curr_tree,
   for (const auto &filePath : curr_tree.pathNames) {
     auto it = treeToInstantiate.fileEntries.find(filePath);
     if (it == treeToInstantiate.fileEntries.end()) {
-      auto &[mode, sha] = curr_tree.fileEntries[filePath];
+      auto &[mode, sha] = curr_tree.fileEntries.at(filePath);
       const auto curr_file_type = get_file_type(mode);
       const auto curr_file_path = path / filePath;
       if (curr_file_type == "blob") {

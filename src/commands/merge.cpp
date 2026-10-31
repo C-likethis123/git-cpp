@@ -19,6 +19,8 @@ void merge(std::vector<std::string> &args) {
   if (commit.has_ancestor(head_commit)) {
     // bug: index is not updated yet
     const auto &tree = GitTree::read(commit.get_tree());
+    const auto &curr_tree = GitTree::read(head_commit.get_tree());
+    GitTree::instantiate_tree(tree, curr_tree, repo.worktree_path("."));
     GitIndex index = GitIndex::from_tree(tree);
     index.save();
     repo.update_current_ref(commit.get_sha());

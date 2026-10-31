@@ -2,7 +2,6 @@
 #define TREE_H
 
 #include "object.h"
-#include "repository.h"
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -25,7 +24,7 @@ public:
   // maybe i need something like a git tree entry?
   std::optional<std::string> find(std::string &file_name);
   static void instantiate_tree(
-      GitTree &treeToInstantiate, GitTree &curr_tree,
+      const GitTree &treeToInstantiate, const GitTree &curr_tree,
       const fs::path
           &path); // instantiate a tree object in the working directory
   static void instantiate_tree(
