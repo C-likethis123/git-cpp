@@ -29,8 +29,8 @@ TEST_CASE("Commit parents and messages round trip", "[commit]") {
   REQUIRE(commit.get_parents() == parents);
   REQUIRE(commit.has_parents() == (parent_count != 0));
   REQUIRE(commit.get_tree() == "1111111111111111111111111111111111111111");
-  REQUIRE(commit.serialise(repo) == payload);
-  REQUIRE(GitCommit(commit.serialise(repo)).get_parents() == parents);
+  REQUIRE(commit.serialise() == payload);
+  REQUIRE(GitCommit(commit.serialise()).get_parents() == parents);
 }
 
 TEST_CASE("Commit preserves signature continuation lines", "[commit]") {
@@ -42,7 +42,7 @@ TEST_CASE("Commit preserves signature continuation lines", "[commit]") {
                        " -----END PGP SIGNATURE-----\n\n"
                        "subject\n\nbody without final newline";
   GitCommit commit(payload);
-  REQUIRE(commit.serialise(repo) == payload);
+  REQUIRE(commit.serialise() == payload);
 }
 
 TEST_CASE("Deserialising a commit replaces old state", "[commit]") {
@@ -53,7 +53,7 @@ TEST_CASE("Deserialising a commit replaces old state", "[commit]") {
   commit.deserialise(root);
   REQUIRE(commit.get_parents().empty());
   REQUIRE_FALSE(commit.has_parents());
-  REQUIRE(commit.serialise(repo) == root);
+  REQUIRE(commit.serialise() == root);
   commit.deserialise("");
   REQUIRE(commit.get_parents().empty());
 }
@@ -68,12 +68,13 @@ TEST_CASE("Commit rejects malformed headers", "[commit]") {
 
 TEST_CASE("Commit keeps author and committer identities separate", "[commit]") {
   GitRepository repo(".", true);
-  const auto payload = tree +
+  const auto payload =
+      tree +
       "author Original Author <author@example.com> 1600000000 -0530\n"
       "committer Other Committer <committer@example.com> 1700000001 +0800\n"
       "\nsubject\n\nbody\n";
   GitCommit commit(payload);
-  REQUIRE(commit.serialise(repo) == payload);
+  REQUIRE(commit.serialise() == payload);
   REQUIRE(commit.get_committer_timestamp() == 1700000001);
   REQUIRE(commit.print_commit().find("Original Author <author@example.com>") !=
           std::string::npos);
@@ -102,18 +103,19 @@ TEST_CASE("Commit requires a complete numeric timestamp", "[commit]") {
 }
 
 TEST_CASE("Commit rejects continuations on single-line headers", "[commit]") {
-  REQUIRE_THROWS_AS(GitCommit(tree + " continuation\n" + identity + "\nmessage"),
-                    std::runtime_error);
+  REQUIRE_THROWS_AS(
+      GitCommit(tree + " continuation\n" + identity + "\nmessage"),
+      std::runtime_error);
   REQUIRE_THROWS_AS(GitCommit(tree + identity + " continuation\n\nmessage"),
                     std::runtime_error);
   REQUIRE_THROWS_AS(GitCommit(tree + "parent " + first_parent +
-                             "\n continuation\n" + identity + "\nmessage"),
+                              "\n continuation\n" + identity + "\nmessage"),
                     std::runtime_error);
 }
 
 TEST_CASE("Commit skips unfamiliar multiline headers", "[commit]") {
-  const auto payload = tree + identity +
-                       "extension value\n continuation\n \n\nsubject\n\nbody";
+  const auto payload =
+      tree + identity + "extension value\n continuation\n \n\nsubject\n\nbody";
   GitCommit commit(payload);
   REQUIRE(commit.get_tree() == "1111111111111111111111111111111111111111");
   REQUIRE(commit.print_commit().find("subject\n\nbody") != std::string::npos);

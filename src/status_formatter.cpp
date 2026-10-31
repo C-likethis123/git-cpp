@@ -26,7 +26,8 @@ void print_status(const StatusResult &status, std::ostream &out,
                                      status.staged.added.empty() &&
                                      status.staged.deleted.empty();
   const bool has_no_untracked_files = status.untracked.empty();
-  if (has_no_unstaged_changes && has_no_staged_changes && has_no_untracked_files) {
+  if (has_no_unstaged_changes && has_no_staged_changes && has_no_untracked_files &&
+      status.unmerged.empty()) {
     out << "nothing to commit, working tree clean\n";
     return;
   }
@@ -62,6 +63,10 @@ void print_status(const StatusResult &status, std::ostream &out,
     print_heading("Changes not staged for commit:");
     print_files(status.unstaged.modified, "modified: ", red);
     print_files(status.unstaged.deleted, "deleted: ", red);
+  }
+  if (!status.unmerged.empty()) {
+    print_heading("Unmerged paths:");
+    print_files(status.unmerged, "unmerged: ", red);
   }
   if (!has_no_untracked_files) {
     print_heading("Untracked files:");

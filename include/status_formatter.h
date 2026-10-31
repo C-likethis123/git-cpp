@@ -18,6 +18,7 @@ struct StatusResult {
   Changes staged;
   Changes unstaged;
   std::vector<std::string> untracked;
+  std::vector<std::string> unmerged;
 };
 
 // Detect whether standard output supports automatic colour output.

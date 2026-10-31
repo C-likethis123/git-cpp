@@ -138,7 +138,7 @@ TEST_CASE("commit rejects unresolved conflicts without moving HEAD",
       GENERATE(IndexStage::Base, IndexStage::Ours, IndexStage::Theirs);
   GitIndexEntry entry(0, 0, 0, 0, 0, 0, 0100644, 0, 0, 0, 0, 0, 0, HEAD_COMMIT,
                       false, false, stage, 8, "conflict");
-  GitIndex(2, {{"conflict", entry}}).save(COMMIT_H);
+  GitIndex(2, {{{"conflict", stage}, entry}}).save();
   const auto original_index = read_file(repo.repo_path("index"));
   std::vector<std::string> args{"commit", "-m", "unresolved"};
   REQUIRE_THROWS_WITH(commands::commit(args),

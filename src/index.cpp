@@ -40,8 +40,7 @@ void build_file_map(const GitTree &tree, const std::string &prefix,
   }
 }
 
-GitIndex::GitIndex(uint32_t fileVersion,
-                   std::unordered_map<std::string, GitIndexEntry> entries)
+GitIndex::GitIndex(uint32_t fileVersion, Entries entries)
     : version_(fileVersion), entries_(std::move(entries)) {};
 
 GitIndex GitIndex::read() {
@@ -55,7 +54,7 @@ GitIndex GitIndex::read() {
   uint32_t fileVersion = read_uint32_from_bytes(fileContents, 4);
   uint32_t fileEntryCount = read_uint32_from_bytes(fileContents, 8);
   size_t ptr = 12;
-  std::unordered_map<std::string, GitIndexEntry> indexEntries;
+  Entries indexEntries;
   for (uint32_t i = 0; i < fileEntryCount; ++i) {
     uint32_t ctime_sec = read_uint32_from_bytes(fileContents, ptr);
     uint32_t ctime_nanosec = read_uint32_from_bytes(fileContents, ptr + 4);
@@ -90,7 +89,8 @@ GitIndex GitIndex::read() {
       file_name = fileContents.substr(ptr + 64, idx - ptr - 64);
       ptr = ceil((idx - 12 + 1) / 8.0) * 8 + 12;
     }
-    indexEntries.try_emplace(file_name, ctime_sec, ctime_nanosec, mtime_sec,
+    indexEntries.try_emplace(EntryKey{file_name, flag_stage}, ctime_sec,
+                             ctime_nanosec, mtime_sec,
                              mtime_nanosec, dev, ino, mode, object_type, unused,
                              permissions, uid, gid, file_size, sha1,
                              flag_assume_valid, flag_extended, flag_stage,
@@ -102,7 +102,8 @@ GitIndex GitIndex::read() {
 
 void GitIndex::print_matching_patterns(const std::string &path) {
   GitRepository repo = GitRepository::find();
-  for (auto &[file_name, entry] : entries_) {
+  for (auto &[key, entry] : entries_) {
+    const auto &file_name = key.first;
     fs::path path_in_repo = repo.worktree_path(file_name);
     fs::path prefix_to_remove = repo.worktree_path(path);
     // TODO: fix bug where the file name is too long to handle
@@ -126,6 +127,12 @@ Gitignore is respected, but it's not perfect.
 void GitIndex::scan_status() {
   GitRepository repo = GitRepository::find();
   status_formatter::StatusResult status;
+  for (const auto &[key, entry] : entries_) {
+    if (key.second != IndexStage::Resolved &&
+        (status.unmerged.empty() || status.unmerged.back() != key.first)) {
+      status.unmerged.push_back(key.first);
+    }
+  }
 
   for (auto it = fs::recursive_directory_iterator(repo.worktree_path("."));
        it != fs::recursive_directory_iterator(); ++it) {
@@ -143,8 +150,12 @@ void GitIndex::scan_status() {
     fs::path relative_path =
         fs::relative(entry.path(), repo.worktree_path("."));
     std::string relative_path_str = relative_path.string();
+    if (std::binary_search(status.unmerged.begin(), status.unmerged.end(),
+                           relative_path_str)) {
+      continue;
+    }
     bool found_in_index = false;
-    auto index_entry = entries_.find(relative_path_str);
+    auto index_entry = entries_.find({relative_path_str, IndexStage::Resolved});
     if (index_entry != entries_.end()) {
       found_in_index = true;
       // check if modified
@@ -181,7 +192,11 @@ void GitIndex::scan_status() {
   build_file_map(treeObj, "", head_files, repo);
 
   // Compare index entries with HEAD tree
-  for (const auto &[file_path, index_entry] : entries_) {
+  for (const auto &[key, index_entry] : entries_) {
+    const auto &file_path = key.first;
+    if (index_entry.stage() != IndexStage::Resolved) {
+      continue;
+    }
     if (index_entry.is_submodule()) {
       continue;
     }
@@ -202,8 +217,8 @@ void GitIndex::scan_status() {
 
   // Check for staged deletions (files in HEAD but not in index)
   for (const auto &head_file : head_files) {
-    bool found_in_index = false;
-    if (entries_.find(head_file.first) == entries_.end()) {
+    auto entry = entries_.lower_bound({head_file.first, IndexStage::Resolved});
+    if (entry == entries_.end() || entry->first.first != head_file.first) {
       status.staged.deleted.emplace_back(head_file.first);
     }
   }
@@ -214,9 +229,14 @@ void GitIndex::scan_status() {
 }
 
 void GitIndex::add_file(const std::string &path) {
-  entries_.erase(path);
-
-  entries_.emplace(path, GitIndexEntry::create_index_entry(path));
+  auto entry = GitIndexEntry::create_index_entry(path);
+  auto first = entries_.lower_bound({path, IndexStage::Resolved});
+  auto last = first;
+  while (last != entries_.end() && last->first.first == path) {
+    ++last;
+  }
+  entries_.erase(first, last);
+  entries_.emplace(EntryKey{path, IndexStage::Resolved}, std::move(entry));
 }
 
 std::string GitIndex::write_tree() const {
@@ -225,7 +245,8 @@ std::string GitIndex::write_tree() const {
     std::map<std::string, Directory> children;
   } root;
 
-  for (const auto &[path, entry] : entries_) {
+  for (const auto &[key, entry] : entries_) {
+    const auto &path = key.first;
     if (entry.stage() != IndexStage::Resolved) {
       throw std::runtime_error("Cannot write tree: unmerged path " + path);
     }
@@ -286,15 +307,8 @@ void GitIndex::save() {
   write_uint32_to_bytes(filestream, version_);        // Version
   write_uint32_to_bytes(filestream, entries_.size()); // Entry count
 
-  // Create a vector of pairs for sorting
-  std::vector<std::pair<std::string, GitIndexEntry>> sorted_entries(
-      entries_.begin(), entries_.end());
-  std::sort(sorted_entries.begin(), sorted_entries.end(),
-            [](const auto &a, const auto &b) {
-              return a.first < b.first; // Sort by file name
-            });
-
-  for (const auto &[file_name, entry] : sorted_entries) {
+  // Entries are ordered by pathname, then stage.
+  for (const auto &[key, entry] : entries_) {
     entry.save(filestream);
   }
 

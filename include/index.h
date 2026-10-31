@@ -3,12 +3,15 @@
 
 #include "index_entry.h"
 #include <string>
-#include <unordered_map>
+#include <map>
+#include <utility>
 
 class GitIndex {
 public:
-  GitIndex(uint32_t fileVersion,
-           std::unordered_map<std::string, GitIndexEntry> entries);
+  using EntryKey = std::pair<std::string, IndexStage>;
+  using Entries = std::map<EntryKey, GitIndexEntry>;
+
+  GitIndex(uint32_t fileVersion, Entries entries);
   static GitIndex read();
 
   void print_matching_patterns(const std::string &path);
@@ -20,7 +23,7 @@ public:
 
 protected:
   uint32_t version_;
-  std::unordered_map<std::string, GitIndexEntry> entries_;
+  Entries entries_;
 
   // void find_modified_unstaged(
   //                             std::vector<std::string> &modified,

@@ -27,13 +27,17 @@ TEST_CASE("write tree builds nested snapshots in Git order", "[write-tree]") {
   const auto blob =
       GitObject::write(GitObjectType::Blob, "staged content\n", true);
   GitIndex index(
-      2, {
-             {"foo/nested/run", tree_entry("foo/nested/run", 0100755, blob)},
-             {"foo.txt", tree_entry("foo.txt", 0100644, blob)},
-             {"foo0", tree_entry("foo0", 0100644, blob)},
-             {"link", tree_entry("link", 0120000, blob)},
-             {"submodule", tree_entry("submodule", 0160000, HEAD_COMMIT)},
-         });
+      2,
+      {
+          {{"foo/nested/run", IndexStage::Resolved},
+           tree_entry("foo/nested/run", 0100755, blob)},
+          {{"foo.txt", IndexStage::Resolved},
+           tree_entry("foo.txt", 0100644, blob)},
+          {{"foo0", IndexStage::Resolved}, tree_entry("foo0", 0100644, blob)},
+          {{"link", IndexStage::Resolved}, tree_entry("link", 0120000, blob)},
+          {{"submodule", IndexStage::Resolved},
+           tree_entry("submodule", 0160000, HEAD_COMMIT)},
+      });
 
   const auto root_sha = index.write_tree();
   const auto root = GitTree::read(root_sha);
@@ -86,8 +90,8 @@ TEST_CASE("write tree rejects unresolved index entries", "[write-tree]") {
   GitRepository repo = GitRepository::find();
   for (const auto stage :
        {IndexStage::Base, IndexStage::Ours, IndexStage::Theirs}) {
-    GitIndex index(
-        2, {{"conflict", tree_entry("conflict", 0100644, HEAD_COMMIT, stage)}});
+    GitIndex index(2, {{{"conflict", stage},
+                        tree_entry("conflict", 0100644, HEAD_COMMIT, stage)}});
     index.save();
     REQUIRE_THROWS_WITH(GitIndex::read().write_tree(),
                         "Cannot write tree: unmerged path conflict");
@@ -100,12 +104,15 @@ TEST_CASE("write tree rejects invalid paths and file directory collisions",
   GitRepository repo = GitRepository::find();
   for (const std::string path :
        {"/absolute", "../outside", "a//b", "a/", ".git/config"}) {
-    GitIndex index(2, {{path, tree_entry(path, 0100644, HEAD_COMMIT)}});
+    GitIndex index(2, {{{path, IndexStage::Resolved},
+                        tree_entry(path, 0100644, HEAD_COMMIT)}});
     REQUIRE_THROWS(index.write_tree());
   }
   GitIndex collision(2, {
-                            {"a", tree_entry("a", 0100644, HEAD_COMMIT)},
-                            {"a/b", tree_entry("a/b", 0100644, HEAD_COMMIT)},
+                            {{"a", IndexStage::Resolved},
+                             tree_entry("a", 0100644, HEAD_COMMIT)},
+                            {{"a/b", IndexStage::Resolved},
+                             tree_entry("a/b", 0100644, HEAD_COMMIT)},
                         });
   REQUIRE_THROWS(collision.write_tree());
 }
