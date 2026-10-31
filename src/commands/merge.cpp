@@ -1,7 +1,9 @@
 #include "commands/merge.h"
 #include "commit.h"
+#include "index.h"
 #include "parsers/MergeParser.h"
 #include "repository.h"
+#include "tree.h"
 #include <iostream>
 #include <stdexcept>
 
@@ -16,6 +18,9 @@ void merge(std::vector<std::string> &args) {
   // Fast forward case, just update head
   if (commit.has_ancestor(head_commit)) {
     // bug: index is not updated yet
+    const auto &tree = GitTree::read(commit.get_tree());
+    GitIndex index = GitIndex::from_tree(tree);
+    index.save();
     repo.update_current_ref(commit.get_sha());
     std::cout << "Fast-forward HEAD to " << commit.get_sha() << std::endl;
   } else {

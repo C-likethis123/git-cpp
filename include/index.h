@@ -2,8 +2,9 @@
 #define INDEX_H
 
 #include "index_entry.h"
-#include <string>
+#include "tree.h"
 #include <map>
+#include <string>
 #include <utility>
 
 class GitIndex {
@@ -20,6 +21,7 @@ public:
   void add_file(const std::string &path);
   void save();
   std::string write_tree() const;
+  static GitIndex from_tree(const GitTree &tree);
 
 protected:
   uint32_t version_;

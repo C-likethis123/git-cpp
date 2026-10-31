@@ -43,6 +43,40 @@ void build_file_map(const GitTree &tree, const std::string &prefix,
 GitIndex::GitIndex(uint32_t fileVersion, Entries entries)
     : version_(fileVersion), entries_(std::move(entries)) {};
 
+GitIndex GitIndex::from_tree(const GitTree &tree) {
+  Entries entries;
+  std::function<void(const GitTree &, const std::string &)> visit =
+      [&](const GitTree &directory, const std::string &prefix) {
+        for (const auto &name : directory.pathNames) {
+          if (name.empty() || name == "." || name == ".." || name == ".git" ||
+              name.find('/') != std::string::npos ||
+              name.find('\0') != std::string::npos) {
+            throw std::runtime_error("Invalid tree entry name: " + name);
+          }
+          const std::string path = prefix + name;
+          const auto &[mode, sha] = directory.fileEntries.at(name);
+          if (mode == 0040000) {
+            visit(GitTree::read(sha), path + "/");
+            continue;
+          }
+          if (mode != 0100644 && mode != 0100755 && mode != 0120000 &&
+              mode != 0160000) {
+            throw std::runtime_error("Unsupported tree mode: " + path);
+          }
+          // Stat data stays invalid until the working tree is checked/refreshed.
+          if (!entries.try_emplace(
+                  EntryKey{path, IndexStage::Resolved}, 0, 0, 0, 0, 0, 0,
+                  mode, (mode >> 12) & 0xF, 0, mode & 0777, 0, 0, 0, sha,
+                  false, false, IndexStage::Resolved, path.size(), path)
+                   .second) {
+            throw std::runtime_error("Duplicate tree path: " + path);
+          }
+        }
+      };
+  visit(tree, "");
+  return GitIndex(2, std::move(entries));
+}
+
 GitIndex GitIndex::read() {
   GitRepository repo = GitRepository::find();
   fs::path file_path = repo.repo_path("index");
