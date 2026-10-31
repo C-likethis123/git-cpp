@@ -1,6 +1,7 @@
 #include "catch2/catch.hpp"
 #include "commit.h"
 #include "repository.h"
+#include "utils/gitreposetup.h"
 
 namespace {
 const std::string tree = "tree 1111111111111111111111111111111111111111\n";
@@ -10,6 +11,40 @@ const std::string identity =
 const std::string first_parent = "2222222222222222222222222222222222222222";
 const std::string second_parent = "3333333333333333333333333333333333333333";
 } // namespace
+
+TEST_CASE("Ancestry follows every parent and includes the commit itself",
+          "[ancestry]") {
+  GitRepoSetup setup;
+  const auto write_commit = [](const std::vector<std::string> &parents,
+                               const std::string &message) {
+    std::string payload = tree;
+    for (const auto &parent : parents) {
+      payload += "parent " + parent + "\n";
+    }
+    payload += identity + "\n" + message;
+    return GitCommit::read(
+        GitObject::write(GitObjectType::Commit, payload, true));
+  };
+  const auto root = write_commit({}, "root");
+  const auto left = write_commit({root.get_sha()}, "left");
+  const auto right = write_commit({root.get_sha()}, "right");
+  const auto merge = write_commit({left.get_sha(), right.get_sha()}, "merge");
+  const auto tip = write_commit({merge.get_sha()}, "tip");
+  const auto unrelated = write_commit({}, "unrelated");
+
+  CHECK(root.has_ancestor(root));
+  CHECK(tip.has_ancestor(root));
+  CHECK(tip.has_ancestor(left));
+  CHECK(tip.has_ancestor(right));
+  CHECK_FALSE(root.has_ancestor(tip));
+  CHECK_FALSE(left.has_ancestor(right));
+  CHECK_FALSE(tip.has_ancestor(unrelated));
+  CHECK_FALSE(root.has_ancestor(unrelated));
+
+  const GitCommit unwritten(tree + identity + "\nunwritten");
+  CHECK_THROWS(tip.has_ancestor(unwritten));
+  CHECK_THROWS(unwritten.has_ancestor(root));
+}
 
 TEST_CASE("Commit parents and messages round trip", "[commit]") {
   GitRepository repo(".", true);

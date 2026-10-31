@@ -8,3 +8,5 @@
 
 
 # TODO: Reasons
+
+It means that I'm passing in a `const` object to a function that takes in a mutable object.

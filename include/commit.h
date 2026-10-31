@@ -38,6 +38,7 @@ public:
   std::string get_tree() const;
   std::int64_t get_committer_timestamp() const;
   std::string get_sha() const;
+  bool has_ancestor(const GitCommit &commit) const;
 
 protected:
   std::string tree;
