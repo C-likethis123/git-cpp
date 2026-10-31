@@ -173,13 +173,14 @@ GitCommit GitCommit::read(const std::string &hash) {
   return GitCommit(payload, sha);
 }
 
-bool GitCommit::has_parents() { return !parents.empty(); }
+std::string GitCommit::get_sha() const { return sha; }
+bool GitCommit::has_parents() const { return !parents.empty(); }
 
 const std::vector<std::string> &GitCommit::get_parents() const {
   return parents;
 }
 
-std::string GitCommit::get_tree() { return tree; }
+std::string GitCommit::get_tree() const { return tree; }
 
 std::int64_t GitCommit::get_committer_timestamp() const {
   return committer.unix_timestamp;

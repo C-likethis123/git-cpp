@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "object.h"
-#include "repository.h"
 
 class GitCommit : public GitObject {
 public:
@@ -34,10 +33,11 @@ public:
   std::string serialise() override;      // convert this to a string format
   std::string print_commit();
   void init();
-  bool has_parents();
+  bool has_parents() const;
   const std::vector<std::string> &get_parents() const;
-  std::string get_tree();
+  std::string get_tree() const;
   std::int64_t get_committer_timestamp() const;
+  std::string get_sha() const;
 
 protected:
   std::string tree;
