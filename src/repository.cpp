@@ -73,9 +73,9 @@ void GitRepository::load_ignore_file(const fs::path &directory) {
              std::isspace(static_cast<unsigned char>(line.back()))) {
         line.pop_back();
       }
-      const auto first_non_space = std::find_if_not(
-          line.begin(), line.end(),
-          [](unsigned char c) { return std::isspace(c); });
+      const auto first_non_space =
+          std::find_if_not(line.begin(), line.end(),
+                           [](unsigned char c) { return std::isspace(c); });
       line.erase(line.begin(), first_non_space);
       if (line.empty() || line[0] == '#') {
         continue;
@@ -200,9 +200,8 @@ void GitRepository::update_head(const std::string &new_head) {
 
 void GitRepository::update_current_ref(const std::string &commit_hash) {
   const std::string head = read_file(repo_path("HEAD"), true);
-  const fs::path ref_path = head.starts_with("ref: ")
-                                ? repo_path(head.substr(5))
-                                : repo_path("HEAD");
+  const fs::path ref_path =
+      head.starts_with("ref: ") ? repo_path(head.substr(5)) : repo_path("HEAD");
   if (!create_file(ref_path, commit_hash + "\n")) {
     throw std::runtime_error("Failed to update commit reference: " +
                              ref_path.string());
@@ -227,11 +226,11 @@ bool GitRepository::has_loose_object(const std::string &sha) const {
 
 bool GitRepository::has_pack_object(const std::string &sha) const {
   fs::path pack_dir = gitdir / "objects/pack";
-  return std::ranges::any_of(
-      fs::directory_iterator(pack_dir), [&sha](const auto &entry) {
-        return entry.path().extension() == ".idx" &&
-               PackIndex(entry.path()).has_object(sha);
-      });
+  return std::ranges::any_of(fs::directory_iterator(pack_dir),
+                             [&sha](const auto &entry) {
+                               return entry.path().extension() == ".idx" &&
+                                      PackIndex(entry.path()).has_object(sha);
+                             });
 }
 
 fs::path GitRepository::tag_path(const std::string &tag) const {
@@ -253,7 +252,9 @@ Each pattern is a glob file pattern, should parse and match it
 according to glob file rules
 */
 bool GitRepository::is_ignored(const fs::path &path) const {
-  const fs::path relative_path = fs::relative(path, worktree);
+  const auto relative_path =
+      fs::weakly_canonical(fs::absolute(path)).lexically_relative(
+          fs::weakly_canonical(fs::absolute(worktree)));
   return is_ignored(relative_path, fs::is_directory(fs::symlink_status(path)));
 }
 

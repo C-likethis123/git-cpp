@@ -1,4 +1,5 @@
 #include "util.h"
+#include <algorithm>
 #include <arpa/inet.h>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
@@ -8,9 +9,10 @@
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
+#include <format>
 #include <fstream>
-#include <iomanip>
 #include <iostream>
+#include <ranges>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -168,32 +170,25 @@ std::string sha1_hexdigest(const std::string &data) {
   unsigned int digest[5];
   sha1.get_digest(digest);
 
-  std::stringstream ss;
-  ss << std::hex << std::setfill('0');
-  for (unsigned int i : digest) {
-    ss << std::setw(8) << i;
-  }
-  return ss.str();
+  return digest | std::views::transform([](unsigned int byte) {
+           return std::format("{:08x}", byte);
+         }) |
+         std::views::join | std::ranges::to<std::string>();
 }
 
 std::string binaryToHex(const std::string &binaryData) {
-  std::ostringstream hexStream;
-  for (unsigned char byte : binaryData) {
-    hexStream << std::setw(2) << std::setfill('0') << std::hex
-              << static_cast<int>(byte);
-  }
-  return hexStream.str();
+  return binaryData | std::views::transform([](unsigned char byte) {
+           return std::format("{:02x}", byte);
+         }) |
+         std::views::join | std::ranges::to<std::string>();
 }
 
 std::string hexToBinary(const std::string &hexString) {
-  std::string binaryData;
-  for (size_t i = 0; i < hexString.size(); i += 2) {
-    // Take two hex characters at a time
-    std::string byteStr = hexString.substr(i, 2);
-
-    // Convert hex pair to a single byte (char)
-    char byte = static_cast<char>(std::stoi(byteStr, nullptr, 16));
-    binaryData.push_back(byte);
-  }
-  return binaryData;
+  const auto byteCount = hexString.size() / 2 + hexString.size() % 2;
+  return std::views::iota(std::size_t{0}, byteCount) |
+         std::views::transform([&hexString](std::size_t index) {
+           const auto byteStr = hexString.substr(index * 2, 2);
+           return static_cast<char>(std::stoi(byteStr, nullptr, 16));
+         }) |
+         std::ranges::to<std::string>();
 }

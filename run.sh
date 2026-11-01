@@ -8,7 +8,7 @@ if [ "$EUID" -eq 0 ]; then
 fi
 
 PROJECT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-BUILD_DIR="$PROJECT_DIR/build-gcc15"
+BUILD_DIR="$PROJECT_DIR/build"
 BUILD_TYPE=${BUILD_TYPE:-Debug}
 
 case "${1:-}" in
