@@ -1,5 +1,6 @@
 #include "commands/show-ref.h"
 #include <iostream>
+#include <print>
 
 #include "parsers/ShowRefParser.h"
 #include "repo_util.h"
@@ -25,7 +26,7 @@ void showref(std::vector<std::string> &args) {
     fs::path path = entry.path();
     if (fs::is_regular_file(path)) {
       std::string sha = resolve_ref(path);
-      std::cout << sha << " " << remove_file_prefix(path, gitdir) << "\n";
+      std::println(std::cout, "{} {}", sha, remove_file_prefix(path, gitdir));
     }
   }
 }

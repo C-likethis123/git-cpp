@@ -1,6 +1,7 @@
 #include "commit.h"
 #include "date_util.h"
 #include "repo_util.h"
+#include <format>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -39,21 +40,18 @@ std::string GitCommit::serialise() {
 }
 
 std::string GitCommit::print_commit() {
-  std::stringstream ss;
-  ss << "commit " << sha << "\n";
+  std::string output = std::format("commit {}\n", sha);
   if (parents.size() > 1) {
-    ss << "Merge:";
+    output += "Merge:";
     for (const auto &parent : parents) {
-      ss << " " << parent.substr(0, 7);
+      output += std::format(" {:.7}", parent);
     }
-    ss << "\n";
+    output += '\n';
   }
-  ss << std::left << std::setw(8) << "Author: " << author.name << " <"
-     << author.email << ">\n";
-  ss << std::setw(8) << "Date: " << format_unix_time(author.unix_timestamp)
-     << "\n\n";
-  ss << "\t" << message;
-  return ss.str();
+  output += std::format("{:<8}{} <{}>\n{:<8}{}\n\n\t{}", "Author:",
+                        author.name, author.email, "Date:",
+                        format_unix_time(author.unix_timestamp), message);
+  return output;
 }
 
 void GitCommit::deserialise(const std::string &data) {

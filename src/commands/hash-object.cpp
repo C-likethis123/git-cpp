@@ -1,5 +1,6 @@
 #include "commands/hash-object.h"
 #include <iostream>
+#include <print>
 
 #include "object.h"
 #include "parsers/HashObjectParser.h"
@@ -15,6 +16,6 @@ void hashobject(std::vector<std::string> &args) {
   std::string fileContents = read_file(fs::path(path));
   // write to disk optionally, print hash
   std::string hash = GitObject::write(type, fileContents, write);
-  std::cout << hash << "\n";
+  std::println(std::cout, "{}", hash);
 }
 } // namespace commands

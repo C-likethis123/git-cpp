@@ -4,7 +4,9 @@
 #include "parsers/MergeParser.h"
 #include "repository.h"
 #include "tree.h"
+#include <format>
 #include <iostream>
+#include <print>
 #include <stdexcept>
 
 namespace commands {
@@ -24,14 +26,14 @@ void merge(std::vector<std::string> &args) {
     GitIndex index = GitIndex::from_tree(tree);
     index.save();
     repo.update_current_ref(commit.get_sha());
-    std::cout << "Fast-forward HEAD to " << commit.get_sha() << std::endl;
+    std::println(std::cout, "Fast-forward HEAD to {}", commit.get_sha());
   } else {
     // merge two trees
     // case 1: declare merge conflict and stop merging
     // case 2: create merge commit, update refs
-    throw std::runtime_error("Attempting to merge " + commit.get_sha() +
-                             " into " + head_commit.get_sha() +
-                             ", but merge is not implemented yet");
+    throw std::runtime_error(std::format(
+        "Attempting to merge {} into {}, but merge is not implemented yet",
+        commit.get_sha(), head_commit.get_sha()));
   }
 }
 } // namespace commands

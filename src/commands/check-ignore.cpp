@@ -1,8 +1,7 @@
 #include "commands/check-ignore.h"
 #include <iostream>
+#include <print>
 
-#include "commit.h"
-#include "object.h"
 #include "parsers/CheckIgnoreParser.h"
 #include "repository.h"
 
@@ -14,7 +13,7 @@ void checkignore(std::vector<std::string> &args) {
   GitRepository repo = GitRepository::find();
   for (auto &path : paths) {
     if (repo.is_ignored(path)) {
-      std::cout << path << std::endl;
+      std::println(std::cout, "{}", path);
     }
   }
 }

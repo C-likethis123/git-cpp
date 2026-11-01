@@ -1,5 +1,6 @@
 #include "commands/init.h"
 #include <iostream>
+#include <print>
 
 #include "repository.h"
 #include "parsers/InitParser.h"
@@ -11,6 +12,6 @@ void init(std::vector<std::string> &args) {
   // process args
   GitRepository repo(options.path, true);
   std::string worktree = repo.create(false);
-  std::cout << "Initialised Git repo at " << worktree << "\n";
+  std::println(std::cout, "Initialised Git repo at {}", worktree);
 }
 } // namespace commands

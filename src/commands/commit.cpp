@@ -10,6 +10,7 @@
 #include <ctime>
 #include <filesystem>
 #include <iostream>
+#include <print>
 #include <stdexcept>
 #include <vector>
 
@@ -65,11 +66,11 @@ void commit(std::vector<std::string> &args) {
   const std::string short_hash = created_hash.substr(0, 7);
   repo.update_current_ref(created_hash);
   if (repo.has_detached_head()) {
-    std::cerr << "You are in detached head now" << std::endl;
-    std::cout << "[" << short_hash << "] " << message << std::endl;
+    std::println(std::cerr, "You are in detached head now");
+    std::println(std::cout, "[{}] {}", short_hash, message);
   } else {
-    std::cout << "[" << repo.get_branch_name() << " " << short_hash << "] "
-              << message << std::endl;
+    std::println(std::cout, "[{} {}] {}", repo.get_branch_name(), short_hash,
+                 message);
   }
 }
 } // namespace commands

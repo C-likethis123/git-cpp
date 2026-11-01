@@ -16,6 +16,7 @@
 #include "tclap/ValuesConstraint.h"
 #include <iostream>
 #include <map>
+#include <print>
 #include <string>
 #include <vector>
 
@@ -60,7 +61,7 @@ int main(int argc, char **argv) {
     }
     handlers.at(command)(args);
   } catch (const std::runtime_error &e) {
-    std::cerr << e.what() << std::endl;
+    std::println(std::cerr, "{}", e.what());
   }
   return 0;
 }

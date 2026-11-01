@@ -7,8 +7,8 @@
 #include "util.h"
 #include "wildmatch/wildmatch.hpp"
 #include <algorithm>
-#include <iomanip>
 #include <iostream>
+#include <print>
 #include <sstream>
 
 GitTree::GitTree(const std::string &data) : GitObject(GitObjectType::Tree) {
@@ -91,8 +91,7 @@ void GitTree::print_matching_files(
     if (isFileMatch) {
       auto &[mode, sha] = this->fileEntries[path];
       std::string type = get_file_type(mode);
-      std::cout << std::setfill('0') << std::setw(6) << std::oct << mode << " "
-                << type << " " << sha << '\t' << path << "\n";
+      std::println(std::cout, "{:06o} {} {}\t{}", mode, type, sha, path);
     }
   }
 }

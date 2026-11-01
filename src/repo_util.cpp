@@ -6,6 +6,7 @@
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <fstream>
 #include <iostream>
+#include <print>
 #include <sstream>
 #include <stdexcept>
 
@@ -77,7 +78,7 @@ read_git_object_data(const std::string &sha) {
   try {
     boost::iostreams::copy(in, decompressed_data);
   } catch (const boost::iostreams::zlib_error &e) {
-    std::cerr << "Zlib decompression error: " << e.what() << std::endl;
+    std::println(std::cerr, "Zlib decompression error: {}", e.what());
   }
 
   std::string raw = decompressed_data.str();

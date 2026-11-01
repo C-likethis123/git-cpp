@@ -4,6 +4,7 @@
 #include "parsers/StatusParser.h"
 #include "repository.h"
 #include <iostream>
+#include <print>
 #include <string>
 
 namespace commands {
@@ -13,7 +14,7 @@ void status(std::vector<std::string> &args) {
   // process args
   GitRepository repo = GitRepository::find();
   const std::string branch = repo.get_head();
-  std::cout << "On: " << branch << std::endl;
+  std::println(std::cout, "On: {}", branch);
 
   GitIndex index = GitIndex::read();
   index.scan_status();

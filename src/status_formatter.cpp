@@ -1,6 +1,7 @@
 #include "status_formatter.h"
 #include <cstdlib>
 #include <ostream>
+#include <print>
 #include <unistd.h>
 
 namespace status_formatter {
@@ -28,7 +29,7 @@ void print_status(const StatusResult &status, std::ostream &out,
   const bool has_no_untracked_files = status.untracked.empty();
   if (has_no_unstaged_changes && has_no_staged_changes && has_no_untracked_files &&
       status.unmerged.empty()) {
-    out << "nothing to commit, working tree clean\n";
+    std::println(out, "nothing to commit, working tree clean");
     return;
   }
 
@@ -38,18 +39,17 @@ void print_status(const StatusResult &status, std::ostream &out,
       // Lexical conversion also works for deleted files and preserves symlinks.
       const auto display_path =
           std::filesystem::path(file).lexically_relative(current_directory);
-      out << (colour_enabled ? colour : "") << '\t' << label
-          << display_path.generic_string()
-          << (colour_enabled ? reset : "") << '\n';
+      std::println(out, "{}\t{}{}{}", colour_enabled ? colour : "", label,
+                   display_path.generic_string(), colour_enabled ? reset : "");
     }
   };
 
   bool printed_section = false;
   const auto print_heading = [&](const char *heading) {
     if (printed_section) {
-      out << '\n';
+      std::println(out, "");
     }
-    out << heading << '\n';
+    std::println(out, "{}", heading);
     printed_section = true;
   };
 
@@ -71,7 +71,7 @@ void print_status(const StatusResult &status, std::ostream &out,
   if (!has_no_untracked_files) {
     print_heading("Untracked files:");
     print_files(status.untracked, "", red);
-    out << '\n';
+    std::println(out, "");
   }
 }
 

@@ -15,6 +15,7 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <print>
 #include <string>
 #include <sys/stat.h>
 #include <unordered_map>
@@ -142,8 +143,8 @@ void GitIndex::print_matching_patterns(const std::string &path) {
     fs::path prefix_to_remove = repo.worktree_path(path);
     // TODO: fix bug where the file name is too long to handle
     if (file_name.rfind(path, 0) == 0) {
-      std::cout << fs::relative(path_in_repo, prefix_to_remove).string()
-                << std::endl;
+      std::println(std::cout, "{}",
+                   fs::relative(path_in_repo, prefix_to_remove).string());
     }
   }
 }

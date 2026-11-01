@@ -2,6 +2,7 @@
 #include "commit.h"
 #include "object.h"
 #include <iostream>
+#include <print>
 #include <queue>
 #include <unordered_set>
 #include <utility>
@@ -40,7 +41,7 @@ void log(std::vector<std::string> &args) {
   while (!pending.empty()) {
     auto current = pending.top().commit;
     pending.pop();
-    std::cout << current.print_commit() << "\n";
+    std::println(std::cout, "{}", current.print_commit());
     for (const auto &parent : current.get_parents()) {
       enqueue(parent);
     }

@@ -5,6 +5,7 @@
 #include "repository.h"
 #include <filesystem>
 #include <iostream>
+#include <print>
 #include <string>
 
 namespace commands {
@@ -20,7 +21,7 @@ void lsfiles(std::vector<std::string> &args) {
 
   std::string path =
       path_to_match == fs::path(".") ? "" : path_to_match.string();
-  std::cout << repo.worktree_path("").string() << ", " << path << std::endl;
+  std::println(std::cout, "{}, {}", repo.worktree_path("").string(), path);
   index_file.print_matching_patterns(path);
 }
 } // namespace commands
