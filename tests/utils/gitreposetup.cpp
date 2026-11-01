@@ -1,5 +1,5 @@
 #include "gitreposetup.h"
-#include "boost/algorithm/string/trim.hpp"
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 /**
@@ -39,7 +39,10 @@ std::string GitRepoSetup::get_file_contents(const fs::path &path) {
   if (file.is_open()) {
     std::string contents((std::istreambuf_iterator<char>(file)),
                          std::istreambuf_iterator<char>());
-    boost::trim_right(contents);
+    while (!contents.empty() &&
+           std::isspace(static_cast<unsigned char>(contents.back()))) {
+      contents.pop_back();
+    }
     file.close();
     return contents;
   } else {

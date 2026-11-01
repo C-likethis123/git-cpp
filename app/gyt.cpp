@@ -17,6 +17,7 @@
 #include <iostream>
 #include <map>
 #include <print>
+#include <ranges>
 #include <string>
 #include <vector>
 
@@ -39,10 +40,8 @@ int main(int argc, char **argv) {
       {"merge", commands::merge}};
   std::string command;
   {
-    std::vector<std::string> commandNames;
-    for (const auto &handler : handlers) {
-      commandNames.push_back(handler.first);
-    }
+    auto commandNames = handlers | std::views::keys |
+                        std::ranges::to<std::vector<std::string>>();
     TCLAP::ValuesConstraint<std::string> allowedCommands(commandNames);
     TCLAP::CmdLine cli("A Git implementation in C++. "
                        "Run 'gyt <command> --help' for command options.",

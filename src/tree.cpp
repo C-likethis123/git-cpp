@@ -33,14 +33,14 @@ std::string GitTree::serialise() {
   std::stringstream ss;
   auto paths = pathNames;
   // Git compares directory names as if they end in '/'.
-  std::sort(paths.begin(), paths.end(), [this](const auto &a, const auto &b) {
+  std::ranges::sort(paths, [this](const auto &a, const auto &b) {
     const auto key = [this](const auto &path) {
       return path + (std::get<0>(fileEntries.at(path)) == 0040000 ? "/" : "");
     };
     const auto left = key(a);
     const auto right = key(b);
-    return std::lexicographical_compare(
-        left.begin(), left.end(), right.begin(), right.end(),
+    return std::ranges::lexicographical_compare(
+        left, right,
         [](unsigned char x, unsigned char y) { return x < y; });
   });
   for (const auto &path : paths) {
@@ -66,32 +66,24 @@ void GitTree::deserialise(const std::string &data) {
   }
   // maintain sort order via path names to ensure
   // consistent tree objects are generated each time
-  std::sort(pathNames.begin(), pathNames.end());
+  std::ranges::sort(pathNames);
 }
 
 void GitTree::print_matching_files(
     const std::vector<std::string> &filePathPatterns) {
-  auto findDot =
-      std::find(filePathPatterns.begin(), filePathPatterns.end(), ".");
   bool isPrintEveryFile =
-      findDot != filePathPatterns.end() || filePathPatterns.empty();
+      std::ranges::contains(filePathPatterns, ".") || filePathPatterns.empty();
   for (const auto &path : this->pathNames) {
-    bool isFileMatch = isPrintEveryFile;
-    // file path match happens if a globbing sequence matches OR
-    // if it's a full match.
-    if (!isFileMatch) {
-      for (const auto &filePath : filePathPatterns) {
-        if (wild::match(filePath, path)) {
-          isFileMatch = true;
-          break;
-        }
-      }
-    }
+    const bool isFileMatch =
+        isPrintEveryFile ||
+        std::ranges::any_of(filePathPatterns, [&](const auto &pattern) {
+          return wild::match(pattern, path);
+        });
 
     if (isFileMatch) {
       auto &[mode, sha] = this->fileEntries[path];
-      std::string type = get_file_type(mode);
-      std::println(std::cout, "{:06o} {} {}\t{}", mode, type, sha, path);
+      std::println(std::cout, "{:06o} {} {}\t{}", mode, get_file_type(mode),
+                   sha, path);
     }
   }
 }

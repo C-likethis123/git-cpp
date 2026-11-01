@@ -16,6 +16,7 @@
 #include <iterator>
 #include <map>
 #include <print>
+#include <ranges>
 #include <string>
 #include <sys/stat.h>
 #include <unordered_map>
@@ -342,7 +343,7 @@ void GitIndex::save() {
   write_uint32_to_bytes(filestream, entries_.size()); // Entry count
 
   // Entries are ordered by pathname, then stage.
-  for (const auto &[key, entry] : entries_) {
+  for (const auto &entry : entries_ | std::views::values) {
     entry.save(filestream);
   }
 

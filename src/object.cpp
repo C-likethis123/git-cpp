@@ -1,6 +1,5 @@
 #include "object.h"
 #include "blob.h"
-#include "boost/algorithm/string/case_conv.hpp"
 #include "commit.h"
 #include "repo_util.h"
 #include "repository.h"
@@ -10,6 +9,8 @@
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 
+#include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -91,7 +92,11 @@ std::string GitObject::write(GitObjectType type, const std::string &data,
 std::string GitObject::find(const std::string &name, bool follow) {
   GitRepository repo = GitRepository::find();
   fs::path ref_path;
-  std::string ref_name = boost::algorithm::to_lower_copy(name);
+  std::string ref_name = name;
+  std::transform(ref_name.begin(), ref_name.end(), ref_name.begin(),
+                 [](unsigned char c) {
+                   return static_cast<char>(std::tolower(c));
+                 });
   if (ref_name == "head") {
     ref_path = repo.repo_path("HEAD");
   } else if (repo.has_branch(ref_name)) {

@@ -1,10 +1,10 @@
 #include "util.h"
 #include <arpa/inet.h>
-#include <boost/algorithm/string.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/uuid/detail/sha1.hpp>
+#include <cctype>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
@@ -57,7 +57,10 @@ std::string read_file(const fs::path &filePath, bool remove_newline) {
       buffer << fileStream.rdbuf();
       std::string contents = buffer.str();
       if (remove_newline) {
-        boost::trim_right(contents);
+        while (!contents.empty() &&
+               std::isspace(static_cast<unsigned char>(contents.back()))) {
+          contents.pop_back();
+        }
       }
       return contents;
     } else {

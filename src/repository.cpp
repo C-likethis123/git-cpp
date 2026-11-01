@@ -3,7 +3,8 @@
 #include "pack_index.h"
 #include "util.h"
 #include "wildmatch/wildmatch.hpp"
-#include <boost/algorithm/string.hpp>
+#include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -68,7 +69,14 @@ void GitRepository::load_ignore_file(const fs::path &directory) {
     }
     std::string line;
     while (std::getline(file, line)) {
-      boost::trim(line);
+      while (!line.empty() &&
+             std::isspace(static_cast<unsigned char>(line.back()))) {
+        line.pop_back();
+      }
+      const auto first_non_space = std::find_if_not(
+          line.begin(), line.end(),
+          [](unsigned char c) { return std::isspace(c); });
+      line.erase(line.begin(), first_non_space);
       if (line.empty() || line[0] == '#') {
         continue;
       }
@@ -219,15 +227,11 @@ bool GitRepository::has_loose_object(const std::string &sha) const {
 
 bool GitRepository::has_pack_object(const std::string &sha) const {
   fs::path pack_dir = gitdir / "objects/pack";
-  for (auto &entry : fs::directory_iterator(pack_dir)) {
-    if (entry.path().extension() == ".idx") {
-      PackIndex idx(entry.path());
-      if (idx.has_object(sha)) {
-        return true;
-      }
-    }
-  }
-  return false;
+  return std::ranges::any_of(
+      fs::directory_iterator(pack_dir), [&sha](const auto &entry) {
+        return entry.path().extension() == ".idx" &&
+               PackIndex(entry.path()).has_object(sha);
+      });
 }
 
 fs::path GitRepository::tag_path(const std::string &tag) const {

@@ -3,8 +3,7 @@ add_library(boost_libraries INTERFACE)
 target_link_libraries(
   boost_libraries
   INTERFACE Boost::iostreams
-            Boost::uuid
-            Boost::algorithm)
+            Boost::uuid)
 
 add_library(pack_index pack_index.cpp)
 target_include_directories(pack_index PUBLIC ../include)
