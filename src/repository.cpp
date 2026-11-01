@@ -82,7 +82,7 @@ void GitRepository::load_ignore_file(const fs::path &directory) {
         }
         if (line.front() == '/') {
           line.erase(0, 1);
-        } else if (line.find('/') == std::string::npos) {
+        } else if (!line.contains('/')) {
           line = "**/" + line;
         }
         line = prefix + "/" + line + (directory_only ? "/" : "");
@@ -96,7 +96,7 @@ void GitRepository::load_ignore_file(const fs::path &directory) {
 
 std::string GitRepository::get_branch_name() {
   const std::string head = read_file(repo_path("HEAD"), true);
-  if (head.rfind("ref: refs/heads/", 0) != 0) {
+  if (!head.starts_with("ref: refs/heads/")) {
     throw std::runtime_error(
         "Failed to get branch name, repo is in detached HEAD");
   }
@@ -192,7 +192,7 @@ void GitRepository::update_head(const std::string &new_head) {
 
 void GitRepository::update_current_ref(const std::string &commit_hash) {
   const std::string head = read_file(repo_path("HEAD"), true);
-  const fs::path ref_path = head.rfind("ref: ", 0) == 0
+  const fs::path ref_path = head.starts_with("ref: ")
                                 ? repo_path(head.substr(5))
                                 : repo_path("HEAD");
   if (!create_file(ref_path, commit_hash + "\n")) {
@@ -240,7 +240,7 @@ bool GitRepository::has_tag(const std::string &tag) const {
 
 bool GitRepository::has_detached_head() const {
   const std::string head_contents = read_file(repo_path("HEAD"), true);
-  return head_contents.rfind("ref: ", 0) != 0;
+  return !head_contents.starts_with("ref: ");
 }
 
 /**
@@ -282,7 +282,7 @@ bool GitRepository::is_ignored(const fs::path &relative_path,
     }
     if (pattern.front() == '/') {
       pattern.erase(0, 1);
-    } else if (pattern.find('/') == std::string::npos) {
+    } else if (!pattern.contains('/')) {
       pattern = "**/" + pattern;
     }
     if (wild::match(pattern,
@@ -296,11 +296,11 @@ bool GitRepository::is_ignored(const fs::path &relative_path,
 
 std::string GitRepository::get_head() {
   const std::string head_contents = read_file(this->repo_path("HEAD"), true);
-  if (head_contents.rfind("ref: ", 0) == 0) {
+  if (head_contents.starts_with("ref: ")) {
     std::string ref_contents = head_contents.substr(5);
-    if (ref_contents.rfind("refs/heads/", 0) == 0) {
+    if (ref_contents.starts_with("refs/heads/")) {
       return ref_contents.substr(11);
-    } else if (ref_contents.rfind("refs/tags/", 0) == 0) {
+    } else if (ref_contents.starts_with("refs/tags/")) {
       return ref_contents.substr(10);
     } else {
       return head_contents;

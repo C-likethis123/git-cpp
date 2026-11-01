@@ -28,7 +28,7 @@ void commit(std::vector<std::string> &args) {
     parents.push_back(GitObject::find("HEAD"));
   } catch (const std::runtime_error &error) {
     // Only a missing branch reference represents an unborn HEAD.
-    if (head.rfind("ref: refs/heads/", 0) != 0 ||
+    if (!head.starts_with("ref: refs/heads/") ||
         error.what() != "Reference not found: " +
                             repo.repo_path(head.substr(5)).string()) {
       throw;

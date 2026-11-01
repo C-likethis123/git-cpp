@@ -15,7 +15,7 @@ std::string resolve_ref(const fs::path &ref_path) {
   GitRepository repo = GitRepository::find();
   if (fs::exists(ref_path)) {
     const std::string ref = read_file(ref_path, true);
-    if (ref.compare(0, 5, "ref: ") == 0) {
+    if (ref.starts_with("ref: ")) {
       return resolve_ref(repo.repo_path(ref.substr(5)));
     }
     if (ref.empty()) {

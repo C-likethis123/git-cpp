@@ -50,8 +50,7 @@ GitIndex GitIndex::from_tree(const GitTree &tree) {
       [&](const GitTree &directory, const std::string &prefix) {
         for (const auto &name : directory.pathNames) {
           if (name.empty() || name == "." || name == ".." || name == ".git" ||
-              name.find('/') != std::string::npos ||
-              name.find('\0') != std::string::npos) {
+              name.contains('/') || name.contains('\0')) {
             throw std::runtime_error("Invalid tree entry name: " + name);
           }
           const std::string path = prefix + name;
@@ -64,11 +63,13 @@ GitIndex GitIndex::from_tree(const GitTree &tree) {
               mode != 0160000) {
             throw std::runtime_error("Unsupported tree mode: " + path);
           }
-          // Stat data stays invalid until the working tree is checked/refreshed.
-          if (!entries.try_emplace(
-                  EntryKey{path, IndexStage::Resolved}, 0, 0, 0, 0, 0, 0,
-                  mode, (mode >> 12) & 0xF, 0, mode & 0777, 0, 0, 0, sha,
-                  false, false, IndexStage::Resolved, path.size(), path)
+          // Stat data stays invalid until the working tree is
+          // checked/refreshed.
+          if (!entries
+                   .try_emplace(EntryKey{path, IndexStage::Resolved}, 0, 0, 0,
+                                0, 0, 0, mode, (mode >> 12) & 0xF, 0,
+                                mode & 0777, 0, 0, 0, sha, false, false,
+                                IndexStage::Resolved, path.size(), path)
                    .second) {
             throw std::runtime_error("Duplicate tree path: " + path);
           }
@@ -125,11 +126,10 @@ GitIndex GitIndex::read() {
       ptr = ceil((idx - 12 + 1) / 8.0) * 8 + 12;
     }
     indexEntries.try_emplace(EntryKey{file_name, flag_stage}, ctime_sec,
-                             ctime_nanosec, mtime_sec,
-                             mtime_nanosec, dev, ino, mode, object_type, unused,
-                             permissions, uid, gid, file_size, sha1,
-                             flag_assume_valid, flag_extended, flag_stage,
-                             file_name_length, file_name);
+                             ctime_nanosec, mtime_sec, mtime_nanosec, dev, ino,
+                             mode, object_type, unused, permissions, uid, gid,
+                             file_size, sha1, flag_assume_valid, flag_extended,
+                             flag_stage, file_name_length, file_name);
   }
 
   return GitIndex(fileVersion, indexEntries);
@@ -142,7 +142,7 @@ void GitIndex::print_matching_patterns(const std::string &path) {
     fs::path path_in_repo = repo.worktree_path(file_name);
     fs::path prefix_to_remove = repo.worktree_path(path);
     // TODO: fix bug where the file name is too long to handle
-    if (file_name.rfind(path, 0) == 0) {
+    if (file_name.starts_with(path)) {
       std::println(std::cout, "{}",
                    fs::relative(path_in_repo, prefix_to_remove).string());
     }
@@ -287,9 +287,8 @@ std::string GitIndex::write_tree() const {
     }
     const fs::path index_path(path);
     // Path iteration collapses repeated separators, so reject them first.
-    if (path.empty() || index_path.is_absolute() ||
-        path.find('\0') != std::string::npos ||
-        path.find("//") != std::string::npos) {
+    if (path.empty() || index_path.is_absolute() || path.contains('\0') ||
+        path.contains("//")) {
       throw std::runtime_error("Invalid index path: " + path);
     }
     Directory *directory = &root;
