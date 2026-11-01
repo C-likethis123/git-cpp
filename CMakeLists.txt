@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.24)
 
 # Set a name and a version number for your project:
 project(
@@ -17,8 +17,9 @@ include(CTest)
 
 set(BOOST_ENABLE_CMAKE ON)
 set(Boost_CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(BOOST_INCLUDE_LIBRARIES iostreams uuid algorithm)
 
