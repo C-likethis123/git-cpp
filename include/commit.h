@@ -1,7 +1,7 @@
 #ifndef COMMIT_H
 #define COMMIT_H
 
-#include <cstdint>
+#include <chrono>
 #include <optional>
 #include <string>
 #include <vector>
@@ -13,7 +13,7 @@ public:
   struct Identity {
     std::string name;
     std::string email;
-    std::int64_t unix_timestamp;
+    std::chrono::sys_seconds timestamp{};
     std::string timezone;
   };
 
@@ -36,7 +36,7 @@ public:
   bool has_parents() const;
   const std::vector<std::string> &get_parents() const;
   std::string get_tree() const;
-  std::int64_t get_committer_timestamp() const;
+  std::chrono::sys_seconds get_committer_timestamp() const;
   std::string get_sha() const;
   bool has_ancestor(const GitCommit &commit) const;
 

@@ -21,8 +21,9 @@ TEST_CASE("merge parser rejects missing or extra arguments", "[merge]") {
 TEST_CASE("merge command reports the unimplemented scaffold", "[merge]") {
   GitRepoSetup setup;
   const auto head = GitCommit::read("HEAD");
-  const GitCommit::Identity identity{"Merge Test", "merge@example.com",
-                                     1700000000, "+0800"};
+  const GitCommit::Identity identity{
+      "Merge Test", "merge@example.com",
+      std::chrono::sys_seconds{std::chrono::seconds{1700000000}}, "+0800"};
   GitCommit target(head.get_tree(), {}, identity, identity, "unrelated target");
   const auto target_hash =
       GitObject::write(GitObjectType::Commit, target.serialise(), true);

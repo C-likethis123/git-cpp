@@ -28,9 +28,11 @@ std::string GitCommit::serialise() {
     ss << "parent " << parent << "\n";
   }
   ss << "author " << author.name << " <" << author.email << "> "
-     << author.unix_timestamp << " " << author.timezone << "\n";
+     << author.timestamp.time_since_epoch().count() << " " << author.timezone
+     << "\n";
   ss << "committer " << committer.name << " <" << committer.email << "> "
-     << committer.unix_timestamp << " " << committer.timezone << "\n";
+     << committer.timestamp.time_since_epoch().count() << " "
+     << committer.timezone << "\n";
   if (gpgsig) {
     ss << "gpgsig " << *gpgsig << "\n";
   }
@@ -48,9 +50,9 @@ std::string GitCommit::print_commit() {
     }
     output += '\n';
   }
-  output += std::format("{:<8}{} <{}>\n{:<8}{}\n\n\t{}", "Author:",
-                        author.name, author.email, "Date:",
-                        format_unix_time(author.unix_timestamp), message);
+  output += std::format(
+      "{:<8}{} <{}>\n{:<8}{}\n\n\t{}", "Author:", author.name, author.email,
+      "Date:", format_commit_time(author.timestamp, author.timezone), message);
   return output;
 }
 
@@ -144,7 +146,8 @@ void GitCommit::deserialise(const std::string &data) {
           value.substr(email_end + 2, timestamp_end - email_end - 2);
       try {
         std::size_t consumed = 0;
-        identity.unix_timestamp = std::stoll(timestamp, &consumed);
+        identity.timestamp = std::chrono::sys_seconds{
+            std::chrono::seconds{std::stoll(timestamp, &consumed)}};
         if (consumed != timestamp.size() ||
             timestamp.find_first_not_of("-0123456789") != std::string::npos) {
           throw std::invalid_argument("Invalid timestamp");
@@ -181,8 +184,8 @@ const std::vector<std::string> &GitCommit::get_parents() const {
 
 std::string GitCommit::get_tree() const { return tree; }
 
-std::int64_t GitCommit::get_committer_timestamp() const {
-  return committer.unix_timestamp;
+std::chrono::sys_seconds GitCommit::get_committer_timestamp() const {
+  return committer.timestamp;
 }
 
 bool GitCommit::has_ancestor(const GitCommit &commit) const {

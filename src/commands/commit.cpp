@@ -6,6 +6,7 @@
 #include "parsers/CommitParser.h"
 #include "repository.h"
 #include "util.h"
+#include <chrono>
 #include <cstdlib>
 #include <ctime>
 #include <filesystem>
@@ -29,14 +30,15 @@ void commit(std::vector<std::string> &args) {
   } catch (const std::runtime_error &error) {
     // Only a missing branch reference represents an unborn HEAD.
     if (!head.starts_with("ref: refs/heads/") ||
-        error.what() != "Reference not found: " +
-                            repo.repo_path(head.substr(5)).string()) {
+        error.what() !=
+            "Reference not found: " + repo.repo_path(head.substr(5)).string()) {
       throw;
     }
   }
 
   // create commit
-  std::time_t curr_time = std::time(nullptr);
+  const auto curr_time = std::chrono::floor<std::chrono::seconds>(
+      std::chrono::system_clock::now());
   std::string name;
   std::string email;
   if (const char *home = std::getenv("HOME")) {
@@ -53,12 +55,10 @@ void commit(std::vector<std::string> &args) {
       email.find_first_of("\r\n<>") != std::string::npos) {
     throw std::runtime_error("Invalid commit name or email");
   }
-  const std::tm *local_time = std::localtime(&curr_time);
-  char timezone[6];
-  if (!local_time ||
-      std::strftime(timezone, sizeof(timezone), "%z", local_time) != 5) {
-    throw std::runtime_error("Could not determine local timezone");
-  }
+  // shortcut: use libc for the offset until libc++ supports chrono timezones.
+  const auto local =
+      std::chrono::zoned_time{std::chrono::current_zone(), curr_time};
+  const auto timezone = std::format("{:%z}", local);
   const GitCommit::Identity identity{name, email, curr_time, timezone};
   GitCommit commit(tree, parents, identity, identity, message + "\n");
   const std::string created_hash =

@@ -110,7 +110,8 @@ TEST_CASE("Commit keeps author and committer identities separate", "[commit]") {
       "\nsubject\n\nbody\n";
   GitCommit commit(payload);
   REQUIRE(commit.serialise() == payload);
-  REQUIRE(commit.get_committer_timestamp() == 1700000001);
+  REQUIRE(commit.get_committer_timestamp() ==
+          std::chrono::sys_seconds{std::chrono::seconds{1700000001}});
   REQUIRE(commit.print_commit().find("Original Author <author@example.com>") !=
           std::string::npos);
 }
@@ -154,4 +155,16 @@ TEST_CASE("Commit skips unfamiliar multiline headers", "[commit]") {
   GitCommit commit(payload);
   REQUIRE(commit.get_tree() == "1111111111111111111111111111111111111111");
   REQUIRE(commit.print_commit().find("subject\n\nbody") != std::string::npos);
+}
+
+TEST_CASE("Commit chrono timestamps preserve Unix seconds", "[commit]") {
+  const auto seconds = GENERATE(-1LL, 0LL, 1700000000LL);
+  const auto value = std::to_string(seconds);
+  const auto payload = tree + "author Test <test@example.com> " + value +
+                       " -0000\ncommitter Test <test@example.com> " + value +
+                       " +0800\n\nmessage";
+  GitCommit commit(payload);
+  CHECK(commit.get_committer_timestamp() ==
+        std::chrono::sys_seconds{std::chrono::seconds{seconds}});
+  CHECK(commit.serialise() == payload);
 }

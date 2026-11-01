@@ -15,7 +15,7 @@ void log(std::vector<std::string> &args) {
   std::string commit = GitObject::find(options.commit);
   struct PendingCommit {
     GitCommit commit;
-    std::int64_t timestamp;
+    std::chrono::sys_seconds timestamp;
     std::size_t order;
   };
   const auto older = [](const PendingCommit &a, const PendingCommit &b) {

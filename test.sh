@@ -8,7 +8,7 @@ if [ "$EUID" -eq 0 ]; then
 fi
 
 PROJECT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-BUILD_DIR="$PROJECT_DIR/build"
+BUILD_DIR="$PROJECT_DIR/build-gcc15"
 BUILD_TYPE=${BUILD_TYPE:-Debug}
 
 case "${1:-}" in
@@ -34,9 +34,8 @@ done
 echo "Selected build type: $BUILD_TYPE"
 echo "Configuring the project (first-time dependency downloads may take a while)..."
 cmake --fresh -S "$PROJECT_DIR" -B "$BUILD_DIR" \
-    -DCMAKE_C_COMPILER=/opt/homebrew/opt/llvm@18/bin/clang \
-    -DCMAKE_CXX_COMPILER=/opt/homebrew/opt/llvm@18/bin/clang++ \
-    -DCMAKE_OSX_SYSROOT="$(xcrun --show-sdk-path)" \
+    -DCMAKE_C_COMPILER=/opt/homebrew/bin/gcc-15 \
+    -DCMAKE_CXX_COMPILER=/opt/homebrew/bin/g++-15 \
     -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
     -DBUILD_TESTS=ON \
