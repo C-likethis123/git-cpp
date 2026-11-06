@@ -1,6 +1,6 @@
 #include "util.h"
 #include <arpa/inet.h>
-#include <boost/uuid/detail/sha1.hpp>
+#include <sha1.hpp>
 #include <cctype>
 #include <cstdint>
 #include <cstring>
@@ -160,16 +160,9 @@ fs::perms get_unix_permissions(int mode) {
 }
 
 std::string sha1_hexdigest(const std::string &data) {
-  boost::uuids::detail::sha1 sha1;
-  sha1.process_bytes(data.data(), data.size());
-
-  unsigned int digest[5];
-  sha1.get_digest(digest);
-
-  return digest | std::views::transform([](unsigned int byte) {
-           return std::format("{:08x}", byte);
-         }) |
-         std::views::join | std::ranges::to<std::string>();
+  SHA1 sha1;
+  sha1.update(data);
+  return sha1.final();
 }
 
 std::string binaryToHex(const std::string &binaryData) {

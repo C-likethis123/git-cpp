@@ -15,21 +15,16 @@ enable_language(C)
 # this needs to be in the top level CMakeLists.txt to enable tests
 include(CTest)
 
-set(BOOST_ENABLE_CMAKE ON)
-set(Boost_CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(BOOST_INCLUDE_LIBRARIES uuid)
-
 include(FetchContent)
 FetchContent_Declare(
-  Boost
-  GIT_REPOSITORY https://github.com/boostorg/boost.git
-  GIT_TAG boost-1.85.0
-  GIT_SHALLOW TRUE)
-FetchContent_MakeAvailable(Boost)
+  vog_sha1
+  GIT_REPOSITORY https://github.com/vog/sha1.git
+  GIT_TAG 3f8a4aa032d144309d00dbfe972906a49b3631b9)
+FetchContent_MakeAvailable(vog_sha1)
 find_package(ZLIB REQUIRED)
 FetchContent_Declare(
   zstr

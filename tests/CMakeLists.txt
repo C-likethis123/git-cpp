@@ -3,7 +3,7 @@ file(GLOB UTILS_SOURCES CONFIGURE_DEPENDS "utils/*.cpp")
 add_executable(tests tests.cpp ${TEST_SOURCES} ${UTILS_SOURCES})
 target_include_directories(tests PUBLIC ../ext ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(tests PUBLIC boost_libraries commands ZLIB::ZLIB)
+target_link_libraries(tests PUBLIC commands ZLIB::ZLIB)
 
 # Copy the test git repository
 # Note: Since gitrepo is a submodule, we need to copy the actual .git directory
