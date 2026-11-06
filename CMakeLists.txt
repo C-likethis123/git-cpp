@@ -21,7 +21,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(BOOST_INCLUDE_LIBRARIES iostreams uuid)
+set(BOOST_INCLUDE_LIBRARIES uuid)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -31,7 +31,11 @@ FetchContent_Declare(
   GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(Boost)
 find_package(ZLIB REQUIRED)
-set(EXTRA_LIBS Boost::iostreams ZLIB::ZLIB)
+FetchContent_Declare(
+  zstr
+  GIT_REPOSITORY https://github.com/mateidavid/zstr.git
+  GIT_TAG dc86d3d9e516a6ed44d4a4049faf73e5fc0e1dde) # v1.1.0
+FetchContent_MakeAvailable(zstr)
 
 # compile the library
 add_subdirectory(src)

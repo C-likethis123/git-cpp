@@ -1,9 +1,5 @@
 #include "util.h"
-#include <algorithm>
 #include <arpa/inet.h>
-#include <boost/iostreams/copy.hpp>
-#include <boost/iostreams/filter/zlib.hpp>
-#include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/uuid/detail/sha1.hpp>
 #include <cctype>
 #include <cstdint>

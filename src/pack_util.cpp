@@ -8,8 +8,8 @@ std::pair<uint8_t, uint64_t> read_pack_object_header(std::ifstream &file_pos) {
   std::string first_byte = read_bytes(file_pos, 1);
   uint8_t byte = static_cast<uint8_t>(first_byte[0]);
 
-  // Extract object type from bits 7-4
-  uint8_t object_type = (byte >> 4) & 0x0F;
+  // Bits 4-6 hold the type; bit 7 signals another size byte.
+  uint8_t object_type = (byte >> 4) & 0x07;
 
   // Extract initial size from bits 3-0
   uint64_t size = byte & 0x0F;

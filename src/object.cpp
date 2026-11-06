@@ -5,9 +5,7 @@
 #include "repository.h"
 #include "tree.h"
 #include "util.h"
-#include <boost/iostreams/copy.hpp>
-#include <boost/iostreams/filter/zlib.hpp>
-#include <boost/iostreams/filtering_streambuf.hpp>
+#include <zstr.hpp>
 
 #include <algorithm>
 #include <cctype>
@@ -72,14 +70,11 @@ std::string GitObject::write(GitObjectType type, const std::string &data,
     fs::path file_path = repo.object_path(sha);
     fs::path paths = repo.file(file_path, write);
 
-    // compress files
-    std::stringstream compressed;
-    boost::iostreams::filtering_streambuf<boost::iostreams::output> out;
-    out.push(boost::iostreams::zlib_compressor());
-    out.push(compressed);
-    boost::iostreams::copy(boost::iostreams::basic_array_source<char>(
-                               result.data(), result.size()),
-                           out);
+    std::ostringstream compressed;
+    // Git uses zlib framing; zstr defaults to gzip framing.
+    zstr::ostream out(compressed, 16384, Z_DEFAULT_COMPRESSION, 15);
+    out.write(result.data(), static_cast<std::streamsize>(result.size()));
+    out.flush(); // Finish the stream and report errors before saving it.
     if (!create_file(paths, compressed.str())) {
       throw std::runtime_error("Failed to write object: " + sha);
     }

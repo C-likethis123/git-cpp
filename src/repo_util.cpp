@@ -1,14 +1,58 @@
 #include "pack_util.h"
 #include "repository.h"
 #include "util.h"
-#include <boost/iostreams/copy.hpp>
-#include <boost/iostreams/filter/zlib.hpp>
-#include <boost/iostreams/filtering_streambuf.hpp>
+#include <array>
 #include <fstream>
-#include <iostream>
-#include <print>
-#include <sstream>
 #include <stdexcept>
+#include <zlib.h>
+
+namespace {
+// zstr reads concatenated streams and accepts some truncated inputs. Git needs
+// checksum validation and a stop at the first stream, particularly in
+// packfiles.
+std::string read_zlib_stream(std::ifstream &file) {
+  if (!file) {
+    throw std::runtime_error("Unable to read compressed object");
+  }
+  z_stream stream{};
+  const int init_result = inflateInit(&stream);
+  if (init_result != Z_OK) {
+    throw std::runtime_error(zError(init_result));
+  }
+  struct Cleanup {
+    z_stream &stream;
+    ~Cleanup() { inflateEnd(&stream); }
+  } cleanup{stream};
+
+  std::array<unsigned char, 16384> input{}, output{};
+  std::string result;
+  while (true) {
+    if (stream.avail_in == 0) {
+      file.read(reinterpret_cast<char *>(input.data()), input.size());
+      if (file.bad() || (file.fail() && !file.eof())) {
+        throw std::runtime_error("Failed to read compressed object");
+      }
+      if (file.gcount() == 0) {
+        throw std::runtime_error("Truncated zlib stream");
+      }
+      stream.next_in = input.data();
+      stream.avail_in = static_cast<uInt>(file.gcount());
+    }
+    stream.next_out = output.data();
+    stream.avail_out = output.size();
+    const int status = inflate(&stream, Z_NO_FLUSH);
+    if (status != Z_OK && status != Z_STREAM_END) {
+      throw std::runtime_error("Zlib decompression error: " +
+                               std::string(zError(status)));
+    }
+    result.append(reinterpret_cast<const char *>(output.data()),
+                  output.size() - stream.avail_out);
+    if (status == Z_STREAM_END) {
+      return result;
+    }
+  }
+}
+} // namespace
 
 // Recursively resolves loose refs, falling back to packed refs.
 std::string resolve_ref(const fs::path &ref_path) {
@@ -70,18 +114,7 @@ read_git_object_data(const std::string &sha) {
   }
   std::ifstream input_file(paths.string(),
                            std::ios_base::in | std::ios_base::binary);
-  std::stringstream decompressed_data;
-
-  boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
-  in.push(boost::iostreams::zlib_decompressor());
-  in.push(input_file);
-  try {
-    boost::iostreams::copy(in, decompressed_data);
-  } catch (const boost::iostreams::zlib_error &e) {
-    std::println(std::cerr, "Zlib decompression error: {}", e.what());
-  }
-
-  std::string raw = decompressed_data.str();
+  std::string raw = read_zlib_stream(input_file);
   // Read object type
   auto x = raw.find(' ');
   std::string fmt = raw.substr(0, x);
@@ -115,23 +148,10 @@ std::pair<std::string, std::string> read_from_pack(const fs::path &pack_path,
     throw std::runtime_error("Delta objects not yet implemented");
   }
 
-  // Read and decompress the object data
-  std::string compressed_data = read_bytes(file, object_size);
-
-  // Decompress using zlib
-  std::stringstream compressed_stream(compressed_data);
-  std::stringstream decompressed_stream;
-
-  boost::iostreams::filtering_streambuf<boost::iostreams::input> in;
-  in.push(boost::iostreams::zlib_decompressor());
-  in.push(compressed_stream);
-
-  try {
-    boost::iostreams::copy(in, decompressed_stream);
-  } catch (const boost::iostreams::zlib_error &e) {
-    throw std::runtime_error("Zlib decompression error: " +
-                             std::string(e.what()));
+  // The header size is uncompressed; zlib determines the compressed boundary.
+  std::string payload = read_zlib_stream(file);
+  if (payload.size() != object_size) {
+    throw std::runtime_error("Malformed packed object: bad length");
   }
-
-  return {type_to_string(object_type), decompressed_stream.str()};
+  return {type_to_string(object_type), std::move(payload)};
 }

@@ -2,15 +2,14 @@
 add_library(boost_libraries INTERFACE)
 target_link_libraries(
   boost_libraries
-  INTERFACE Boost::iostreams
-            Boost::uuid)
+  INTERFACE Boost::uuid)
 
 add_library(pack_index pack_index.cpp)
 target_include_directories(pack_index PUBLIC ../include)
 target_compile_features(pack_index PUBLIC cxx_std_23)
 
 add_library(util util.cpp repo_util.cpp pack_util.cpp date_util.cpp)
-target_link_libraries(util PRIVATE boost_libraries)
+target_link_libraries(util PRIVATE boost_libraries ZLIB::ZLIB)
 target_include_directories(util PUBLIC ../include)
 target_compile_features(util PUBLIC cxx_std_23)
 
@@ -28,7 +27,7 @@ target_include_directories(repository PUBLIC ../include)
 target_compile_features(repository PUBLIC cxx_std_23)
 
 add_library(object object.cpp blob.cpp commit.cpp tree.cpp index.cpp index_entry.cpp status_formatter.cpp)
-target_link_libraries(object PRIVATE util repository boost_libraries)
+target_link_libraries(object PRIVATE util repository boost_libraries zstr::zstr)
 target_include_directories(object PUBLIC ../include)
 target_compile_features(object PUBLIC cxx_std_23)
 
